@@ -3,9 +3,10 @@ use crate::item::ItemID;
 use crate::slot::InventorySlot;
 use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
-use bitcode_derive::{Decode, Encode};
 
-#[derive(Component, Clone, Debug, Decode, Encode)]
+// TODO: Re-add bitcode Decode/Encode once Component serialization is implemented
+// For now, inventory persistence is disabled to enable network component testing
+#[derive(Component, Clone, Debug)]
 pub struct Inventory {
     pub slots: Box<[Option<InventorySlot>]>,
 }

@@ -5,11 +5,12 @@ use crate::player::experience::Experience;
 use crate::player::gamemode::GameMode;
 use crate::player::gameplay_state::ender_chest::EnderChest;
 use crate::player::hunger::Hunger;
-use bitcode_derive::{Decode, Encode};
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_inventories::inventory::Inventory;
 
-#[derive(Clone, Debug, Encode, Decode, Default)]
+// TODO: Re-add bitcode Decode/Encode once Inventory Component serialization is implemented.
+// Player data persistence is temporarily disabled for network component testing.
+#[derive(Clone, Debug, Default)]
 pub struct OfflinePlayerData {
     pub abilities: PlayerAbilities,
     pub gamemode: GameMode,

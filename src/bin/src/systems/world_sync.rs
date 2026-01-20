@@ -53,7 +53,8 @@ pub fn sync_world(
         active_effects,
     ) in player_query.iter()
     {
-        let data = OfflinePlayerData {
+        // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
+        let _data = OfflinePlayerData {
             abilities: *abilities,
             gamemode: gamemode.0,
             position: (*position).into(),
@@ -65,11 +66,12 @@ pub fn sync_world(
             ender_chest: ender_chest.clone(),
             active_effects: active_effects.clone(),
         };
-        state
-            .0
-            .world
-            .save_player_data(identity.uuid, &data)
-            .expect("Failed to save player data");
+        // Persistence temporarily disabled for network component testing
+        // state
+        //     .0
+        //     .world
+        //     .save_player_data(identity.uuid, &data)
+        //     .expect("Failed to save player data");
     }
 
     last_synced.last_synced = std::time::Instant::now();

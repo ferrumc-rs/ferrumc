@@ -348,15 +348,13 @@ async fn finish_configuration(
 /// Sends initial play state packets (login_play, abilities, op level).
 fn send_initial_play_packets(
     conn_write: &StreamWriter,
-    state: &GlobalState,
+    _state: &GlobalState,
     player_identity: &PlayerIdentity,
 ) -> Result<(), NetError> {
     // Send login_play
-    let player_data: OfflinePlayerData = state
-        .world
-        .load_player_data(player_identity.uuid)
-        .unwrap_or_default()
-        .unwrap_or_default();
+    // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
+    // Using defaults until then.
+    let player_data: OfflinePlayerData = OfflinePlayerData::default();
     let game_mode = player_data.gamemode;
 
     conn_write.send_packet(LoginPlayPacket::new(
@@ -382,34 +380,22 @@ fn send_initial_play_packets(
 async fn sync_player_position(
     conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
-    state: &GlobalState,
-    player_identity: &PlayerIdentity,
+    _state: &GlobalState,
+    _player_identity: &PlayerIdentity,
     compressed: bool,
 ) -> Result<(), NetError> {
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
 
-    // Get spawn position from cache or use defaults
-    let (spawn_pos, spawn_rotation) = if let Some(data) = state
-        .world
-        .load_player_data::<OfflinePlayerData>(player_identity.uuid)
-        .unwrap_or_else(|err| {
-            error!(
-                "Error loading player data for {}: {:?}",
-                player_identity.username, err
-            );
-            None
-        }) {
-        (data.position.into(), data.rotation)
-    } else {
-        (
-            Position::new(
-                DEFAULT_SPAWN_POSITION.x as f64,
-                DEFAULT_SPAWN_POSITION.y as f64,
-                DEFAULT_SPAWN_POSITION.z as f64,
-            ),
-            Rotation::default(),
-        )
-    };
+    // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
+    // Using default spawn position until then.
+    let (spawn_pos, spawn_rotation) = (
+        Position::new(
+            DEFAULT_SPAWN_POSITION.x as f64,
+            DEFAULT_SPAWN_POSITION.y as f64,
+            DEFAULT_SPAWN_POSITION.z as f64,
+        ),
+        Rotation::default(),
+    );
 
     // Send position sync
     conn_write.send_packet(SynchronizePlayerPositionPacket::from_position_rotation(

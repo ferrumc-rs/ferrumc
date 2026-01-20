@@ -23,10 +23,8 @@ pub fn handle(
                             InventorySlot {
                                 count: new_data.item_count,
                                 item_id: Some(ItemID(new_data.item_id)),
-                                components_to_add: None,
-                                components_to_remove: None,
-                                components_to_add_count: None,
-                                components_to_remove_count: None,
+                                components_to_add: Vec::new(),
+                                components_to_remove: Vec::new(),
                             },
                         )
                         .expect("failed to write to inventory");

@@ -25,6 +25,7 @@ use tokio::io::{AsyncRead, AsyncWrite};
 
 /// A wrapper for raw NBT data that is not parsed.
 /// Used for component fields that contain arbitrary NBT structures.
+#[derive(Debug, Clone)]
 pub struct RawNbt(pub Vec<u8>);
 
 impl NetEncode for RawNbt {
@@ -61,7 +62,7 @@ impl NetDecode for RawNbt {
 
 /// All possible item components in the Minecraft protocol.
 /// Each variant corresponds to a component ID as defined in the protocol.
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum Component {
     // ID 0
     CustomData(RawNbt),
@@ -335,12 +336,116 @@ pub enum Component {
     ShulkerColor(DyeColor),
 }
 
+impl Component {
+    /// Returns the protocol ID for this component type.
+    pub fn id(&self) -> VarInt {
+        VarInt(match self {
+            Component::CustomData(_) => 0,
+            Component::MaxStackSize(_) => 1,
+            Component::MaxDamage(_) => 2,
+            Component::Damage(_) => 3,
+            Component::Unbreakable => 4,
+            Component::CustomName(_) => 5,
+            Component::ItemName(_) => 6,
+            Component::ItemModel(_) => 7,
+            Component::Lore(_) => 8,
+            Component::Rarity(_) => 9,
+            Component::Enchantments(_) => 10,
+            Component::CanPlaceOn(_) => 11,
+            Component::CanBreak(_) => 12,
+            Component::AttributeModifiers(_) => 13,
+            Component::CustomModelData { .. } => 14,
+            Component::TooltipDisplay { .. } => 15,
+            Component::RepairCost(_) => 16,
+            Component::CreativeSlotLock => 17,
+            Component::EnchantmentGlintOverride(_) => 18,
+            Component::IntangibleProjectile(_) => 19,
+            Component::Food { .. } => 20,
+            Component::Consumable { .. } => 21,
+            Component::UseRemainder(_) => 22,
+            Component::UseCooldown { .. } => 23,
+            Component::DamageResistant(_) => 24,
+            Component::Tool { .. } => 25,
+            Component::Weapon { .. } => 26,
+            Component::Enchantable(_) => 27,
+            Component::Equippable { .. } => 28,
+            Component::Repairable(_) => 29,
+            Component::Glider => 30,
+            Component::TooltipStyle(_) => 31,
+            Component::DeathProtection(_) => 32,
+            Component::BlocksAttacks { .. } => 33,
+            Component::StoredEnchantments(_) => 34,
+            Component::DyedColor(_) => 35,
+            Component::MapColor(_) => 36,
+            Component::MapId(_) => 37,
+            Component::MapDecorations(_) => 38,
+            Component::MapPostProcessing(_) => 39,
+            Component::ChargedProjectiles(_) => 40,
+            Component::BundleContents(_) => 41,
+            Component::PotionContents { .. } => 42,
+            Component::PotionDurationScale(_) => 43,
+            Component::SuspiciousStewEffects(_) => 44,
+            Component::WritableBookContent(_) => 45,
+            Component::WrittenBookContent { .. } => 46,
+            Component::Trim { .. } => 47,
+            Component::DebugStickState(_) => 48,
+            Component::EntityData { .. } => 49,
+            Component::BucketEntityData(_) => 50,
+            Component::BlockEntityData { .. } => 51,
+            Component::Instrument(_) => 52,
+            Component::ProvidesTrimMaterial { .. } => 53,
+            Component::OminousBottleAmplifier(_) => 54,
+            Component::JukeboxPlayable { .. } => 55,
+            Component::ProvidesBannerPatterns(_) => 56,
+            Component::Recipes(_) => 57,
+            Component::LodestoneTracker { .. } => 58,
+            Component::FireworkExplosion(_) => 59,
+            Component::Fireworks { .. } => 60,
+            Component::Profile(_) => 61,
+            Component::NoteBlockSound(_) => 62,
+            Component::BannerPatterns(_) => 63,
+            Component::BaseColor(_) => 64,
+            Component::PotDecorations(_) => 65,
+            Component::Container(_) => 66,
+            Component::BlockState(_) => 67,
+            Component::Bees(_) => 68,
+            Component::Lock(_) => 69,
+            Component::ContainerLoot(_) => 70,
+            Component::BreakSound(_) => 71,
+            Component::VillagerVariant(_) => 72,
+            Component::WolfVariant(_) => 73,
+            Component::WolfSoundVariant(_) => 74,
+            Component::WolfCollar(_) => 75,
+            Component::FoxVariant(_) => 76,
+            Component::SalmonSize(_) => 77,
+            Component::ParrotVariant(_) => 78,
+            Component::TropicalFishPattern(_) => 79,
+            Component::TropicalFishBaseColor(_) => 80,
+            Component::TropicalFishPatternColor(_) => 81,
+            Component::MooshroomVariant(_) => 82,
+            Component::RabbitVariant(_) => 83,
+            Component::PigVariant(_) => 84,
+            Component::CowVariant(_) => 85,
+            Component::ChickenVariant(_) => 86,
+            Component::FrogVariant(_) => 87,
+            Component::HorseVariant(_) => 88,
+            Component::PaintingVariant(_) => 89,
+            Component::LlamaVariant(_) => 90,
+            Component::AxolotlVariant(_) => 91,
+            Component::CatVariant(_) => 92,
+            Component::CatCollar(_) => 93,
+            Component::SheepColor(_) => 94,
+            Component::ShulkerColor(_) => 95,
+        })
+    }
+}
+
 // ============================================================================
 // Helper Enums
 // ============================================================================
 
 /// Item rarity levels
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum Rarity {
@@ -350,8 +455,22 @@ pub enum Rarity {
     Epic = 3,
 }
 
+impl NetEncode for Rarity {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Dye colors used throughout Minecraft
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum DyeColor {
@@ -373,8 +492,22 @@ pub enum DyeColor {
     Black = 15,
 }
 
+impl NetEncode for DyeColor {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Equipment slot types
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum EquippableSlot {
@@ -387,8 +520,22 @@ pub enum EquippableSlot {
     Body = 6,
 }
 
+impl NetEncode for EquippableSlot {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Animation types for consumable items
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum ConsumableAnimation {
@@ -404,8 +551,22 @@ pub enum ConsumableAnimation {
     Brush = 9,
 }
 
+impl NetEncode for ConsumableAnimation {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Attribute modifier operations
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum AttributeModifierOperation {
@@ -414,8 +575,22 @@ pub enum AttributeModifierOperation {
     MultiplyPercentage = 2,
 }
 
+impl NetEncode for AttributeModifierOperation {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Attribute modifier slot types
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum AttributeModifierSlot {
@@ -431,8 +606,22 @@ pub enum AttributeModifierSlot {
     Body = 9,
 }
 
+impl NetEncode for AttributeModifierSlot {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Map post-processing types
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum MapPostProcessing {
@@ -440,8 +629,22 @@ pub enum MapPostProcessing {
     Scale = 1,
 }
 
+impl NetEncode for MapPostProcessing {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Firework explosion shapes
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum FireworkExplosionShape {
@@ -452,8 +655,22 @@ pub enum FireworkExplosionShape {
     Burst = 4,
 }
 
+impl NetEncode for FireworkExplosionShape {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Fox variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum FoxVariant {
@@ -461,8 +678,22 @@ pub enum FoxVariant {
     Snow = 1,
 }
 
+impl NetEncode for FoxVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Salmon sizes
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum SalmonSize {
@@ -471,8 +702,22 @@ pub enum SalmonSize {
     Large = 2,
 }
 
+impl NetEncode for SalmonSize {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Parrot variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum ParrotVariant {
@@ -483,8 +728,22 @@ pub enum ParrotVariant {
     Gray = 4,
 }
 
+impl NetEncode for ParrotVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Tropical fish patterns
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum TropicalFishPattern {
@@ -502,8 +761,22 @@ pub enum TropicalFishPattern {
     Clayfish = 11,
 }
 
+impl NetEncode for TropicalFishPattern {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Mooshroom variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum MooshroomVariant {
@@ -511,8 +784,22 @@ pub enum MooshroomVariant {
     Brown = 1,
 }
 
+impl NetEncode for MooshroomVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Rabbit variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum RabbitVariant {
@@ -525,8 +812,22 @@ pub enum RabbitVariant {
     Evil = 6,
 }
 
+impl NetEncode for RabbitVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Horse variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum HorseVariant {
@@ -539,8 +840,22 @@ pub enum HorseVariant {
     DarkBrown = 6,
 }
 
+impl NetEncode for HorseVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Llama variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum LlamaVariant {
@@ -550,8 +865,22 @@ pub enum LlamaVariant {
     Gray = 3,
 }
 
+impl NetEncode for LlamaVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 /// Axolotl variants
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, Copy, NetDecode)]
 #[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum AxolotlVariant {
@@ -562,19 +891,33 @@ pub enum AxolotlVariant {
     Blue = 4,
 }
 
+impl NetEncode for AxolotlVariant {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt(*self as i32).encode_async(writer, opts).await
+    }
+}
+
 // ============================================================================
 // Helper Structs
 // ============================================================================
 
 /// Enchantment data
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct EnchantComponent {
     pub id: VarInt,
     pub level: VarInt,
 }
 
 /// Attribute modifier data
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct AttributeModifierComponent {
     pub attribute_id: VarInt,
     pub modifier_id: String,
@@ -584,7 +927,7 @@ pub struct AttributeModifierComponent {
 }
 
 /// Tool rule for mining behavior
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct ToolRule {
     pub blocks: IDSet,
     pub speed: PrefixedOptional<f32>,
@@ -592,7 +935,7 @@ pub struct ToolRule {
 }
 
 /// Sound event with optional fixed range
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct SoundEvent {
     pub sound_name: String,
     pub fixed_range: PrefixedOptional<f32>,
@@ -600,20 +943,20 @@ pub struct SoundEvent {
 
 /// Either a registry ID or an inline sound event.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrSoundEvent {
     Id(VarInt),
     Inline(SoundEvent),
 }
 
 /// Block predicates for can_place_on and can_break
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct BlockPredicates {
     pub predicates: LengthPrefixedVec<BlockPredicate>,
 }
 
 /// A single block predicate
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct BlockPredicate {
     pub blocks: PrefixedOptional<IDSet>,
     pub properties: PrefixedOptional<LengthPrefixedVec<BlockPropertyMatcher>>,
@@ -625,7 +968,7 @@ pub struct BlockPredicate {
 }
 
 /// Exact data component matcher for block predicates
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct DataComponentMatcher {
     /// The component type ID
     pub component_type: VarInt,
@@ -634,7 +977,7 @@ pub struct DataComponentMatcher {
 }
 
 /// Partial data component predicate for block predicates
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct PartialDataComponentPredicate {
     /// The component type ID
     pub component_type: VarInt,
@@ -643,7 +986,7 @@ pub struct PartialDataComponentPredicate {
 }
 
 /// Block property matcher
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct BlockPropertyMatcher {
     pub name: String,
     pub is_exact: bool,
@@ -653,7 +996,7 @@ pub struct BlockPropertyMatcher {
 }
 
 /// Damage reduction entry for shields
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct DamageReduction {
     pub horizontal_blocking_angle: f32,
     pub type_predicate: PrefixedOptional<IDSet>,
@@ -662,7 +1005,7 @@ pub struct DamageReduction {
 }
 
 /// Item damage configuration
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct ItemDamage {
     pub threshold: f32,
     pub base: f32,
@@ -670,6 +1013,7 @@ pub struct ItemDamage {
 }
 
 /// Potion effect data
+#[derive(Debug, Clone)]
 pub struct PotionEffect {
     pub effect_id: VarInt,
     pub amplifier: VarInt,
@@ -743,28 +1087,28 @@ impl NetDecode for PotionEffect {
 }
 
 /// Suspicious stew effect
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct SuspiciousStewEffect {
     pub effect_id: VarInt,
     pub duration: VarInt,
 }
 
 /// Writable book page
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct WritableBookPage {
     pub raw_content: String,
     pub filtered_content: PrefixedOptional<String>,
 }
 
 /// Written book page with text components
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct WrittenBookPage {
     pub raw_content: NBT<TextComponent>,
     pub filtered_content: PrefixedOptional<NBT<TextComponent>>,
 }
 
 /// Firework explosion data
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct FireworkExplosion {
     pub shape: FireworkExplosionShape,
     pub colors: LengthPrefixedVec<i32>,
@@ -774,7 +1118,7 @@ pub struct FireworkExplosion {
 }
 
 /// Resolvable game profile
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct ResolvableProfile {
     pub name: PrefixedOptional<String>,
     pub uuid: PrefixedOptional<u128>,
@@ -782,7 +1126,7 @@ pub struct ResolvableProfile {
 }
 
 /// Profile property
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct ProfileProperty {
     pub name: String,
     pub value: String,
@@ -790,7 +1134,7 @@ pub struct ProfileProperty {
 }
 
 /// Banner pattern layer
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct BannerPatternLayer {
     pub pattern: IdOrBannerPattern,
     pub color: DyeColor,
@@ -798,7 +1142,7 @@ pub struct BannerPatternLayer {
 
 /// Either a registry ID or inline banner pattern.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrBannerPattern {
     Id(VarInt),
     Inline {
@@ -808,21 +1152,21 @@ pub enum IdOrBannerPattern {
 }
 
 /// Block state property
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct BlockStateProperty {
     pub name: String,
     pub value: String,
 }
 
 /// Global position for lodestone tracking (dimension + block position)
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct GlobalPosition {
     pub dimension: String,
     pub position: NetworkPosition,
 }
 
 /// Bee data for beehives
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct BeeData {
     /// Entity type registry ID
     pub entity_type: VarInt,
@@ -834,7 +1178,7 @@ pub struct BeeData {
 
 /// Either a registry ID or an identifier string.
 /// Mode byte: 0 = identifier, 1 = registry ID.
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrIdentifier {
     Identifier(String),
     Id(VarInt),
@@ -842,14 +1186,14 @@ pub enum IdOrIdentifier {
 
 /// Either a registry ID or inline trim material.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrTrimMaterial {
     Id(VarInt),
     Inline(TrimMaterial),
 }
 
 /// Inline trim material data
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct TrimMaterial {
     pub asset_name: String,
     pub ingredient: VarInt,
@@ -859,7 +1203,7 @@ pub struct TrimMaterial {
 }
 
 /// Armor material override
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct ArmorMaterialOverride {
     pub armor_material: String,
     pub override_asset_name: String,
@@ -867,14 +1211,14 @@ pub struct ArmorMaterialOverride {
 
 /// Either a registry ID or inline trim pattern.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrTrimPattern {
     Id(VarInt),
     Inline(TrimPattern),
 }
 
 /// Inline trim pattern data
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct TrimPattern {
     pub asset_id: String,
     pub template_item: VarInt,
@@ -884,14 +1228,14 @@ pub struct TrimPattern {
 
 /// Either a registry ID or inline instrument.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrInstrument {
     Id(VarInt),
     Inline(Instrument),
 }
 
 /// Inline instrument data
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct Instrument {
     pub sound_event: IdOrSoundEvent,
     pub use_duration: f32,
@@ -901,14 +1245,14 @@ pub struct Instrument {
 
 /// Either a registry ID or inline jukebox song.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrJukeboxSong {
     Id(VarInt),
     Inline(JukeboxSong),
 }
 
 /// Inline jukebox song data
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct JukeboxSong {
     pub sound_event: IdOrSoundEvent,
     pub description: NBT<TextComponent>,
@@ -918,14 +1262,14 @@ pub struct JukeboxSong {
 
 /// Either a registry ID or inline painting variant.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum IdOrPaintingVariant {
     Id(VarInt),
     Inline(PaintingVariant),
 }
 
 /// Inline painting variant data
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub struct PaintingVariant {
     pub width: VarInt,
     pub height: VarInt,
@@ -939,7 +1283,7 @@ pub struct PaintingVariant {
 // ============================================================================
 
 /// Effects that can occur when consuming an item
-#[derive(NetEncode)]
+#[derive(Debug, Clone, NetEncode)]
 pub enum ConsumeEffect {
     // Type 0
     ApplyEffects {
@@ -957,7 +1301,7 @@ pub enum ConsumeEffect {
 }
 
 /// A single effect entry for consume effects
-#[derive(NetEncode, NetDecode)]
+#[derive(Debug, Clone, NetEncode, NetDecode)]
 pub struct ConsumeEffectEntry {
     pub effect: PotionEffect,
 }

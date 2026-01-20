@@ -1,5 +1,5 @@
+use crate::components::Component;
 use crate::item::ItemID;
-use bitcode_derive::{Decode, Encode};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -9,27 +9,54 @@ use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Debug, Clone, Hash, Default, PartialEq, Decode, Encode)]
+/// Represents an inventory slot with item data and components.
+/// See: https://minecraft.wiki/w/Java_Edition_protocol/Slot_data
+#[derive(Debug, Clone, Default)]
 pub struct InventorySlot {
+    /// Item count (0 = empty slot)
     pub count: VarInt,
+    /// Item type ID (None if count is 0)
     pub item_id: Option<ItemID>,
-    pub components_to_add_count: Option<VarInt>,
-    pub components_to_remove_count: Option<VarInt>,
-    pub components_to_add: Option<Vec<VarInt>>,
-    pub components_to_remove: Option<Vec<VarInt>>,
-    // https://minecraft.wiki/w/Java_Edition_protocol/Slot_data
+    /// Components to add to the item (overrides default components)
+    pub components_to_add: Vec<Component>,
+    /// Component type IDs to remove from the item
+    pub components_to_remove: Vec<VarInt>,
 }
 
 impl InventorySlot {
+    /// Creates an empty inventory slot.
     pub fn empty() -> Self {
         Self {
             count: VarInt(0),
             item_id: None,
-            components_to_add_count: None,
-            components_to_add: None,
-            components_to_remove: None,
-            components_to_remove_count: None,
+            components_to_add: Vec::new(),
+            components_to_remove: Vec::new(),
         }
+    }
+
+    /// Creates a simple slot with just an item and count, no components.
+    pub fn new(item_id: i32, count: i32) -> Self {
+        Self {
+            count: VarInt(count),
+            item_id: Some(ItemID::new(item_id)),
+            components_to_add: Vec::new(),
+            components_to_remove: Vec::new(),
+        }
+    }
+
+    /// Creates a slot with components.
+    pub fn with_components(item_id: i32, count: i32, components: Vec<Component>) -> Self {
+        Self {
+            count: VarInt(count),
+            item_id: Some(ItemID::new(item_id)),
+            components_to_add: components,
+            components_to_remove: Vec::new(),
+        }
+    }
+
+    /// Returns true if this slot is empty.
+    pub fn is_empty(&self) -> bool {
+        self.count.0 == 0
     }
 }
 
@@ -37,11 +64,11 @@ impl Display for InventorySlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "InventorySlot {{ count: {}, item_id: {:?}, components_to_add_count: {:?}, components_to_remove_count: {:?} }}",
+            "InventorySlot {{ count: {}, item_id: {:?}, components_add: {}, components_remove: {} }}",
             self.count.0,
             self.item_id,
-            self.components_to_add_count,
-            self.components_to_remove_count
+            self.components_to_add.len(),
+            self.components_to_remove.len()
         )
     }
 }
@@ -50,35 +77,27 @@ impl NetDecode for InventorySlot {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let count = VarInt::decode(reader, opts)?;
         if count.0 == 0 {
-            Ok(Self {
-                count,
-                ..Default::default()
-            })
+            Ok(Self::empty())
         } else {
             let item_id = VarInt::decode(reader, opts)?;
-            let components_to_add_count = VarInt::decode(reader, opts)?;
-            let components_to_remove_count = VarInt::decode(reader, opts)?;
+            let add_count = VarInt::decode(reader, opts)?;
+            let remove_count = VarInt::decode(reader, opts)?;
 
-            let components_to_add = {
-                let mut components = Vec::with_capacity(components_to_add_count.0 as usize);
-                for _ in 0..components_to_add_count.0 {
-                    components.push(VarInt::decode(reader, opts)?);
-                }
-                Some(components)
-            };
-            let components_to_remove = {
-                let mut components = Vec::with_capacity(components_to_remove_count.0 as usize);
-                for _ in 0..components_to_remove_count.0 {
-                    components.push(VarInt::decode(reader, opts)?);
-                }
-                Some(components)
-            };
+            // Decode components to add (each component reads its own type ID)
+            let mut components_to_add = Vec::with_capacity(add_count.0 as usize);
+            for _ in 0..add_count.0 {
+                components_to_add.push(Component::decode(reader, opts)?);
+            }
+
+            // Decode component IDs to remove
+            let mut components_to_remove = Vec::with_capacity(remove_count.0 as usize);
+            for _ in 0..remove_count.0 {
+                components_to_remove.push(VarInt::decode(reader, opts)?);
+            }
 
             Ok(Self {
                 count,
                 item_id: Some(ItemID(item_id)),
-                components_to_add_count: Some(components_to_add_count),
-                components_to_remove_count: Some(components_to_remove_count),
                 components_to_add,
                 components_to_remove,
             })
@@ -98,51 +117,32 @@ impl NetEncode for InventorySlot {
         // 1. Always encode the count
         self.count.encode(writer, opts)?;
 
-        // If count is 0, stop immediately
+        // If count is 0, stop immediately (empty slot)
         if self.count.0 == 0 {
             return Ok(());
         }
 
-        let zero_varint = VarInt::new(0);
-
         // 2. Encode ItemID
         match &self.item_id {
             Some(item_id) => item_id.0.encode(writer, opts)?,
-            None => zero_varint.encode(writer, opts)?,
+            None => VarInt(0).encode(writer, opts)?,
         }
 
-        // 3. Get add_count and remove_count
-        let add_count = self
-            .components_to_add_count
-            .as_ref()
-            .unwrap_or(&zero_varint);
-        let remove_count = self
-            .components_to_remove_count
-            .as_ref()
-            .unwrap_or(&zero_varint);
+        // 3. Encode component counts
+        VarInt(self.components_to_add.len() as i32).encode(writer, opts)?;
+        VarInt(self.components_to_remove.len() as i32).encode(writer, opts)?;
 
-        // 4. Encode components_to_add_count
-        add_count.encode(writer, opts)?;
-
-        // 5. Encode components_to_remove_count
-        remove_count.encode(writer, opts)?;
-
-        // 6. Encode components_to_add list (if any)
-        if add_count.0 > 0
-            && let Some(components) = &self.components_to_add
-        {
-            for component in components {
-                component.encode(writer, opts)?;
-            }
+        // 4. Encode components to add (type ID + data for each)
+        for component in &self.components_to_add {
+            // Write component type ID first
+            component.id().encode(writer, opts)?;
+            // Then write component data (derived NetEncode handles the fields)
+            component.encode(writer, opts)?;
         }
 
-        // 7. Encode components_to_remove list (if any)
-        if remove_count.0 > 0
-            && let Some(components) = &self.components_to_remove
-        {
-            for component in components {
-                component.encode(writer, opts)?;
-            }
+        // 5. Encode component IDs to remove
+        for component_id in &self.components_to_remove {
+            component_id.encode(writer, opts)?;
         }
 
         Ok(())
@@ -160,66 +160,103 @@ impl NetEncode for InventorySlot {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::components::{Component, Rarity};
     use ferrumc_net_codec::encode::NetEncodeOpts;
-    use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Cursor;
 
-    // This helper function runs the encode/decode cycle
-    fn run_roundtrip_test(slot_in: &InventorySlot) -> InventorySlot {
+    #[test]
+    fn test_empty_slot_roundtrip() {
+        let slot = InventorySlot::empty();
         let mut buffer = Vec::new();
-
-        // Create both types of options explicitly.
-        let encode_opts = NetEncodeOpts::default();
-        let decode_opts = NetDecodeOpts::default();
-
-        // 1. Encode
-        slot_in
-            .encode(&mut buffer, &encode_opts)
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
             .expect("Encode failed");
 
-        // 2. Decode
+        // Empty slot should just be a single VarInt(0)
+        assert_eq!(buffer.len(), 1);
+        assert_eq!(buffer[0], 0);
+
         let mut reader = Cursor::new(&buffer);
-        let slot_out = InventorySlot::decode(&mut reader, &decode_opts).expect("Decode failed");
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
 
-        // 3. Check that all bytes were read
-        assert_eq!(
-            reader.position() as usize,
-            buffer.len(),
-            "Decoder did not read the entire buffer"
-        );
-
-        slot_out
+        assert!(decoded.is_empty());
     }
 
     #[test]
-    fn test_slot_encode_decode_roundtrip() {
-        // --- Test Case 1: The Empty Slot ---
+    fn test_simple_slot_roundtrip() {
+        let slot = InventorySlot::new(1, 64); // 64 stone
 
-        let simple_slot = InventorySlot {
-            count: VarInt::new(10),
-            item_id: Some(ItemID::new(1)),
-            components_to_add_count: Some(VarInt::new(0)),
-            components_to_remove_count: Some(VarInt::new(0)),
-            components_to_add: Some(vec![]),
-            components_to_remove: Some(vec![]),
-        };
+        let mut buffer = Vec::new();
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
+            .expect("Encode failed");
 
-        let decoded_simple = run_roundtrip_test(&simple_slot);
-        assert_eq!(simple_slot, decoded_simple, "Simple slot roundtrip failed");
+        let mut reader = Cursor::new(&buffer);
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
 
-        // --- Test Case 2: The Full NBT/Component Slot ---
-        let complex_slot = InventorySlot {
-            count: VarInt::new(1),
-            item_id: Some(ItemID::new(872)),
-            components_to_add_count: Some(VarInt::new(2)),
-            components_to_remove_count: Some(VarInt::new(1)),
-            components_to_add: Some(vec![VarInt::new(10), VarInt::new(11)]),
-            components_to_remove: Some(vec![VarInt::new(20)]),
-        };
-        let decoded_complex = run_roundtrip_test(&complex_slot);
-        assert_eq!(
-            complex_slot, decoded_complex,
-            "Complex slot roundtrip failed"
-        );
+        assert_eq!(decoded.count.0, 64);
+        assert_eq!(decoded.item_id.unwrap().0.0, 1);
+        assert!(decoded.components_to_add.is_empty());
+        assert!(decoded.components_to_remove.is_empty());
+    }
+
+    #[test]
+    fn test_slot_with_single_component_roundtrip() {
+        // Test with just Unbreakable (no data)
+        let slot = InventorySlot::with_components(1, 1, vec![Component::Unbreakable]);
+
+        let mut buffer = Vec::new();
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
+            .expect("Encode failed");
+
+        println!("Encoded bytes: {:?}", buffer);
+
+        let mut reader = Cursor::new(&buffer);
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
+
+        assert_eq!(decoded.count.0, 1);
+        assert_eq!(decoded.components_to_add.len(), 1);
+        assert_eq!(decoded.components_to_add[0].id().0, 4); // Unbreakable
+    }
+
+    #[test]
+    fn test_slot_with_max_stack_component_roundtrip() {
+        // Test with MaxStackSize
+        let slot = InventorySlot::with_components(1, 1, vec![Component::MaxStackSize(VarInt(99))]);
+
+        let mut buffer = Vec::new();
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
+            .expect("Encode failed");
+
+        println!("Encoded bytes: {:?}", buffer);
+
+        let mut reader = Cursor::new(&buffer);
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
+
+        assert_eq!(decoded.count.0, 1);
+        assert_eq!(decoded.components_to_add.len(), 1);
+        assert_eq!(decoded.components_to_add[0].id().0, 1); // MaxStackSize
+    }
+
+    #[test]
+    fn test_slot_with_rarity_component_roundtrip() {
+        // Test with Rarity
+        let slot = InventorySlot::with_components(1, 1, vec![Component::Rarity(Rarity::Epic)]);
+
+        let mut buffer = Vec::new();
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
+            .expect("Encode failed");
+
+        println!("Encoded bytes: {:?}", buffer);
+
+        let mut reader = Cursor::new(&buffer);
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
+
+        assert_eq!(decoded.count.0, 1);
+        assert_eq!(decoded.components_to_add.len(), 1);
+        assert_eq!(decoded.components_to_add[0].id().0, 9); // Rarity
     }
 }

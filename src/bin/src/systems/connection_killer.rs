@@ -103,8 +103,9 @@ pub fn connection_killer(
                 );
             }
 
+            // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
             // Save data to cache
-            let data_to_cache = OfflinePlayerData {
+            let _data_to_cache = OfflinePlayerData {
                 abilities: *abilities,
                 gamemode: gamemode.0,
                 position: (*pos).into(),
@@ -116,16 +117,17 @@ pub fn connection_killer(
                 ender_chest: echest.clone(),
                 active_effects: effects.clone(),
             };
-            if let Err(err) = state
-                .0
-                .world
-                .save_player_data(player_identity.uuid, &data_to_cache)
-            {
-                warn!(
-                    "Failed to save player data for {}: {:?}",
-                    player_identity.username, err
-                );
-            }
+            // Persistence temporarily disabled for network component testing
+            // if let Err(err) = state
+            //     .0
+            //     .world
+            //     .save_player_data(player_identity.uuid, &data_to_cache)
+            // {
+            //     warn!(
+            //         "Failed to save player data for {}: {:?}",
+            //         player_identity.username, err
+            //     );
+            // }
 
             // --- 3. Fire PlayerLeaveEvent ---
             leave_events.write(PlayerLeft(player_identity.clone()));

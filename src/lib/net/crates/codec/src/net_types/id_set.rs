@@ -8,6 +8,7 @@ use tokio::io::{AsyncRead, AsyncWrite};
 
 /// An ID Set is a data structure used to represent a set of IDs.
 /// It can be either a tag name (referring to a registry tag) or an explicit list of IDs.
+#[derive(Debug, Clone)]
 pub struct IDSet {
     /// 0 for tag name mode, otherwise represents (length + 1) for ID list mode
     pub id_type: VarInt,

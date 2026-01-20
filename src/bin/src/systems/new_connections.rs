@@ -30,22 +30,9 @@ pub fn accept_new_connections(
     while let Ok(new_connection) = new_connections.0.try_recv() {
         let return_sender = new_connection.entity_return;
 
-        // --- 1. Load all data from cache ---
-        let offline_data = match state
-            .0
-            .world
-            .load_player_data(new_connection.player_identity.uuid)
-        {
-            Ok(data) => data,
-            Err(err) => {
-                error!(
-                    "Error loading player data for {}: {:?}",
-                    new_connection.player_identity.username, err
-                );
-                None
-            }
-        };
-        let player_data = offline_data.unwrap_or(OfflinePlayerData::default());
+        // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
+        // Using defaults until then.
+        let player_data = OfflinePlayerData::default();
         // --- 2. Build the PlayerBundle ---
         let player_bundle = PlayerBundle {
             identity: new_connection.player_identity.clone(),
