@@ -6,6 +6,7 @@ use primitive::PrimitiveArgument;
 use crate::{ctx::CommandContext, Suggestion};
 
 pub mod duration;
+pub mod entities;
 pub mod gamemode;
 pub mod position;
 pub mod primitive;

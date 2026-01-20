@@ -7,8 +7,14 @@ use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::time::Instant;
 use tempfile::TempDir;
+
+/// DO NOT USE THIS UNLESS YOU HAVE ABSOLUTELY NO OTHER CHOICE.
+/// This is only for rare cases where passing around the GlobalState
+/// via function parameters or ECS resources is impossible.
+pub static MORE_GLOBAL_STATE: OnceLock<GlobalState> = OnceLock::new();
 
 pub struct ServerState {
     pub world: World,
