@@ -1,14 +1,46 @@
 use crate::errors::InventoryError;
 use crate::item::ItemID;
 use crate::slot::InventorySlot;
+use crate::storage::StorageInventorySlot;
 use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
+use bitcode_derive::{Decode, Encode};
 
-// TODO: Re-add bitcode Decode/Encode once Component serialization is implemented
-// For now, inventory persistence is disabled to enable network component testing
+/// Player inventory for ECS and network operations.
 #[derive(Component, Clone, Debug)]
 pub struct Inventory {
     pub slots: Box<[Option<InventorySlot>]>,
+}
+
+/// Storage-friendly inventory for bitcode persistence.
+#[derive(Clone, Debug, Encode, Decode)]
+pub struct StorageInventory {
+    pub slots: Vec<Option<StorageInventorySlot>>,
+}
+
+impl From<&Inventory> for StorageInventory {
+    fn from(inv: &Inventory) -> Self {
+        Self {
+            slots: inv
+                .slots
+                .iter()
+                .map(|slot| slot.as_ref().map(StorageInventorySlot::from))
+                .collect(),
+        }
+    }
+}
+
+impl From<StorageInventory> for Inventory {
+    fn from(storage: StorageInventory) -> Self {
+        let slots: Vec<Option<InventorySlot>> = storage
+            .slots
+            .into_iter()
+            .map(|opt| opt.and_then(|s| s.try_into().ok()))
+            .collect();
+        Self {
+            slots: slots.into_boxed_slice(),
+        }
+    }
 }
 
 impl Default for Inventory {

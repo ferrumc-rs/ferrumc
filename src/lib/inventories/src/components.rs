@@ -438,6 +438,133 @@ impl Component {
             Component::ShulkerColor(_) => 95,
         })
     }
+
+    // =========================================================================
+    // Factory Methods - Hide ugly NBT/VarInt/LengthPrefixedVec wrapping
+    // =========================================================================
+
+    /// Creates a CustomName component from any type convertible to TextComponent.
+    ///
+    /// # Example
+    /// ```ignore
+    /// Component::custom_name("My Epic Sword")
+    /// Component::custom_name(TextComponent::from("Colored").color(NamedColor::Gold))
+    /// ```
+    pub fn custom_name(name: impl Into<TextComponent>) -> Self {
+        Component::CustomName(NBT::new(name.into()))
+    }
+
+    /// Creates an ItemName component.
+    pub fn item_name(name: impl Into<TextComponent>) -> Self {
+        Component::ItemName(NBT::new(name.into()))
+    }
+
+    /// Creates a Lore component from lines of text.
+    ///
+    /// # Example
+    /// ```ignore
+    /// Component::lore(["Line 1", "Line 2", "Line 3"])
+    /// ```
+    pub fn lore<I, T>(lines: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<TextComponent>,
+    {
+        let data: Vec<NBT<TextComponent>> = lines
+            .into_iter()
+            .map(|line| NBT::new(line.into()))
+            .collect();
+        Component::Lore(LengthPrefixedVec::new(data))
+    }
+
+    /// Creates a MaxStackSize component.
+    pub fn max_stack_size(size: i32) -> Self {
+        Component::MaxStackSize(VarInt(size))
+    }
+
+    /// Creates a Damage component.
+    pub fn damage(value: i32) -> Self {
+        Component::Damage(VarInt(value))
+    }
+
+    /// Creates a MaxDamage component.
+    pub fn max_damage(value: i32) -> Self {
+        Component::MaxDamage(VarInt(value))
+    }
+
+    /// Creates a RepairCost component.
+    pub fn repair_cost(cost: i32) -> Self {
+        Component::RepairCost(VarInt(cost))
+    }
+
+    /// Creates an Enchantable component.
+    pub fn enchantable(value: i32) -> Self {
+        Component::Enchantable(VarInt(value))
+    }
+
+    /// Creates a single enchantment entry (for use with `enchantments()`).
+    pub fn enchantment(id: i32, level: i32) -> EnchantComponent {
+        EnchantComponent {
+            id: VarInt(id),
+            level: VarInt(level),
+        }
+    }
+
+    /// Creates an Enchantments component from enchantment entries.
+    ///
+    /// # Example
+    /// ```ignore
+    /// Component::enchantments([
+    ///     Component::enchantment(0, 5),  // Sharpness V
+    ///     Component::enchantment(9, 3),  // Unbreaking III
+    /// ])
+    /// ```
+    pub fn enchantments<I>(enchants: I) -> Self
+    where
+        I: IntoIterator<Item = EnchantComponent>,
+    {
+        Component::Enchantments(LengthPrefixedVec::new(enchants.into_iter().collect()))
+    }
+
+    /// Creates a StoredEnchantments component (for enchanted books).
+    pub fn stored_enchantments<I>(enchants: I) -> Self
+    where
+        I: IntoIterator<Item = EnchantComponent>,
+    {
+        Component::StoredEnchantments(LengthPrefixedVec::new(enchants.into_iter().collect()))
+    }
+
+    /// Creates a Food component.
+    pub fn food(nutrition: i32, saturation: f32, can_always_eat: bool) -> Self {
+        Component::Food {
+            nutrition: VarInt(nutrition),
+            saturation_modifier: saturation,
+            can_always_eat,
+        }
+    }
+
+    /// Creates a Weapon component.
+    pub fn weapon(damage: i32, disable_blocking_seconds: f32) -> Self {
+        Component::Weapon {
+            damage: VarInt(damage),
+            disable_blocking_for_seconds: disable_blocking_seconds,
+        }
+    }
+
+    /// Creates a DyedColor component.
+    pub fn dyed_color(color: i32) -> Self {
+        Component::DyedColor(color)
+    }
+
+    /// Creates a MapColor component.
+    pub fn map_color(color: i32) -> Self {
+        Component::MapColor(color)
+    }
+
+    /// Creates a MapId component.
+    pub fn map_id(id: i32) -> Self {
+        Component::MapId(VarInt(id))
+    }
 }
 
 // ============================================================================
@@ -1187,6 +1314,7 @@ pub enum IdOrIdentifier {
 /// Either a registry ID or inline trim material.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
 #[derive(Debug, Clone, NetEncode)]
+#[expect(clippy::large_enum_variant)]
 pub enum IdOrTrimMaterial {
     Id(VarInt),
     Inline(TrimMaterial),
@@ -1212,6 +1340,7 @@ pub struct ArmorMaterialOverride {
 /// Either a registry ID or inline trim pattern.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
 #[derive(Debug, Clone, NetEncode)]
+#[expect(clippy::large_enum_variant)]
 pub enum IdOrTrimPattern {
     Id(VarInt),
     Inline(TrimPattern),
@@ -1229,6 +1358,7 @@ pub struct TrimPattern {
 /// Either a registry ID or inline instrument.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
 #[derive(Debug, Clone, NetEncode)]
+#[expect(clippy::large_enum_variant)]
 pub enum IdOrInstrument {
     Id(VarInt),
     Inline(Instrument),
@@ -1246,6 +1376,7 @@ pub struct Instrument {
 /// Either a registry ID or inline jukebox song.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
 #[derive(Debug, Clone, NetEncode)]
+#[expect(clippy::large_enum_variant)]
 pub enum IdOrJukeboxSong {
     Id(VarInt),
     Inline(JukeboxSong),
@@ -1263,6 +1394,7 @@ pub struct JukeboxSong {
 /// Either a registry ID or inline painting variant.
 /// Encoded as VarInt where 0 means inline, otherwise (id + 1).
 #[derive(Debug, Clone, NetEncode)]
+#[expect(clippy::large_enum_variant)]
 pub enum IdOrPaintingVariant {
     Id(VarInt),
     Inline(PaintingVariant),

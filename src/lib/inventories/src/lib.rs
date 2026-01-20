@@ -1,3 +1,4 @@
+pub mod builder;
 pub mod components;
 pub mod defined_slots;
 pub mod errors;
@@ -5,8 +6,11 @@ pub mod hotbar;
 pub mod inventory;
 pub mod item;
 pub mod slot;
+pub mod storage;
 
-pub use inventory::Inventory;
+pub use builder::ItemBuilder;
+pub use inventory::{Inventory, StorageInventory};
+pub use storage::{StorageComponent, StorageInventorySlot};
 
 use crate::slot::InventorySlot;
 use bevy_ecs::prelude::Entity;

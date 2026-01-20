@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-
+serde_json = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 bevy_ecs = { workspace = true }
 tokio = { workspace = true }

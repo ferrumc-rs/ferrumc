@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::{Commands, Entity, MessageWriter, Query, Res};
-use ferrumc_components::player::offline_player_data::OfflinePlayerData;
+use ferrumc_components::player::offline_player_data::{OfflinePlayerData, StorageOfflinePlayerData};
 use ferrumc_components::{
     active_effects::ActiveEffects,
     health::Health,
@@ -103,9 +103,8 @@ pub fn connection_killer(
                 );
             }
 
-            // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
-            // Save data to cache
-            let _data_to_cache = OfflinePlayerData {
+            // Save player data to cache
+            let data = OfflinePlayerData {
                 abilities: *abilities,
                 gamemode: gamemode.0,
                 position: (*pos).into(),
@@ -117,17 +116,18 @@ pub fn connection_killer(
                 ender_chest: echest.clone(),
                 active_effects: effects.clone(),
             };
-            // Persistence temporarily disabled for network component testing
-            // if let Err(err) = state
-            //     .0
-            //     .world
-            //     .save_player_data(player_identity.uuid, &data_to_cache)
-            // {
-            //     warn!(
-            //         "Failed to save player data for {}: {:?}",
-            //         player_identity.username, err
-            //     );
-            // }
+            // Convert to storage format and save
+            let storage_data = StorageOfflinePlayerData::from(&data);
+            if let Err(err) = state
+                .0
+                .world
+                .save_player_data(player_identity.uuid, &storage_data)
+            {
+                warn!(
+                    "Failed to save player data for {}: {:?}",
+                    player_identity.username, err
+                );
+            }
 
             // --- 3. Fire PlayerLeaveEvent ---
             leave_events.write(PlayerLeft(player_identity.clone()));

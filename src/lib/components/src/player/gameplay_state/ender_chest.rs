@@ -1,9 +1,9 @@
 use bevy_ecs::prelude::Component;
+use bitcode_derive::{Decode, Encode};
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_inventories::StorageInventory;
 
-// TODO: Re-add bitcode Decode/Encode once Inventory Component serialization is implemented.
-// Ender chest persistence is temporarily disabled for network component testing.
-/// The player's 27-slot personal Ender Chest.
+/// The player's 27-slot personal Ender Chest (ECS component).
 #[derive(Component, Clone, Debug)]
 pub struct EnderChest(pub Inventory);
 
@@ -14,5 +14,27 @@ impl EnderChest {
 impl Default for EnderChest {
     fn default() -> Self {
         Self(Inventory::new(EnderChest::ENDERCHEST_SIZE))
+    }
+}
+
+/// Storage-friendly ender chest for bitcode persistence.
+#[derive(Clone, Debug, Encode, Decode)]
+pub struct StorageEnderChest(pub StorageInventory);
+
+impl From<&EnderChest> for StorageEnderChest {
+    fn from(ec: &EnderChest) -> Self {
+        Self(StorageInventory::from(&ec.0))
+    }
+}
+
+impl From<StorageEnderChest> for EnderChest {
+    fn from(storage: StorageEnderChest) -> Self {
+        Self(Inventory::from(storage.0))
+    }
+}
+
+impl Default for StorageEnderChest {
+    fn default() -> Self {
+        StorageEnderChest::from(&EnderChest::default())
     }
 }

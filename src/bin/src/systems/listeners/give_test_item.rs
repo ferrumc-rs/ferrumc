@@ -2,11 +2,11 @@
 //! This is used to verify item component encoding with a real Minecraft client.
 
 use bevy_ecs::prelude::{Entity, MessageReader, Query};
-use ferrumc_commands::arg::primitive::PrimitiveArgumentType::Nbt;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_inventories::components::{Component, Rarity, RawNbt};
+use ferrumc_data::items::Item;
+use ferrumc_inventories::components::{Component, Rarity};
 use ferrumc_inventories::slot::InventorySlot;
-use ferrumc_inventories::Inventory;
+use ferrumc_inventories::{Inventory, ItemBuilder};
 use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_nbt::NBT;
 use ferrumc_net::connection::StreamWriter;
@@ -14,7 +14,6 @@ use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlot;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_text::TextComponent;
 use tracing::{debug, error, info};
-use uuid::Variant;
 
 /// Listens for `PlayerJoined` events and gives the player a test item with components.
 pub fn handle(
@@ -50,7 +49,7 @@ pub fn handle(
         // Create a test diamond with Epic rarity
         // Diamond item
         const TEST_SIZE: i32 = 69420;
-        let test_item = InventorySlot::with_components(
+        /*let test_item = InventorySlot::with_components(
             ferrumc_data::items::Item::DIAMOND.id as i32, // Diamond
             TEST_SIZE,                                    // Count
             vec![
@@ -59,7 +58,16 @@ pub fn handle(
                 Component::MaxStackSize(VarInt::new(TEST_SIZE)),
                 Component::CustomName(NBT::new(TextComponent::from("bismillah sigma balsl "))),
             ],
-        );
+        )*/
+        ;
+
+        let test_item = ItemBuilder::new(Item::DIAMOND.id as i32)
+            .count(TEST_SIZE)
+            .custom_name("Epic Diamond")
+            .rarity(Rarity::Epic)
+            .enchantment_glint(true)
+            .lore(["A legendary gem", "Forged in starfire"])
+            .build();
 
         // Add to first slot (slot 36 = first hotbar slot in player inventory)
         let slot_index: i16 = 38;

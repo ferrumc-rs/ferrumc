@@ -45,7 +45,7 @@ use crate::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::packets::outgoing::set_compression::SetCompressionPacket;
 use crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use crate::ConnState;
-use ferrumc_components::player::offline_player_data::OfflinePlayerData;
+use ferrumc_components::player::offline_player_data::{OfflinePlayerData, StorageOfflinePlayerData};
 use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
@@ -348,13 +348,17 @@ async fn finish_configuration(
 /// Sends initial play state packets (login_play, abilities, op level).
 fn send_initial_play_packets(
     conn_write: &StreamWriter,
-    _state: &GlobalState,
+    state: &GlobalState,
     player_identity: &PlayerIdentity,
 ) -> Result<(), NetError> {
-    // Send login_play
-    // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
-    // Using defaults until then.
-    let player_data: OfflinePlayerData = OfflinePlayerData::default();
+    // Send login_play - try to load saved player data, fall back to defaults
+    let player_data: OfflinePlayerData = state
+        .world
+        .load_player_data::<StorageOfflinePlayerData>(player_identity.uuid)
+        .ok()
+        .flatten()
+        .map(OfflinePlayerData::from)
+        .unwrap_or_default();
     let game_mode = player_data.gamemode;
 
     conn_write.send_packet(LoginPlayPacket::new(
@@ -380,22 +384,35 @@ fn send_initial_play_packets(
 async fn sync_player_position(
     conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
-    _state: &GlobalState,
-    _player_identity: &PlayerIdentity,
+    state: &GlobalState,
+    player_identity: &PlayerIdentity,
     compressed: bool,
 ) -> Result<(), NetError> {
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
 
-    // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
-    // Using default spawn position until then.
-    let (spawn_pos, spawn_rotation) = (
-        Position::new(
-            DEFAULT_SPAWN_POSITION.x as f64,
-            DEFAULT_SPAWN_POSITION.y as f64,
-            DEFAULT_SPAWN_POSITION.z as f64,
-        ),
-        Rotation::default(),
-    );
+    // Load saved player data for position/rotation, fall back to default spawn
+    let (spawn_pos, spawn_rotation) = state
+        .world
+        .load_player_data::<StorageOfflinePlayerData>(player_identity.uuid)
+        .ok()
+        .flatten()
+        .map(|storage| {
+            let data = OfflinePlayerData::from(storage);
+            (
+                Position::new(data.position.0, data.position.1, data.position.2),
+                data.rotation,
+            )
+        })
+        .unwrap_or_else(|| {
+            (
+                Position::new(
+                    DEFAULT_SPAWN_POSITION.x as f64,
+                    DEFAULT_SPAWN_POSITION.y as f64,
+                    DEFAULT_SPAWN_POSITION.z as f64,
+                ),
+                Rotation::default(),
+            )
+        });
 
     // Send position sync
     conn_write.send_packet(SynchronizePlayerPositionPacket::from_position_rotation(
