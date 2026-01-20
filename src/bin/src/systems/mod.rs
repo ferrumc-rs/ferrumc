@@ -4,6 +4,7 @@ mod chunk_sending;
 pub mod chunk_unloader;
 pub mod connection_killer;
 pub mod day_cycle;
+pub mod emit_player_joined;
 mod inventory_sync;
 pub mod keep_alive_system;
 pub mod lan_pinger;
@@ -16,11 +17,13 @@ pub mod physics;
 mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
+pub(crate) mod update_player_ping;
 pub mod world_sync;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     // Tick-bound systems only (run every game tick)
-    schedule.add_systems(new_connections::accept_new_connections);
+    // NOTE: accept_new_connections is registered separately in game_loop.rs
+    // with apply_deferred and emit_player_joined chained after it.
     schedule.add_systems(
         (
             chunk_calculator::handle,

@@ -9,30 +9,36 @@ use ferrumc_net::SetPlayerPositionAndRotationPacketReceiver;
 
 pub fn handle(
     receiver: Res<SetPlayerPositionAndRotationPacketReceiver>,
-    mut transform_event_writer: MessageWriter<Movement>,
-    mut chunk_calc_message: MessageWriter<ChunkCalc>,
+    mut movement_messages: MessageWriter<Movement>,
+    mut chunk_calc_messages: MessageWriter<ChunkCalc>,
     mut query: Query<(&mut Position, &mut Rotation, &mut OnGround)>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        // 2. Update the internal Components
         if let Ok((mut pos, mut rot, mut ground)) = query.get_mut(eid) {
             let new_pos = Position::new(event.x, event.feet_y, event.z);
+            let new_rot = Rotation::new(event.yaw, event.pitch);
+            let on_ground = event.flags & 0x01 != 0;
+
+            // Check if chunk changed
             let old_chunk = (pos.x as i32 >> 4, pos.z as i32 >> 4);
             let new_chunk = (new_pos.x as i32 >> 4, new_pos.z as i32 >> 4);
             if old_chunk != new_chunk {
-                chunk_calc_message.write(ChunkCalc(eid));
+                chunk_calc_messages.write(ChunkCalc(eid));
             }
-            *pos = Position::new(event.x, event.feet_y, event.z);
 
-            *rot = Rotation::new(event.yaw, event.pitch);
+            // Build movement message with delta BEFORE updating component
+            let movement = Movement::new(eid)
+                .position_delta_from(&pos, &new_pos)
+                .rotation(new_rot)
+                .on_ground(on_ground);
 
-            *ground = OnGround::from(event.flags & 0x01 != 0); // Check if the on_ground flag is set
+            // Update components
+            *pos = new_pos;
+            *rot = new_rot;
+            *ground = OnGround(on_ground);
 
-            //TODO: ANTICHEAT
+            // Send movement message for broadcasting
+            movement_messages.write(movement);
         }
-        let movement = Movement::new(eid)
-            .position((event.x, event.feet_y, event.z).into())
-            .rotation((event.yaw, event.pitch).into());
-        transform_event_writer.write(movement);
     }
 }
