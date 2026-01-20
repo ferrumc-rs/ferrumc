@@ -16,10 +16,10 @@ pub fn handle(
             error!("Could not get keep alive tracker for entity {:?}", eid);
             continue;
         };
-        if event.timestamp != keep_alive_tracker.last_sent_keep_alive {
+        if event.timestamp != keep_alive_tracker.last_sent_keep_alive_id {
             warn!(
                 "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
-                eid, event.timestamp, keep_alive_tracker.last_sent_keep_alive
+                eid, event.timestamp, keep_alive_tracker.last_sent_keep_alive_id
             );
             state
                 .0
