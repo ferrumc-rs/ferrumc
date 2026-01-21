@@ -212,7 +212,7 @@ FerrumC supports [Tracy](https://github.com/wolfpld/tracy) for profiling. To use
 1. Install and run the Tracy profiler application
 2. Build and run with the tracy feature:
    ```bash
-   cargo run --release --features ferrumc-logging/tracy
+   cargo run --release --features tracy
    ```
 
 ## ❔ FAQ
