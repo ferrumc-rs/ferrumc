@@ -1,24 +1,35 @@
+mod any_entity;
+mod any_player;
+mod entity_uuid;
+mod player;
+mod random_player;
+
 use crate::arg::primitive::PrimitiveArgument;
 use crate::arg::{CommandArgument, ParserResult};
 use crate::{CommandContext, Suggestion};
+use bevy_ecs::prelude::{Entity, World};
+use ::uuid::Uuid;
 
+/// Represents an entity argument in a command.
+/// It can be a player name, UUID, or special selectors like @e, @p, @r, @a.
+/// This won't get you an entity directly, use `resolve()` to get the entities.
 #[derive(Clone, Debug, PartialEq)]
-pub enum CommandArgEntityType {
+pub enum EntityArgument {
     PlayerName(String),
-    PlayerUUID(String),
+    Uuid(Uuid),
     AnyEntity,
     AnyPlayer,
     NearestPlayer,
     RandomPlayer,
 }
 
-impl CommandArgument for CommandArgEntityType {
+impl CommandArgument for EntityArgument {
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
-        const PREFIXES: &[(&str, CommandArgEntityType)] = &[
-            ("@e", CommandArgEntityType::AnyEntity),
-            ("@p", CommandArgEntityType::NearestPlayer),
-            ("@r", CommandArgEntityType::RandomPlayer),
-            ("@a", CommandArgEntityType::AnyPlayer),
+        const PREFIXES: &[(&str, EntityArgument)] = &[
+            ("@e", EntityArgument::AnyEntity),
+            ("@p", EntityArgument::NearestPlayer),
+            ("@r", EntityArgument::RandomPlayer),
+            ("@a", EntityArgument::AnyPlayer),
         ];
         let input = ctx.input.read_string();
         for (prefix, entity_type) in PREFIXES {
@@ -27,9 +38,11 @@ impl CommandArgument for CommandArgEntityType {
             }
         }
         if input.len() == 36 && input.chars().all(|c| c.is_ascii_hexdigit() || c == '-') {
-            Ok(CommandArgEntityType::PlayerUUID(input))
+            let uuid = Uuid::parse_str(&input)
+                .map_err(|_| crate::arg::utils::parser_error("invalid UUID format"))?;
+            Ok(EntityArgument::Uuid(uuid))
         } else {
-            Ok(CommandArgEntityType::PlayerName(input))
+            Ok(EntityArgument::PlayerName(input))
         }
     }
 
@@ -73,5 +86,26 @@ impl CommandArgument for CommandArgEntityType {
             }
         }
         suggestions
+    }
+}
+
+impl EntityArgument {
+    pub fn resolve(&self, world: &mut World) -> Vec<Entity> {
+        match self {
+            EntityArgument::PlayerName(name) => player::resolve_player_name(name.clone(), world)
+                .map(|e| vec![e])
+                .unwrap_or_default(),
+            EntityArgument::Uuid(uuid) => entity_uuid::resolve_uuid(*uuid, world)
+                .map(|e| vec![e])
+                .unwrap_or_default(),
+            EntityArgument::AnyEntity => any_entity::resolve_any_entity(world),
+            EntityArgument::AnyPlayer => any_player::resolve_any_player(world),
+            EntityArgument::NearestPlayer => {
+                unimplemented!()
+            }
+            EntityArgument::RandomPlayer => random_player::resolve_random_player(world)
+                .map(|e| vec![e])
+                .unwrap_or_default(),
+        }
     }
 }
