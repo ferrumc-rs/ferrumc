@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{MessageReader, Query};
 use ferrumc_core::identity::entity_identity::EntityIdentity;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -18,7 +19,8 @@ pub fn handle(
         &Velocity,
         &Rotation,
         &mut LastSyncedPosition,
-        &EntityIdentity,
+        Option<&EntityIdentity>,
+        Option<&PlayerIdentity>,
         &OnGround,
     )>,
     mut conn_query: Query<&StreamWriter>,
@@ -28,12 +30,24 @@ pub fn handle(
     for msg in reader.read() {
         entities_to_update.push(msg.0);
     }
-    entities_to_update.dedup();
     for entity in entities_to_update {
-        if let Ok((pos, vel, rot, mut last_synced, id, grounded)) = query.get_mut(entity) {
+        if let Ok((pos, vel, rot, mut last_synced, entity_id_opt, player_id_opt, grounded)) =
+            query.get_mut(entity)
+        {
+            let id = if let Some(entity_id) = entity_id_opt {
+                entity_id.entity_id
+            } else if let Some(player_id) = player_id_opt {
+                player_id.short_uuid
+            } else {
+                warn!(
+                    "Tried to send entity update for entity without identity: {:?}",
+                    entity
+                );
+                continue;
+            };
             if last_synced.0.distance(pos.coords) > 8.0 {
                 let packet = TeleportEntityPacket {
-                    entity_id: id.entity_id.into(),
+                    entity_id: id.into(),
                     x: pos.x,
                     y: pos.y,
                     z: pos.z,
@@ -63,7 +77,7 @@ pub fn handle(
                     )
                 };
                 let packet = UpdateEntityPositionAndRotationPacket {
-                    entity_id: id.entity_id.into(),
+                    entity_id: id.into(),
                     delta_x,
                     delta_y,
                     delta_z,

@@ -8,7 +8,7 @@ use ferrumc_net::SetPlayerRotationPacketReceiver;
 pub fn handle(
     receiver: Res<SetPlayerRotationPacketReceiver>,
     mut movement_messages: MessageWriter<Movement>,
-    mut query: Query<(&mut Rotation, &mut OnGround, TeleportTracker)>,
+    mut query: Query<(&mut Rotation, &mut OnGround, &mut TeleportTracker)>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
         if let Ok((mut rot, mut ground, tracker)) = query.get_mut(eid) {

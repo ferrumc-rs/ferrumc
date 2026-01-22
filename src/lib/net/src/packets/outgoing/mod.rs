@@ -60,3 +60,5 @@ pub mod hurt_animation;
 pub mod respawn;
 pub mod set_health;
 pub mod update_time;
+
+pub mod synchronise_vehicle_position;
