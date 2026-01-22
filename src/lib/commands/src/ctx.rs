@@ -5,10 +5,10 @@ use std::sync::Arc;
 use tracing::error;
 
 use crate::{
-    arg::{utils::parser_error, CommandArgument, ParserResult},
+    Command,
+    arg::{CommandArgument, ParserResult, utils::parser_error},
     input::CommandInput,
     sender::Sender,
-    Command,
 };
 
 /// Context of the execution of a command.

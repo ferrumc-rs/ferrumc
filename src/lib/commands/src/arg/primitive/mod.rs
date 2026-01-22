@@ -13,7 +13,7 @@ use std::io::Write;
 use enum_ordinalize::Ordinalize;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::{
-    encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts},
+    encode::{NetEncode, NetEncodeOpts, errors::NetEncodeError},
     net_types::var_int::VarInt,
 };
 use float::FloatArgumentFlags;

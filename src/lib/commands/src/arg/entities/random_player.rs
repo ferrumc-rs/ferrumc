@@ -1,18 +1,18 @@
-use rand::prelude::IndexedRandom;
+use bevy_ecs::entity::Entity;
+use ferrumc_core::identity::entity_identity::EntityIdentity;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
+use rand::prelude::IteratorRandom;
 
 pub(crate) fn resolve_random_player(
-    mut world: &mut bevy_ecs::prelude::World,
-) -> Option<bevy_ecs::prelude::Entity> {
-    use ferrumc_core::identity::player_identity::PlayerIdentity;
-    let players: Vec<bevy_ecs::prelude::Entity> = world
-        .query::<(bevy_ecs::prelude::Entity, &PlayerIdentity)>()
-        .iter(&mut world)
-        .map(|(entity, _)| entity)
-        .collect();
-    if players.is_empty() {
-        None
-    } else {
-        let rng = &mut rand::rng();
-        players.choose(rng).cloned()
-    }
+    iter: impl Iterator<Item = (Entity, Option<&EntityIdentity>, Option<&PlayerIdentity>)>,
+) -> Option<Entity> {
+    let mut rng = rand::rng();
+    iter.filter_map(|(entity, _, player_id)| {
+        if player_id.is_some() {
+            Some(entity)
+        } else {
+            None
+        }
+    })
+    .choose(&mut rng)
 }

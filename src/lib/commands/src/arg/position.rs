@@ -142,7 +142,7 @@ mod tests {
             _ => panic!("Expected relative z"),
         }
     }
-    
+
     #[test]
     fn test_resolve() {
         let cmd_pos = CommandPosition {

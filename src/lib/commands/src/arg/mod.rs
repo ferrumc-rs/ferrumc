@@ -3,7 +3,7 @@
 use ferrumc_text::TextComponent;
 use primitive::PrimitiveArgument;
 
-use crate::{ctx::CommandContext, Suggestion};
+use crate::{Suggestion, ctx::CommandContext};
 
 pub mod duration;
 pub mod entities;

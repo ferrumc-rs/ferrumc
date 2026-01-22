@@ -7,8 +7,10 @@ mod random_player;
 use crate::arg::primitive::PrimitiveArgument;
 use crate::arg::{CommandArgument, ParserResult};
 use crate::{CommandContext, Suggestion};
-use bevy_ecs::prelude::{Entity, World};
 use ::uuid::Uuid;
+use bevy_ecs::prelude::Entity;
+use ferrumc_core::identity::entity_identity::EntityIdentity;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 
 /// Represents an entity argument in a command.
 /// It can be a player name, UUID, or special selectors like @e, @p, @r, @a.
@@ -90,20 +92,23 @@ impl CommandArgument for EntityArgument {
 }
 
 impl EntityArgument {
-    pub fn resolve(&self, world: &mut World) -> Vec<Entity> {
+    pub fn resolve(
+        &self,
+        iter: impl Iterator<Item = (Entity, Option<&EntityIdentity>, Option<&PlayerIdentity>)>,
+    ) -> Vec<Entity> {
         match self {
-            EntityArgument::PlayerName(name) => player::resolve_player_name(name.clone(), world)
+            EntityArgument::PlayerName(name) => player::resolve_player_name(name.clone(), iter)
                 .map(|e| vec![e])
                 .unwrap_or_default(),
-            EntityArgument::Uuid(uuid) => entity_uuid::resolve_uuid(*uuid, world)
+            EntityArgument::Uuid(uuid) => entity_uuid::resolve_uuid(*uuid, iter)
                 .map(|e| vec![e])
                 .unwrap_or_default(),
-            EntityArgument::AnyEntity => any_entity::resolve_any_entity(world),
-            EntityArgument::AnyPlayer => any_player::resolve_any_player(world),
+            EntityArgument::AnyEntity => any_entity::resolve_any_entity(iter),
+            EntityArgument::AnyPlayer => any_player::resolve_any_player(iter),
             EntityArgument::NearestPlayer => {
                 unimplemented!()
             }
-            EntityArgument::RandomPlayer => random_player::resolve_random_player(world)
+            EntityArgument::RandomPlayer => random_player::resolve_random_player(iter)
                 .map(|e| vec![e])
                 .unwrap_or_default(),
         }
