@@ -1,14 +1,14 @@
-use std::cmp::min;
-use std::str::FromStr;
-use bevy_math::IVec3;
-use thiserror::Error;
-use ferrumc_macros::block;
+use crate::chunk::light::sky_light::SkyLightEngine;
 use crate::{
     block_state_id::{BlockStateId, ID2BLOCK},
     pos::BlockPos,
     vanilla_chunk_format::BlockData,
 };
-use crate::chunk::light::sky_light::SkyLightEngine;
+use bevy_math::IVec3;
+use ferrumc_macros::block;
+use std::cmp::min;
+use std::str::FromStr;
+use thiserror::Error;
 
 pub(crate) const PROPAGATION_DIRECTIONS: [BlockPos; 6] = [
     BlockPos::of(1, 0, 0),
@@ -27,13 +27,13 @@ pub struct ChunkLightingEngine {
 impl ChunkLightingEngine {
     pub fn empty() -> Self {
         Self {
-            sky: SkyLightEngine::new(-64, 320)
+            sky: SkyLightEngine::new(-64, 320),
         }
     }
 
     pub fn new(min_world_y: i32, max_world_y: i32) -> Self {
         Self {
-            sky: SkyLightEngine::new(min_world_y, max_world_y)
+            sky: SkyLightEngine::new(min_world_y, max_world_y),
         }
     }
 }
@@ -43,7 +43,7 @@ pub trait LightEngine {
         // TODO: uh, make this actually work, we too lazy to create a actual block system 😂
         match id.raw() {
             0 => 0,
-            _ => 15
+            _ => 15,
         }
     }
 
@@ -61,7 +61,7 @@ pub enum LightEngineError {
     UnknownHeightmap(String),
 
     #[error("Chunk Section `{0}` is out of bounds, or doesn't exist (chunk: {1}, {2})")]
-    UnknownChunkSection(i16, i32, i32)
+    UnknownChunkSection(i16, i32, i32),
 }
 
 #[derive(Clone, Copy)]

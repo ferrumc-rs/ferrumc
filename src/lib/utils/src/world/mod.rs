@@ -19,7 +19,10 @@ pub fn load_or_generate_chunk<'a>(
 
         {
             let mut lighting_engine = state.world.light_engine.lock().unwrap();
-            lighting_engine.sky.initialize_chunk_skylight(&mut chunk, &chunk_pos).unwrap();
+            lighting_engine
+                .sky
+                .initialize_chunk_skylight(&mut chunk, &chunk_pos)
+                .unwrap();
         }
 
         state.world.insert_chunk(chunk_pos, dimension, chunk)?;
@@ -47,7 +50,10 @@ pub fn load_or_generate_mut<'a>(
 
         {
             let mut lighting_engine = state.world.light_engine.lock().unwrap();
-            lighting_engine.sky.initialize_chunk_skylight(&mut chunk, &chunk_pos).unwrap();
+            lighting_engine
+                .sky
+                .initialize_chunk_skylight(&mut chunk, &chunk_pos)
+                .unwrap();
         }
 
         state.world.insert_chunk(chunk_pos, dimension, chunk)?;

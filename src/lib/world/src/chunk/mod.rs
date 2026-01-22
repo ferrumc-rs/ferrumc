@@ -13,8 +13,8 @@ use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
-use tracing::debug;
 use ferrumc_macros::block;
+use tracing::debug;
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct Chunk {
@@ -149,32 +149,19 @@ impl Chunk {
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
     }
 
+    fn section_index(&self, pos: ChunkBlockPos) -> Option<usize> {
+        let idx = (pos.y() + -self.height.min_y) / 16;
+        (idx >= 0).then_some(idx as usize)
+    }
+
     pub fn get_section(&self, pos: ChunkBlockPos) -> Option<&ChunkSection> {
-        let section_index = (pos.y() + -self.height.min_y) / 16;
-        if section_index < 0 {
-            return None;
-        }
-
-        let section_index = section_index as usize;
-        if section_index >= self.sections.len() {
-            return None;
-        }
-
-        Some(&self.sections[section_index])
+        self.section_index(pos)
+            .and_then(|idx| self.sections.get(idx))
     }
 
     pub fn get_section_mut(&mut self, pos: ChunkBlockPos) -> Option<&mut ChunkSection> {
-        let section_index = (pos.y() + -self.height.min_y) / 16;
-        if section_index < 0 {
-            return None;
-        }
-
-        let section_index = section_index as usize;
-        if section_index >= self.sections.len() {
-            return None;
-        }
-
-        Some(&mut self.sections[section_index])
+        self.section_index(pos)
+            .and_then(|idx| self.sections.get_mut(idx))
     }
 }
 

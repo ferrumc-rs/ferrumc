@@ -7,6 +7,7 @@ mod player;
 pub mod pos;
 pub mod vanilla_chunk_format;
 
+use crate::chunk::light::engine::ChunkLightingEngine;
 use crate::chunk::Chunk;
 use crate::errors::WorldError;
 use crate::pos::ChunkPos;
@@ -20,7 +21,6 @@ use std::process::exit;
 use std::sync::{Arc, Mutex};
 use tracing::{error, warn};
 use wyhash::WyHasherBuilder;
-use crate::chunk::light::engine::ChunkLightingEngine;
 
 type ChunkCache = DashMap<(ChunkPos, String), Chunk, WyHasherBuilder>;
 

@@ -27,13 +27,9 @@ impl BlockPos {
             pos: IVec3::new(x, y, z),
         }
     }
-    
+
     pub fn offset(&self, pos: BlockPos) -> Self {
-        Self::of(
-            self.x() + pos.x(),
-            self.y() + pos.y(),
-            self.z() + pos.z()
-        )
+        Self::of(self.x() + pos.x(), self.y() + pos.y(), self.z() + pos.z())
     }
 
     pub fn x(&self) -> i32 {

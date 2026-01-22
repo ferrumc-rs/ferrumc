@@ -10,6 +10,9 @@ pub mod network;
 pub mod sky_light;
 pub mod storage;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Clone, Copy, Debug)]
 pub enum LightType {
     Sky,
@@ -35,7 +38,9 @@ pub struct SectionLightData {
 impl Default for SectionLightData {
     fn default() -> Self {
         Self {
-            sky_light: LightSection::Mixed { light_data: Box::new([0; 2048]) },
+            sky_light: LightSection::Mixed {
+                light_data: Box::new([0; 2048]),
+            },
             block_light: LightSection::default(),
         }
     }
@@ -85,20 +90,18 @@ impl SectionLightData {
 
     pub fn get_light(&self, pos: SectionBlockPos, light_type: LightType) -> u8 {
         match light_type {
-            LightType::Sky => {
-                match &self.sky_light {
-                    LightSection::Empty => 0u8,
-                    LightSection::Full => 15u8,
-                    LightSection::Mixed { light_data } => {
-                        let index = Self::index(pos.x, pos.y, pos.z);
-                        let byte_index = index / 2;
-                        let byte = light_data[byte_index];
+            LightType::Sky => match &self.sky_light {
+                LightSection::Empty => 0u8,
+                LightSection::Full => 15u8,
+                LightSection::Mixed { light_data } => {
+                    let index = Self::index(pos.x, pos.y, pos.z);
+                    let byte_index = index / 2;
+                    let byte = light_data[byte_index];
 
-                        if index % 2 == 0 {
-                            byte & 0x0F
-                        } else {
-                            (byte >> 4) & 0x0F
-                        }
+                    if index % 2 == 0 {
+                        byte & 0x0F
+                    } else {
+                        (byte >> 4) & 0x0F
                     }
                 }
             },
@@ -116,22 +119,24 @@ impl SectionLightData {
                         let level = level & 0x0F;
 
                         // DEBUG: Log first few sets
-                        static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+                        static COUNTER: std::sync::atomic::AtomicUsize =
+                            std::sync::atomic::AtomicUsize::new(0);
                         if COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed) < 10 {
-                            println!("Setting sky light at ({},{},{}) to {} (index={}, byte_index={})",
-                                     pos.x, pos.y, pos.z, level, index, byte_index);
+                            println!(
+                                "Setting sky light at ({},{},{}) to {} (index={}, byte_index={})",
+                                pos.x, pos.y, pos.z, level, index, byte_index
+                            );
                         }
-                        
+
                         if index % 2 == 0 {
                             light_data[byte_index] = (light_data[byte_index] & 0xF0) | level;
                         } else {
                             light_data[byte_index] = (light_data[byte_index] & 0x0F) | (level << 4);
                         }
-
-                    },
+                    }
                     _ => {}
                 }
-            },
+            }
             LightType::Block => {}
         }
     }

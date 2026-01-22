@@ -7,6 +7,7 @@ pub mod day_cycle;
 pub mod emit_player_joined;
 pub mod keep_alive_system;
 pub mod lan_pinger;
+pub mod light;
 pub mod listeners;
 pub mod mobs;
 mod mq;
@@ -17,7 +18,6 @@ mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod world_sync;
-pub mod light;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     // Tick-bound systems only (run every game tick)
