@@ -86,7 +86,7 @@ impl CommandArgument for CommandPosition {
         PrimitiveArgument::greedy()
     }
 
-    fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
+    fn suggest(_ctx: &mut CommandContext) -> Vec<Suggestion> {
         vec![Suggestion::of("~ ~ ~")]
     }
 }

@@ -7,10 +7,10 @@ mod random_player;
 use crate::arg::primitive::PrimitiveArgument;
 use crate::arg::{CommandArgument, ParserResult};
 use crate::{CommandContext, Suggestion};
-use ::uuid::Uuid;
 use bevy_ecs::prelude::Entity;
 use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ::uuid::Uuid;
 
 /// Represents an entity argument in a command.
 /// It can be a player name, UUID, or special selectors like @e, @p, @r, @a.
@@ -52,7 +52,7 @@ impl CommandArgument for EntityArgument {
         PrimitiveArgument::word()
     }
 
-    fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
+    fn suggest(_ctx: &mut CommandContext) -> Vec<Suggestion> {
         let mut suggestions = vec![
             Suggestion {
                 content: "@e".to_string(),

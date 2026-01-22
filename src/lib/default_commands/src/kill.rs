@@ -10,7 +10,6 @@ use ferrumc_net::packets::outgoing::remove_entities::RemoveEntitiesPacket;
 use ferrumc_net::packets::outgoing::system_message::SystemMessagePacket;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_text::{Color, NamedColor, TextComponentBuilder};
-use tracing::debug;
 
 #[command("kill")]
 fn kill_command(
