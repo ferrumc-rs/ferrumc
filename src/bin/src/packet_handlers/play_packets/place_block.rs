@@ -18,6 +18,8 @@ use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
+use bevy_math::DVec3;
+use ferrumc_world::block::{PlacementContext, BLOCK_BEHAVIOR_REGISTRY};
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -66,12 +68,32 @@ pub fn handle(
                         error!("No block mapping found for item ID: {}", item_id.0);
                         continue 'ev_loop;
                     };
+
+                    let Some(mut block_data) = mapped_block_state_id.to_block_data() else {
+                        error!("Failed to get BlockData for block state ID: {}", mapped_block_state_id);
+                        continue 'ev_loop;
+                    };
+
+                    let pos: BlockPos = event.position.into();
+                    let offset_pos = pos + event.face.translation_vec().into();
+
+                    if let Some(behavior) = BLOCK_BEHAVIOR_REGISTRY.get(block_data.name.as_str()) {
+                        behavior.get_placement_state(
+                            &mut block_data,
+                            PlacementContext {
+                                face: event.face,
+                                face_position: DVec3::new(event.cursor_x as _, event.cursor_y as _, event.cursor_z as _),
+                            },
+                            offset_pos.clone(),
+                        );
+                    }
+
+                    let mapped_block_state_id = block_data.to_block_state_id();
+
                     debug!(
                         "Placing block with item ID: {}, mapped to block state ID: {}",
                         item_id.0, mapped_block_state_id
                     );
-                    let pos: BlockPos = event.position.into();
-                    let offset_pos = pos + event.face.translation_vec().into();
 
                     let mut chunk = ferrumc_utils::world::load_or_generate_mut(
                         &state.0,
@@ -109,7 +131,7 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
+                    chunk.set_block(offset_pos.chunk_block_pos(), mapped_block_state_id);
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
@@ -120,7 +142,7 @@ pub fn handle(
                             y: offset_pos.pos.y as i16,
                             z: offset_pos.pos.z,
                         },
-                        block_state_id: VarInt::from(*mapped_block_state_id),
+                        block_state_id: VarInt::from(mapped_block_state_id),
                     };
 
                     if let Err(err) = conn.send_packet_ref(&ack_packet) {
