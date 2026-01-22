@@ -50,7 +50,7 @@ impl LmdbBackend {
                     EnvOpenOptions::new()
                         .read_txn_without_tls()
                         // Change this as more tables are needed.
-                        .max_dbs(2)
+                        .max_dbs(3)
                         .map_size(rounded_map_size)
                         .open(checked_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,

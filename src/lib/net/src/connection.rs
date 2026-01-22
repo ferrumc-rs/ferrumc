@@ -125,6 +125,12 @@ impl StreamWriter {
         *self.entity.lock().unwrap() = Some(entity);
     }
 
+    /// Returns true if the connection is still active.
+    #[inline]
+    pub fn is_running(&self) -> bool {
+        self.running.load(Ordering::Relaxed)
+    }
+
     /// Sends a packet to the client using the default `WithLength` encoding.
     pub fn send_packet(&self, packet: impl NetEncode + Send) -> Result<(), NetError> {
         self.send_packet_with_opts(&packet, &NetEncodeOpts::WithLength)

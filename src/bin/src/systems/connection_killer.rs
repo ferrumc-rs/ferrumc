@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::{Commands, Entity, MessageWriter, Query, Res};
+use ferrumc_components::player::offline_player_data::OfflinePlayerData;
 use ferrumc_components::{
     active_effects::ActiveEffects,
     health::Health,
@@ -14,7 +15,7 @@ use ferrumc_core::{
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_messages::player_leave::PlayerLeft;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_state::{player_cache::OfflinePlayerData, GlobalStateResource};
+use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
 use tracing::{debug, info, trace, warn};
 
@@ -106,7 +107,7 @@ pub fn connection_killer(
             let data_to_cache = OfflinePlayerData {
                 abilities: *abilities,
                 gamemode: gamemode.0,
-                position: *pos,
+                position: (*pos).into(),
                 rotation: *rot,
                 inventory: inv.clone(),
                 health: *health,
@@ -115,10 +116,16 @@ pub fn connection_killer(
                 ender_chest: echest.clone(),
                 active_effects: effects.clone(),
             };
-            state
+            if let Err(err) = state
                 .0
-                .player_cache
-                .insert(player_identity.uuid, data_to_cache);
+                .world
+                .save_player_data(player_identity.uuid, &data_to_cache)
+            {
+                warn!(
+                    "Failed to save player data for {}: {:?}",
+                    player_identity.username, err
+                );
+            }
 
             // --- 3. Fire PlayerLeaveEvent ---
             leave_events.write(PlayerLeft(player_identity.clone()));

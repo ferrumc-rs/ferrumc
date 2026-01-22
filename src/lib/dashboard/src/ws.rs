@@ -1,13 +1,15 @@
+use crate::handshake::Handshake;
 use crate::telemetry::DashboardEvent;
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use axum::extract::{State, WebSocketUpgrade};
 use axum::response::IntoResponse;
 use tokio::sync::broadcast;
 
-// The state needed for the websocket (just the broadcast channel)
+/// The state needed for the websocket
 #[derive(Clone)]
 pub struct WsState {
     pub tx: broadcast::Sender<DashboardEvent>,
+    pub handshake: Handshake,
 }
 
 pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<WsState>) -> impl IntoResponse {
@@ -15,7 +17,20 @@ pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<WsState>) -> i
 }
 
 async fn handle_socket(mut socket: WebSocket, state: WsState) {
-    // Subscribe to the telemetry channel
+    // Send handshake immediately on connection
+    let handshake = DashboardEvent::Handshake(state.handshake.clone());
+    if let Ok(json) = serde_json::to_string(&handshake) {
+        if socket
+            .send(Message::Text(Utf8Bytes::from(json)))
+            .await
+            .is_err()
+        {
+            // Client disconnected during handshake
+            return;
+        }
+    }
+
+    // Subscribe to the telemetry channel for ongoing metrics
     let mut rx = state.tx.subscribe();
 
     // Simple loop: Receive from channel -> Send to Websocket

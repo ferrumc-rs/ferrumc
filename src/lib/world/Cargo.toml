@@ -34,6 +34,7 @@ dashmap = { workspace = true }
 rand = { workspace = true }
 bytemuck = { workspace = true }
 tokio = { workspace = true }
+uuid = { workspace = true }
 
 
 [dev-dependencies]
