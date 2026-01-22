@@ -10,3 +10,8 @@ tracing-appender = { workspace = true }
 ferrumc-profiling = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 thiserror = { workspace = true }
+tracing-tracy = { workspace = true, optional = true }
+
+[features]
+# Enable the tracy profiler client
+tracy = ["tracing-tracy"]

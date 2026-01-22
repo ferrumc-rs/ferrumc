@@ -3,6 +3,7 @@ pub mod chunk;
 mod db_functions;
 pub mod errors;
 mod importing;
+mod player;
 pub mod pos;
 pub mod vanilla_chunk_format;
 

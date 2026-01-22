@@ -45,11 +45,11 @@ use crate::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::packets::outgoing::set_compression::SetCompressionPacket;
 use crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use crate::ConnState;
+use ferrumc_components::player::offline_player_data::OfflinePlayerData;
 use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
-
 // =================================================================================================
 // Helper Functions
 // =================================================================================================
@@ -352,11 +352,12 @@ fn send_initial_play_packets(
     player_identity: &PlayerIdentity,
 ) -> Result<(), NetError> {
     // Send login_play
-    let game_mode = state
-        .player_cache
-        .get(&player_identity.uuid)
-        .map(|data| data.gamemode)
+    let player_data: OfflinePlayerData = state
+        .world
+        .load_player_data(player_identity.uuid)
+        .unwrap_or_default()
         .unwrap_or_default();
+    let game_mode = player_data.gamemode;
 
     conn_write.send_packet(LoginPlayPacket::new(
         player_identity.short_uuid,
@@ -364,11 +365,7 @@ fn send_initial_play_packets(
     ))?;
 
     // Send abilities
-    let abilities = state
-        .player_cache
-        .get(&player_identity.uuid)
-        .map(|data| data.abilities)
-        .unwrap_or_default();
+    let abilities = player_data.abilities;
 
     conn_write.send_packet(PlayerAbilities::from_abilities(&abilities))?;
 
@@ -392,19 +389,27 @@ async fn sync_player_position(
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
 
     // Get spawn position from cache or use defaults
-    let (spawn_pos, spawn_rotation) =
-        if let Some(data) = state.player_cache.get(&player_identity.uuid) {
-            (data.position, data.rotation)
-        } else {
-            (
-                Position::new(
-                    DEFAULT_SPAWN_POSITION.x as f64,
-                    DEFAULT_SPAWN_POSITION.y as f64,
-                    DEFAULT_SPAWN_POSITION.z as f64,
-                ),
-                Rotation::default(),
-            )
-        };
+    let (spawn_pos, spawn_rotation) = if let Some(data) = state
+        .world
+        .load_player_data::<OfflinePlayerData>(player_identity.uuid)
+        .unwrap_or_else(|err| {
+            error!(
+                "Error loading player data for {}: {:?}",
+                player_identity.username, err
+            );
+            None
+        }) {
+        (data.position.into(), data.rotation)
+    } else {
+        (
+            Position::new(
+                DEFAULT_SPAWN_POSITION.x as f64,
+                DEFAULT_SPAWN_POSITION.y as f64,
+                DEFAULT_SPAWN_POSITION.z as f64,
+            ),
+            Rotation::default(),
+        )
+    };
 
     // Send position sync
     conn_write.send_packet(SynchronizePlayerPositionPacket::from_position_rotation(

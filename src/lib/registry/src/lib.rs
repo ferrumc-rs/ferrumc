@@ -61,7 +61,7 @@ mod tests {
             apple_id.is_some(),
             "lookup_item_protocol_id(\"minecraft:apple\") failed"
         );
-        assert_eq!(apple_id.unwrap(), 840); // Assuming 840 is the ID
+        assert_eq!(apple_id.unwrap(), 857);
 
         // Test "cobblestone"
         let cobble_id = lookup_item_protocol_id("minecraft:cobblestone");
@@ -83,9 +83,9 @@ mod tests {
     fn test_lookup_item_name() {
         setup();
 
-        // Test "apple" (ID 840)
-        let apple_name = lookup_item_name(840);
-        assert!(apple_name.is_some(), "lookup_item_name(840) failed");
+        // Test "apple" (ID 857)
+        let apple_name = lookup_item_name(857);
+        assert!(apple_name.is_some(), "lookup_item_name(857) failed");
         assert_eq!(apple_name.unwrap(), "minecraft:apple");
     }
 

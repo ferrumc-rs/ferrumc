@@ -33,17 +33,28 @@ pub fn handle(
         let chunk_receiver = &mut *chunk_receiver;
 
         let mut dirty_chunks = Vec::new();
+        let mut sent_chunks = 0;
 
         // First handle dirty chunks
         while let Some(coords) = &chunk_receiver.dirty.pop_front() {
             dirty_chunks.push(*coords);
+            sent_chunks += 1;
+            if sent_chunks >= chunk_receiver.chunks_per_tick as usize {
+                break;
+            }
         }
 
         let mut needed_chunks: Vec<(i32, i32)> = Vec::new();
 
-        // Then handle loading chunks
-        while let Some(coords) = chunk_receiver.loading.pop_front() {
-            needed_chunks.push(coords);
+        if sent_chunks < chunk_receiver.chunks_per_tick as usize {
+            // Then handle loading chunks
+            while let Some(coords) = chunk_receiver.loading.pop_front() {
+                needed_chunks.push(coords);
+                sent_chunks += 1;
+                if sent_chunks >= chunk_receiver.chunks_per_tick as usize {
+                    break;
+                };
+            }
         }
 
         needed_chunks.extend(dirty_chunks);
