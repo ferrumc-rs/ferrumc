@@ -14,6 +14,7 @@ use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, trace};
+use ferrumc_components::player::teleport_tracker::TeleportTracker;
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
@@ -83,6 +84,7 @@ pub fn accept_new_connections(
                 last_sent_keep_alive: Instant::now(),
             },
             PendingPlayerJoin(new_connection.player_identity.clone()),
+            TeleportTracker { waiting_for_confirm: false}
         ));
 
         let entity_id = entity_commands.id();

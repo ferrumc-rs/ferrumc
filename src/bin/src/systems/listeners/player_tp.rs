@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::{MessageReader, MessageWriter, Query};
+use ferrumc_components::player::teleport_tracker::TeleportTracker;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_messages::chunk_calc::ChunkCalc;
@@ -9,7 +10,12 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use tracing::error;
 
 pub fn teleport_player(
-    mut query: Query<(&StreamWriter, &mut Position, &Rotation)>,
+    mut query: Query<(
+        &StreamWriter,
+        &mut Position,
+        &Rotation,
+        &mut TeleportTracker,
+    )>,
     mut message_reader: MessageReader<TeleportPlayer>,
     mut chunk_calc_msg: MessageWriter<ChunkCalc>,
     mut player_update_msg: MessageWriter<SendEntityUpdate>,
@@ -22,9 +28,10 @@ pub fn teleport_player(
 
         // Notify the player update system to send the new position to the client
         player_update_msg.write(SendEntityUpdate(entity));
-        let Ok((conn, mut pos, rot)) = query.get_mut(entity) else {
+        let Ok((conn, mut pos, rot, mut tracker)) = query.get_mut(entity) else {
             continue;
         };
+        tracker.waiting_for_confirm = true;
         pos.x = message.x;
         pos.y = message.y;
         pos.z = message.z;
