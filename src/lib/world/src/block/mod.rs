@@ -1,3 +1,4 @@
+use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -17,6 +18,7 @@ pub struct BlockBehaviorVTable {
         updates: &mut BlockUpdates,
         pos: BlockPos,
     ),
+    pub test: fn(),
 }
 
 pub trait BlockType {
@@ -39,6 +41,11 @@ fn random_tick_adapter<'data, T: BlockBehavior + BlockType + TryFrom<&'data mut 
     }
 }
 
+#[inline(always)]
+fn test_adapter<T: Any>() {
+    println!("{:?}", TypeId::of::<T>());
+}
+
 macro_rules! define_block_behavior {
     ($name:ident, $({$field:ident, $property_name:ident}: $ty:ty),* $(,)?) => {
         pub struct $name<'block_data> {
@@ -59,6 +66,7 @@ macro_rules! define_block_behavior {
         impl<'data> $name<'data> {
             const VTABLE: BlockBehaviorVTable = BlockBehaviorVTable {
                 random_tick: |data, world, updates, pos| random_tick_adapter::<$name>(data, world, updates, pos),
+                test: test_adapter::<$name>,
             };
 
             pub fn vtable() -> &'static BlockBehaviorVTable {
