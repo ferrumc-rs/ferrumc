@@ -71,16 +71,7 @@ pub fn handle(
                         item_id.0, mapped_block_state_id
                     );
                     let pos: BlockPos = event.position.into();
-                    let offset_pos = pos
-                        + match event.face.0 {
-                            0 => (0, -1, 0),
-                            1 => (0, 1, 0),
-                            2 => (0, 0, -1),
-                            3 => (0, 0, 1),
-                            4 => (-1, 0, 0),
-                            5 => (1, 0, 0),
-                            _ => (0, 0, 0),
-                        };
+                    let offset_pos = pos + event.face.translation_vec().into();
 
                     let mut chunk = ferrumc_utils::world::load_or_generate_mut(
                         &state.0,
