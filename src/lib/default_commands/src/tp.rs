@@ -101,7 +101,7 @@ fn tp_to_command(
     });
 
     sender.send_message(
-        format!("Teleported to the entity at({}).", target_pos).into(),
+        format!("Teleported to the entity at {}.", target_pos).into(),
         false,
     );
 }
