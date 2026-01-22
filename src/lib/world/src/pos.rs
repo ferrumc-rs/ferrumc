@@ -22,10 +22,30 @@ pub struct BlockPos {
 }
 
 impl BlockPos {
-    pub fn of(x: i32, y: i32, z: i32) -> Self {
+    pub const fn of(x: i32, y: i32, z: i32) -> Self {
         Self {
             pos: IVec3::new(x, y, z),
         }
+    }
+    
+    pub fn offset(&self, pos: BlockPos) -> Self {
+        Self::of(
+            self.x() + pos.x(),
+            self.y() + pos.y(),
+            self.z() + pos.z()
+        )
+    }
+
+    pub fn x(&self) -> i32 {
+        self.pos.x
+    }
+
+    pub fn y(&self) -> i32 {
+        self.pos.y
+    }
+
+    pub fn z(&self) -> i32 {
+        self.pos.z
     }
 
     pub fn column(&self) -> ColumnPos {
@@ -265,6 +285,14 @@ impl ChunkBlockPos {
 
     pub fn z(&self) -> u8 {
         self.pos.z as _
+    }
+
+    pub fn to_block_pos(&self, pos: &ChunkPos) -> BlockPos {
+        BlockPos::of(
+            (pos.x() << 4) + self.x() as i32,
+            self.y() as i32,
+            (pos.z() << 4) + self.z() as i32,
+        )
     }
 
     pub fn section_block_pos(&self) -> SectionBlockPos {

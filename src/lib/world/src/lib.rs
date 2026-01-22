@@ -16,8 +16,10 @@ use ferrumc_storage::lmdb::LmdbBackend;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 use std::process::exit;
+use std::sync::{Arc, Mutex};
 use tracing::{error, warn};
 use wyhash::WyHasherBuilder;
+use crate::chunk::light::engine::ChunkLightingEngine;
 
 type ChunkCache = DashMap<(ChunkPos, String), Chunk, WyHasherBuilder>;
 
@@ -28,6 +30,7 @@ pub type RefChunk<'a> = dashmap::mapref::one::Ref<'a, (ChunkPos, String), Chunk>
 pub struct World {
     storage_backend: LmdbBackend,
     cache: ChunkCache,
+    pub light_engine: Arc<Mutex<ChunkLightingEngine>>,
 }
 
 fn check_config_validity() -> Result<(), WorldError> {
@@ -101,6 +104,7 @@ impl World {
         World {
             storage_backend,
             cache,
+            light_engine: Arc::new(Mutex::new(ChunkLightingEngine::empty())),
         }
     }
 

@@ -16,6 +16,7 @@ mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod world_sync;
+pub mod light;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     // Tick-bound systems only (run every game tick)

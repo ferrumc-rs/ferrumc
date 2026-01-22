@@ -1,5 +1,5 @@
 use crate::block_state_id::BlockStateId;
-use crate::chunk::light::{LightStorage, SectionLightData};
+use crate::chunk::light::{LightSection, SectionLightData};
 use crate::chunk::section::biome::{BiomeData, BiomeType};
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::{PalettedSection, PalettedSectionResult};
@@ -97,7 +97,7 @@ impl ChunkSectionType {
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct ChunkSection {
     pub(crate) inner: ChunkSectionType,
-    pub(crate) light: SectionLightData,
+    pub light: SectionLightData,
     pub(crate) biome: BiomeData,
     pub dirty: bool,
 }
@@ -174,12 +174,12 @@ impl TryFrom<&Section> for ChunkSection {
         let sky_light = value
             .sky_light
             .clone()
-            .map(LightStorage::from)
+            .map(LightSection::from)
             .unwrap_or_default();
         let block_light = value
             .block_light
             .clone()
-            .map(LightStorage::from)
+            .map(LightSection::from)
             .unwrap_or_default();
 
         let light_data = SectionLightData::with_data(sky_light, block_light);

@@ -1,4 +1,4 @@
-use crate::chunk::light::LightStorage;
+use crate::chunk::light::LightSection;
 use crate::chunk::Chunk;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::bitset::BitSet;
@@ -41,9 +41,9 @@ impl<'chunk> From<&'chunk Chunk> for NetworkLightData<'chunk> {
                 sky_light_arrays.push(LightDataArray {
                     length: VarInt(2048),
                     data: match &section.light.sky_light {
-                        LightStorage::Empty => unreachable!(),
-                        LightStorage::Full => FULL_SECTION_LIGHT,
-                        LightStorage::Mixed { light_data } => light_data,
+                        LightSection::Empty => unreachable!(),
+                        LightSection::Full => FULL_SECTION_LIGHT,
+                        LightSection::Mixed { light_data } => light_data,
                     },
                 })
             }
@@ -52,9 +52,9 @@ impl<'chunk> From<&'chunk Chunk> for NetworkLightData<'chunk> {
                 block_light_arrays.push(LightDataArray {
                     length: VarInt(2048),
                     data: match &section.light.block_light {
-                        LightStorage::Empty => unreachable!(),
-                        LightStorage::Full => FULL_SECTION_LIGHT,
-                        LightStorage::Mixed { light_data } => light_data,
+                        LightSection::Empty => unreachable!(),
+                        LightSection::Full => FULL_SECTION_LIGHT,
+                        LightSection::Mixed { light_data } => light_data,
                     },
                 })
             }

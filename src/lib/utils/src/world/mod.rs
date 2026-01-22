@@ -7,7 +7,7 @@ pub fn load_or_generate_chunk<'a>(
     if state.world.chunk_exists(chunk_pos, dimension)? {
         state.world.load_chunk(chunk_pos, dimension)
     } else {
-        let chunk = state
+        let mut chunk = state
             .terrain_generator
             .generate_chunk(chunk_pos)
             .map_err(|err| {
@@ -16,6 +16,12 @@ pub fn load_or_generate_chunk<'a>(
                     chunk_pos, err
                 ))
             })?;
+
+        {
+            let mut lighting_engine = state.world.light_engine.lock().unwrap();
+            lighting_engine.sky.initialize_chunk_skylight(&mut chunk, &chunk_pos).unwrap();
+        }
+
         state.world.insert_chunk(chunk_pos, dimension, chunk)?;
         state.world.load_chunk(chunk_pos, dimension)
     }
@@ -29,7 +35,7 @@ pub fn load_or_generate_mut<'a>(
     if state.world.chunk_exists(chunk_pos, dimension)? {
         state.world.load_chunk_mut(chunk_pos, dimension)
     } else {
-        let chunk = state
+        let mut chunk = state
             .terrain_generator
             .generate_chunk(chunk_pos)
             .map_err(|err| {
@@ -38,6 +44,12 @@ pub fn load_or_generate_mut<'a>(
                     chunk_pos, err
                 ))
             })?;
+
+        {
+            let mut lighting_engine = state.world.light_engine.lock().unwrap();
+            lighting_engine.sky.initialize_chunk_skylight(&mut chunk, &chunk_pos).unwrap();
+        }
+
         state.world.insert_chunk(chunk_pos, dimension, chunk)?;
         state.world.load_chunk_mut(chunk_pos, dimension)
     }

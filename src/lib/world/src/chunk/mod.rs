@@ -8,11 +8,12 @@ use crate::block_state_id::BlockStateId;
 use crate::chunk::heightmap::Heightmaps;
 use crate::chunk::section::{ChunkSection, AIR};
 use crate::errors::WorldError;
-use crate::pos::{BlockPos, ChunkBlockPos, ChunkHeight};
+use crate::pos::{BlockPos, ChunkBlockPos, ChunkHeight, ChunkPos};
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
+use tracing::debug;
 use ferrumc_macros::block;
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
@@ -49,7 +50,7 @@ impl Chunk {
             sections: vec![ChunkSection::new_uniform(AIR); (height.height / 16) as usize]
                 .into_boxed_slice(),
             height,
-            heightmaps: None,
+            heightmaps: Some(Heightmaps::default()),
         }
     }
 
@@ -73,7 +74,7 @@ impl Chunk {
         Self {
             sections: sections.to_vec().into_boxed_slice(),
             height,
-            heightmaps: None,
+            heightmaps: Some(Heightmaps::default()),
         }
     }
 
@@ -146,6 +147,34 @@ impl Chunk {
         assert!(section as usize <= self.sections.len());
 
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
+    }
+
+    pub fn get_section(&self, pos: ChunkBlockPos) -> Option<&ChunkSection> {
+        let section_index = (pos.y() + -self.height.min_y) / 16;
+        if section_index < 0 {
+            return None;
+        }
+
+        let section_index = section_index as usize;
+        if section_index >= self.sections.len() {
+            return None;
+        }
+
+        Some(&self.sections[section_index])
+    }
+
+    pub fn get_section_mut(&mut self, pos: ChunkBlockPos) -> Option<&mut ChunkSection> {
+        let section_index = (pos.y() + -self.height.min_y) / 16;
+        if section_index < 0 {
+            return None;
+        }
+
+        let section_index = section_index as usize;
+        if section_index >= self.sections.len() {
+            return None;
+        }
+
+        Some(&mut self.sections[section_index])
     }
 }
 
