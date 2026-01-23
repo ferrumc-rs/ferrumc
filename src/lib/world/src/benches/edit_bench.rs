@@ -6,8 +6,8 @@ use rand::Rng;
 use std::hint::black_box;
 
 fn get_rand_in_range(min: i32, max: i32) -> i32 {
-    let mut rng = rand::rng();
-    rng.random_range(min..=max)
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..=max)
 }
 
 #[expect(clippy::unit_arg)]

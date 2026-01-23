@@ -1,5 +1,4 @@
 use ferrumc_storage::lmdb::LmdbBackend;
-use rand::Rng;
 use std::collections::HashSet;
 
 fn generate_random_data(size: usize) -> Vec<u8> {
@@ -19,8 +18,7 @@ fn generate_random_key(used: &mut HashSet<u128>) -> u128 {
 }
 
 fn select_random<T: Clone + Copy>(choices: Vec<T>) -> T {
-    let mut rng = rand::rng();
-    let index = rng.random::<u32>() as usize % choices.len();
+    let index = rand::random::<u32>() as usize % choices.len();
     *choices.get(index).unwrap()
 }
 
