@@ -18,6 +18,82 @@ pub struct SaplingBlock {
     pub block_type: SaplingBlockType,
     pub stage: i32,
 }
+impl SaplingBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<SaplingBlock>();
+}
+impl TryFrom<u32> for SaplingBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            37u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::AcaciaSapling,
+                stage: 0i32,
+            }),
+            38u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::AcaciaSapling,
+                stage: 1i32,
+            }),
+            33u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::BirchSapling,
+                stage: 0i32,
+            }),
+            34u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::BirchSapling,
+                stage: 1i32,
+            }),
+            39u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::CherrySapling,
+                stage: 0i32,
+            }),
+            40u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::CherrySapling,
+                stage: 1i32,
+            }),
+            41u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::DarkOakSapling,
+                stage: 0i32,
+            }),
+            42u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::DarkOakSapling,
+                stage: 1i32,
+            }),
+            35u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::JungleSapling,
+                stage: 0i32,
+            }),
+            36u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::JungleSapling,
+                stage: 1i32,
+            }),
+            29u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::OakSapling,
+                stage: 0i32,
+            }),
+            30u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::OakSapling,
+                stage: 1i32,
+            }),
+            43u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::PaleOakSapling,
+                stage: 0i32,
+            }),
+            44u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::PaleOakSapling,
+                stage: 1i32,
+            }),
+            31u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::SpruceSapling,
+                stage: 0i32,
+            }),
+            32u32 => Ok(SaplingBlock {
+                block_type: SaplingBlockType::SpruceSapling,
+                stage: 1i32,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for SaplingBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

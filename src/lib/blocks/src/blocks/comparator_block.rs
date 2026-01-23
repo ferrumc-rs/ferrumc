@@ -7,6 +7,98 @@ pub struct ComparatorBlock {
     pub mode: ComparatorMode,
     pub powered: bool,
 }
+impl ComparatorBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<ComparatorBlock>();
+}
+impl TryFrom<u32> for ComparatorBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            9984u32 => Ok(ComparatorBlock {
+                facing: Direction::North,
+                mode: ComparatorMode::Compare,
+                powered: true,
+            }),
+            9985u32 => Ok(ComparatorBlock {
+                facing: Direction::North,
+                mode: ComparatorMode::Compare,
+                powered: false,
+            }),
+            9986u32 => Ok(ComparatorBlock {
+                facing: Direction::North,
+                mode: ComparatorMode::Subtract,
+                powered: true,
+            }),
+            9987u32 => Ok(ComparatorBlock {
+                facing: Direction::North,
+                mode: ComparatorMode::Subtract,
+                powered: false,
+            }),
+            9988u32 => Ok(ComparatorBlock {
+                facing: Direction::South,
+                mode: ComparatorMode::Compare,
+                powered: true,
+            }),
+            9989u32 => Ok(ComparatorBlock {
+                facing: Direction::South,
+                mode: ComparatorMode::Compare,
+                powered: false,
+            }),
+            9990u32 => Ok(ComparatorBlock {
+                facing: Direction::South,
+                mode: ComparatorMode::Subtract,
+                powered: true,
+            }),
+            9991u32 => Ok(ComparatorBlock {
+                facing: Direction::South,
+                mode: ComparatorMode::Subtract,
+                powered: false,
+            }),
+            9992u32 => Ok(ComparatorBlock {
+                facing: Direction::West,
+                mode: ComparatorMode::Compare,
+                powered: true,
+            }),
+            9993u32 => Ok(ComparatorBlock {
+                facing: Direction::West,
+                mode: ComparatorMode::Compare,
+                powered: false,
+            }),
+            9994u32 => Ok(ComparatorBlock {
+                facing: Direction::West,
+                mode: ComparatorMode::Subtract,
+                powered: true,
+            }),
+            9995u32 => Ok(ComparatorBlock {
+                facing: Direction::West,
+                mode: ComparatorMode::Subtract,
+                powered: false,
+            }),
+            9996u32 => Ok(ComparatorBlock {
+                facing: Direction::East,
+                mode: ComparatorMode::Compare,
+                powered: true,
+            }),
+            9997u32 => Ok(ComparatorBlock {
+                facing: Direction::East,
+                mode: ComparatorMode::Compare,
+                powered: false,
+            }),
+            9998u32 => Ok(ComparatorBlock {
+                facing: Direction::East,
+                mode: ComparatorMode::Subtract,
+                powered: true,
+            }),
+            9999u32 => Ok(ComparatorBlock {
+                facing: Direction::East,
+                mode: ComparatorMode::Subtract,
+                powered: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for ComparatorBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

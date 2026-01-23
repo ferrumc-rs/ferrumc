@@ -18,6 +18,82 @@ pub struct DoublePlantBlock {
     pub block_type: DoublePlantBlockType,
     pub half: DoubleBlockHalf,
 }
+impl DoublePlantBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<DoublePlantBlock>();
+}
+impl TryFrom<u32> for DoublePlantBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            11646u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::LargeFern,
+                half: DoubleBlockHalf::Upper,
+            }),
+            11647u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::LargeFern,
+                half: DoubleBlockHalf::Lower,
+            }),
+            11638u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::Lilac,
+                half: DoubleBlockHalf::Upper,
+            }),
+            11639u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::Lilac,
+                half: DoubleBlockHalf::Lower,
+            }),
+            11642u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::Peony,
+                half: DoubleBlockHalf::Upper,
+            }),
+            11643u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::Peony,
+                half: DoubleBlockHalf::Lower,
+            }),
+            13530u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::PitcherPlant,
+                half: DoubleBlockHalf::Upper,
+            }),
+            13531u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::PitcherPlant,
+                half: DoubleBlockHalf::Lower,
+            }),
+            11640u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::RoseBush,
+                half: DoubleBlockHalf::Upper,
+            }),
+            11641u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::RoseBush,
+                half: DoubleBlockHalf::Lower,
+            }),
+            11636u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::Sunflower,
+                half: DoubleBlockHalf::Upper,
+            }),
+            11637u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::Sunflower,
+                half: DoubleBlockHalf::Lower,
+            }),
+            11644u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::TallGrass,
+                half: DoubleBlockHalf::Upper,
+            }),
+            11645u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::TallGrass,
+                half: DoubleBlockHalf::Lower,
+            }),
+            2055u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::TallSeagrass,
+                half: DoubleBlockHalf::Upper,
+            }),
+            2056u32 => Ok(DoublePlantBlock {
+                block_type: DoublePlantBlockType::TallSeagrass,
+                half: DoubleBlockHalf::Lower,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for DoublePlantBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

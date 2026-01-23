@@ -15,6 +15,178 @@ pub struct FurnaceBlock {
     pub facing: Direction,
     pub lit: bool,
 }
+impl FurnaceBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<FurnaceBlock>();
+}
+impl TryFrom<u32> for FurnaceBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            19451u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::North,
+                lit: true,
+            }),
+            19452u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::North,
+                lit: false,
+            }),
+            19453u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::South,
+                lit: true,
+            }),
+            19454u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::South,
+                lit: false,
+            }),
+            19455u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::West,
+                lit: true,
+            }),
+            19456u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::West,
+                lit: false,
+            }),
+            19457u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::East,
+                lit: true,
+            }),
+            19458u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::BlastFurnace,
+                facing: Direction::East,
+                lit: false,
+            }),
+            4358u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::North,
+                lit: true,
+            }),
+            4359u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::North,
+                lit: false,
+            }),
+            4360u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::South,
+                lit: true,
+            }),
+            4361u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::South,
+                lit: false,
+            }),
+            4362u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::West,
+                lit: true,
+            }),
+            4363u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::West,
+                lit: false,
+            }),
+            4364u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::East,
+                lit: true,
+            }),
+            4365u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Furnace,
+                facing: Direction::East,
+                lit: false,
+            }),
+            5918u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::North,
+                lit: true,
+            }),
+            5919u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::North,
+                lit: false,
+            }),
+            5920u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::South,
+                lit: true,
+            }),
+            5921u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::South,
+                lit: false,
+            }),
+            5922u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::West,
+                lit: true,
+            }),
+            5923u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::West,
+                lit: false,
+            }),
+            5924u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::East,
+                lit: true,
+            }),
+            5925u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::RedstoneWallTorch,
+                facing: Direction::East,
+                lit: false,
+            }),
+            19443u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::North,
+                lit: true,
+            }),
+            19444u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::North,
+                lit: false,
+            }),
+            19445u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::South,
+                lit: true,
+            }),
+            19446u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::South,
+                lit: false,
+            }),
+            19447u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::West,
+                lit: true,
+            }),
+            19448u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::West,
+                lit: false,
+            }),
+            19449u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::East,
+                lit: true,
+            }),
+            19450u32 => Ok(FurnaceBlock {
+                block_type: FurnaceBlockType::Smoker,
+                facing: Direction::East,
+                lit: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for FurnaceBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

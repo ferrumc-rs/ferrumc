@@ -7,6 +7,58 @@ pub struct GeneratedStruct19 {
     pub shrieking: bool,
     pub waterlogged: bool,
 }
+impl GeneratedStruct19 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct19>();
+}
+impl TryFrom<u32> for GeneratedStruct19 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            23958u32 => Ok(GeneratedStruct19 {
+                can_summon: true,
+                shrieking: true,
+                waterlogged: true,
+            }),
+            23959u32 => Ok(GeneratedStruct19 {
+                can_summon: true,
+                shrieking: true,
+                waterlogged: false,
+            }),
+            23960u32 => Ok(GeneratedStruct19 {
+                can_summon: true,
+                shrieking: false,
+                waterlogged: true,
+            }),
+            23961u32 => Ok(GeneratedStruct19 {
+                can_summon: true,
+                shrieking: false,
+                waterlogged: false,
+            }),
+            23962u32 => Ok(GeneratedStruct19 {
+                can_summon: false,
+                shrieking: true,
+                waterlogged: true,
+            }),
+            23963u32 => Ok(GeneratedStruct19 {
+                can_summon: false,
+                shrieking: true,
+                waterlogged: false,
+            }),
+            23964u32 => Ok(GeneratedStruct19 {
+                can_summon: false,
+                shrieking: false,
+                waterlogged: true,
+            }),
+            23965u32 => Ok(GeneratedStruct19 {
+                can_summon: false,
+                shrieking: false,
+                waterlogged: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct19 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

@@ -14,6 +14,306 @@ pub struct ChestBlock {
     pub ty: ChestType,
     pub waterlogged: bool,
 }
+impl ChestBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<ChestBlock>();
+}
+impl TryFrom<u32> for ChestBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            3018u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::North,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            3019u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::North,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            3020u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::North,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            3021u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::North,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            3022u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::North,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            3023u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::North,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            3024u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::South,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            3025u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::South,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            3026u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::South,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            3027u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::South,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            3028u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::South,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            3029u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::South,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            3030u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::West,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            3031u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::West,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            3032u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::West,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            3033u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::West,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            3034u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::West,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            3035u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::West,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            3036u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::East,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            3037u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::East,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            3038u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::East,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            3039u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::East,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            3040u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::East,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            3041u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::Chest,
+                facing: Direction::East,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            9928u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::North,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            9929u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::North,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            9930u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::North,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            9931u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::North,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            9932u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::North,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            9933u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::North,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            9934u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::South,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            9935u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::South,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            9936u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::South,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            9937u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::South,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            9938u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::South,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            9939u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::South,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            9940u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::West,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            9941u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::West,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            9942u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::West,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            9943u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::West,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            9944u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::West,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            9945u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::West,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            9946u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::East,
+                ty: ChestType::Single,
+                waterlogged: true,
+            }),
+            9947u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::East,
+                ty: ChestType::Single,
+                waterlogged: false,
+            }),
+            9948u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::East,
+                ty: ChestType::Left,
+                waterlogged: true,
+            }),
+            9949u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::East,
+                ty: ChestType::Left,
+                waterlogged: false,
+            }),
+            9950u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::East,
+                ty: ChestType::Right,
+                waterlogged: true,
+            }),
+            9951u32 => Ok(ChestBlock {
+                block_type: ChestBlockType::TrappedChest,
+                facing: Direction::East,
+                ty: ChestType::Right,
+                waterlogged: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for ChestBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

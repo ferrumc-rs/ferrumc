@@ -137,6 +137,10 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
                             )*
                         }
 
+                        impl #struct_name {
+                            pub(crate) const VTABLE: crate::BlockBehaviorTable = crate::BlockBehaviorTable::from::<#struct_name>();
+                        }
+
                         #trait_impl
                     }, struct_name)
                 },
@@ -169,6 +173,10 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
                             #(
                                 pub #fields: #types,
                             )*
+                        }
+
+                        impl #struct_name {
+                            pub(crate) const VTABLE: crate::BlockBehaviorTable = crate::BlockBehaviorTable::from::<#struct_name>();
                         }
 
                         #trait_impl
@@ -213,7 +221,7 @@ fn property_descriptor_of(key: &str) -> &PropertyDescriptor {
 }
 
 fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident])>, values: &[&BlockStateConfiguration], mappings: &mut [TokenStream]) -> TokenStream {
-    let into_match_arms = match enum_name {
+    let (from_match_arms, into_match_arms): (Vec<TokenStream>, Vec<TokenStream>) = match enum_name {
         Some((enum_name, enum_variants)) => {
             let mut values = values.into_iter().collect::<Vec<_>>();
             values.sort_by_key(|BlockStateConfiguration { name, .. }| name);
@@ -256,13 +264,16 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                                     #struct_name { block_type: #enum_name::#variant, #(#fields: #values),* }
                                 };
 
-                                mappings[*id as usize] = data.clone();
+                                mappings[*id as usize] = quote! { crate::StateBehaviorTable::spin_off(&#struct_name::VTABLE, #id) };
 
-                                out.push(
+                                out.push((
+                                    quote! {
+                                        #id => Ok(#data)
+                                    },
                                     quote! {
                                         #data => Ok(#id)
                                     }
-                                )
+                                ))
                             }
 
                             out
@@ -271,7 +282,7 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                     }
                 })
                 .flatten()
-                .collect::<Vec<_>>()
+                .unzip()
         },
         None => {
             let BlockStateConfiguration { properties, values, .. } = values[0];
@@ -307,18 +318,33 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                         #struct_name { #(#fields: #values),* }
                     };
 
-                    mappings[*id as usize] = data.clone();
+                    mappings[*id as usize] = quote! { crate::StateBehaviorTable::spin_off(&#struct_name::VTABLE, #id) };
 
-
-                    quote! {
-                        #data => Ok(#id)
-                    }
+                    (
+                        quote! {
+                            #id => Ok(#data)
+                        },
+                        quote! {
+                            #data => Ok(#id)
+                        }
+                    )
                 })
-                .collect::<Vec<_>>()
+                .unzip()
         }
     };
 
     quote! {
+        impl TryFrom<u32> for #struct_name {
+            type Error = ();
+
+            fn try_from(data: u32) -> Result<Self, Self::Error> {
+                match data {
+                    #(#from_match_arms),*,
+                    _ => Err(())
+                }
+            }
+        }
+
         impl TryInto<u32> for #struct_name {
             type Error = ();
 

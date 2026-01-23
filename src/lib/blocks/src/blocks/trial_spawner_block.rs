@@ -6,6 +6,66 @@ pub struct TrialSpawnerBlock {
     pub ominous: bool,
     pub trial_spawner_state: TrialSpawnerState,
 }
+impl TrialSpawnerBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<TrialSpawnerBlock>();
+}
+impl TryFrom<u32> for TrialSpawnerBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            27698u32 => Ok(TrialSpawnerBlock {
+                ominous: true,
+                trial_spawner_state: TrialSpawnerState::Inactive,
+            }),
+            27699u32 => Ok(TrialSpawnerBlock {
+                ominous: true,
+                trial_spawner_state: TrialSpawnerState::WaitingForPlayers,
+            }),
+            27700u32 => Ok(TrialSpawnerBlock {
+                ominous: true,
+                trial_spawner_state: TrialSpawnerState::Active,
+            }),
+            27701u32 => Ok(TrialSpawnerBlock {
+                ominous: true,
+                trial_spawner_state: TrialSpawnerState::WaitingForRewardEjection,
+            }),
+            27702u32 => Ok(TrialSpawnerBlock {
+                ominous: true,
+                trial_spawner_state: TrialSpawnerState::EjectingReward,
+            }),
+            27703u32 => Ok(TrialSpawnerBlock {
+                ominous: true,
+                trial_spawner_state: TrialSpawnerState::Cooldown,
+            }),
+            27704u32 => Ok(TrialSpawnerBlock {
+                ominous: false,
+                trial_spawner_state: TrialSpawnerState::Inactive,
+            }),
+            27705u32 => Ok(TrialSpawnerBlock {
+                ominous: false,
+                trial_spawner_state: TrialSpawnerState::WaitingForPlayers,
+            }),
+            27706u32 => Ok(TrialSpawnerBlock {
+                ominous: false,
+                trial_spawner_state: TrialSpawnerState::Active,
+            }),
+            27707u32 => Ok(TrialSpawnerBlock {
+                ominous: false,
+                trial_spawner_state: TrialSpawnerState::WaitingForRewardEjection,
+            }),
+            27708u32 => Ok(TrialSpawnerBlock {
+                ominous: false,
+                trial_spawner_state: TrialSpawnerState::EjectingReward,
+            }),
+            27709u32 => Ok(TrialSpawnerBlock {
+                ominous: false,
+                trial_spawner_state: TrialSpawnerState::Cooldown,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for TrialSpawnerBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

@@ -69,6 +69,722 @@ pub struct PillarBlock {
     pub block_type: PillarBlockType,
     pub axis: Axis,
 }
+impl PillarBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<PillarBlock>();
+}
+impl TryFrom<u32> for PillarBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            148u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::AcaciaLog,
+                axis: Axis::X,
+            }),
+            149u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::AcaciaLog,
+                axis: Axis::Y,
+            }),
+            150u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::AcaciaLog,
+                axis: Axis::Z,
+            }),
+            213u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::AcaciaWood,
+                axis: Axis::X,
+            }),
+            214u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::AcaciaWood,
+                axis: Axis::Y,
+            }),
+            215u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::AcaciaWood,
+                axis: Axis::Z,
+            }),
+            168u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BambooBlock,
+                axis: Axis::X,
+            }),
+            169u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BambooBlock,
+                axis: Axis::Y,
+            }),
+            170u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BambooBlock,
+                axis: Axis::Z,
+            }),
+            6031u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::Basalt,
+                axis: Axis::X,
+            }),
+            6032u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::Basalt,
+                axis: Axis::Y,
+            }),
+            6033u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::Basalt,
+                axis: Axis::Z,
+            }),
+            142u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BirchLog,
+                axis: Axis::X,
+            }),
+            143u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BirchLog,
+                axis: Axis::Y,
+            }),
+            144u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BirchLog,
+                axis: Axis::Z,
+            }),
+            207u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BirchWood,
+                axis: Axis::X,
+            }),
+            208u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BirchWood,
+                axis: Axis::Y,
+            }),
+            209u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BirchWood,
+                axis: Axis::Z,
+            }),
+            13569u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BoneBlock,
+                axis: Axis::X,
+            }),
+            13570u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BoneBlock,
+                axis: Axis::Y,
+            }),
+            13571u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::BoneBlock,
+                axis: Axis::Z,
+            }),
+            151u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CherryLog,
+                axis: Axis::X,
+            }),
+            152u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CherryLog,
+                axis: Axis::Y,
+            }),
+            153u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CherryLog,
+                axis: Axis::Z,
+            }),
+            216u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CherryWood,
+                axis: Axis::X,
+            }),
+            217u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CherryWood,
+                axis: Axis::Y,
+            }),
+            218u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CherryWood,
+                axis: Axis::Z,
+            }),
+            19625u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CrimsonHyphae,
+                axis: Axis::X,
+            }),
+            19626u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CrimsonHyphae,
+                axis: Axis::Y,
+            }),
+            19627u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CrimsonHyphae,
+                axis: Axis::Z,
+            }),
+            19619u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CrimsonStem,
+                axis: Axis::X,
+            }),
+            19620u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CrimsonStem,
+                axis: Axis::Y,
+            }),
+            19621u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::CrimsonStem,
+                axis: Axis::Z,
+            }),
+            154u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::DarkOakLog,
+                axis: Axis::X,
+            }),
+            155u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::DarkOakLog,
+                axis: Axis::Y,
+            }),
+            156u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::DarkOakLog,
+                axis: Axis::Z,
+            }),
+            219u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::DarkOakWood,
+                axis: Axis::X,
+            }),
+            220u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::DarkOakWood,
+                axis: Axis::Y,
+            }),
+            221u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::DarkOakWood,
+                axis: Axis::Z,
+            }),
+            25964u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::Deepslate,
+                axis: Axis::X,
+            }),
+            25965u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::Deepslate,
+                axis: Axis::Y,
+            }),
+            25966u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::Deepslate,
+                axis: Axis::Z,
+            }),
+            11614u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::HayBlock,
+                axis: Axis::X,
+            }),
+            11615u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::HayBlock,
+                axis: Axis::Y,
+            }),
+            11616u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::HayBlock,
+                axis: Axis::Z,
+            }),
+            27614u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::InfestedDeepslate,
+                axis: Axis::X,
+            }),
+            27615u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::InfestedDeepslate,
+                axis: Axis::Y,
+            }),
+            27616u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::InfestedDeepslate,
+                axis: Axis::Z,
+            }),
+            145u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::JungleLog,
+                axis: Axis::X,
+            }),
+            146u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::JungleLog,
+                axis: Axis::Y,
+            }),
+            147u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::JungleLog,
+                axis: Axis::Z,
+            }),
+            210u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::JungleWood,
+                axis: Axis::X,
+            }),
+            211u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::JungleWood,
+                axis: Axis::Y,
+            }),
+            212u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::JungleWood,
+                axis: Axis::Z,
+            }),
+            160u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MangroveLog,
+                axis: Axis::X,
+            }),
+            161u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MangroveLog,
+                axis: Axis::Y,
+            }),
+            162u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MangroveLog,
+                axis: Axis::Z,
+            }),
+            222u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MangroveWood,
+                axis: Axis::X,
+            }),
+            223u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MangroveWood,
+                axis: Axis::Y,
+            }),
+            224u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MangroveWood,
+                axis: Axis::Z,
+            }),
+            165u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MuddyMangroveRoots,
+                axis: Axis::X,
+            }),
+            166u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MuddyMangroveRoots,
+                axis: Axis::Y,
+            }),
+            167u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::MuddyMangroveRoots,
+                axis: Axis::Z,
+            }),
+            6043u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::NetherPortal,
+                axis: Axis::X,
+            }),
+            6044u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::NetherPortal,
+                axis: Axis::Z,
+            }),
+            136u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OakLog,
+                axis: Axis::X,
+            }),
+            137u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OakLog,
+                axis: Axis::Y,
+            }),
+            138u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OakLog,
+                axis: Axis::Z,
+            }),
+            201u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OakWood,
+                axis: Axis::X,
+            }),
+            202u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OakWood,
+                axis: Axis::Y,
+            }),
+            203u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OakWood,
+                axis: Axis::Z,
+            }),
+            27623u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OchreFroglight,
+                axis: Axis::X,
+            }),
+            27624u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OchreFroglight,
+                axis: Axis::Y,
+            }),
+            27625u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::OchreFroglight,
+                axis: Axis::Z,
+            }),
+            157u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PaleOakLog,
+                axis: Axis::X,
+            }),
+            158u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PaleOakLog,
+                axis: Axis::Y,
+            }),
+            159u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PaleOakLog,
+                axis: Axis::Z,
+            }),
+            22u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PaleOakWood,
+                axis: Axis::X,
+            }),
+            23u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PaleOakWood,
+                axis: Axis::Y,
+            }),
+            24u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PaleOakWood,
+                axis: Axis::Z,
+            }),
+            27629u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PearlescentFroglight,
+                axis: Axis::X,
+            }),
+            27630u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PearlescentFroglight,
+                axis: Axis::Y,
+            }),
+            27631u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PearlescentFroglight,
+                axis: Axis::Z,
+            }),
+            6034u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PolishedBasalt,
+                axis: Axis::X,
+            }),
+            6035u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PolishedBasalt,
+                axis: Axis::Y,
+            }),
+            6036u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PolishedBasalt,
+                axis: Axis::Z,
+            }),
+            13434u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PurpurPillar,
+                axis: Axis::X,
+            }),
+            13435u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PurpurPillar,
+                axis: Axis::Y,
+            }),
+            13436u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::PurpurPillar,
+                axis: Axis::Z,
+            }),
+            10046u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::QuartzPillar,
+                axis: Axis::X,
+            }),
+            10047u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::QuartzPillar,
+                axis: Axis::Y,
+            }),
+            10048u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::QuartzPillar,
+                axis: Axis::Z,
+            }),
+            139u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::SpruceLog,
+                axis: Axis::X,
+            }),
+            140u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::SpruceLog,
+                axis: Axis::Y,
+            }),
+            141u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::SpruceLog,
+                axis: Axis::Z,
+            }),
+            204u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::SpruceWood,
+                axis: Axis::X,
+            }),
+            205u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::SpruceWood,
+                axis: Axis::Y,
+            }),
+            206u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::SpruceWood,
+                axis: Axis::Z,
+            }),
+            180u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedAcaciaLog,
+                axis: Axis::X,
+            }),
+            181u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedAcaciaLog,
+                axis: Axis::Y,
+            }),
+            182u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedAcaciaLog,
+                axis: Axis::Z,
+            }),
+            237u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedAcaciaWood,
+                axis: Axis::X,
+            }),
+            238u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedAcaciaWood,
+                axis: Axis::Y,
+            }),
+            239u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedAcaciaWood,
+                axis: Axis::Z,
+            }),
+            198u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBambooBlock,
+                axis: Axis::X,
+            }),
+            199u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBambooBlock,
+                axis: Axis::Y,
+            }),
+            200u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBambooBlock,
+                axis: Axis::Z,
+            }),
+            174u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBirchLog,
+                axis: Axis::X,
+            }),
+            175u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBirchLog,
+                axis: Axis::Y,
+            }),
+            176u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBirchLog,
+                axis: Axis::Z,
+            }),
+            231u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBirchWood,
+                axis: Axis::X,
+            }),
+            232u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBirchWood,
+                axis: Axis::Y,
+            }),
+            233u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedBirchWood,
+                axis: Axis::Z,
+            }),
+            183u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCherryLog,
+                axis: Axis::X,
+            }),
+            184u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCherryLog,
+                axis: Axis::Y,
+            }),
+            185u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCherryLog,
+                axis: Axis::Z,
+            }),
+            240u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCherryWood,
+                axis: Axis::X,
+            }),
+            241u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCherryWood,
+                axis: Axis::Y,
+            }),
+            242u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCherryWood,
+                axis: Axis::Z,
+            }),
+            19628u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCrimsonHyphae,
+                axis: Axis::X,
+            }),
+            19629u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCrimsonHyphae,
+                axis: Axis::Y,
+            }),
+            19630u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCrimsonHyphae,
+                axis: Axis::Z,
+            }),
+            19622u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCrimsonStem,
+                axis: Axis::X,
+            }),
+            19623u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCrimsonStem,
+                axis: Axis::Y,
+            }),
+            19624u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedCrimsonStem,
+                axis: Axis::Z,
+            }),
+            186u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedDarkOakLog,
+                axis: Axis::X,
+            }),
+            187u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedDarkOakLog,
+                axis: Axis::Y,
+            }),
+            188u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedDarkOakLog,
+                axis: Axis::Z,
+            }),
+            243u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedDarkOakWood,
+                axis: Axis::X,
+            }),
+            244u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedDarkOakWood,
+                axis: Axis::Y,
+            }),
+            245u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedDarkOakWood,
+                axis: Axis::Z,
+            }),
+            177u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedJungleLog,
+                axis: Axis::X,
+            }),
+            178u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedJungleLog,
+                axis: Axis::Y,
+            }),
+            179u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedJungleLog,
+                axis: Axis::Z,
+            }),
+            234u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedJungleWood,
+                axis: Axis::X,
+            }),
+            235u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedJungleWood,
+                axis: Axis::Y,
+            }),
+            236u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedJungleWood,
+                axis: Axis::Z,
+            }),
+            195u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedMangroveLog,
+                axis: Axis::X,
+            }),
+            196u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedMangroveLog,
+                axis: Axis::Y,
+            }),
+            197u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedMangroveLog,
+                axis: Axis::Z,
+            }),
+            249u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedMangroveWood,
+                axis: Axis::X,
+            }),
+            250u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedMangroveWood,
+                axis: Axis::Y,
+            }),
+            251u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedMangroveWood,
+                axis: Axis::Z,
+            }),
+            192u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedOakLog,
+                axis: Axis::X,
+            }),
+            193u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedOakLog,
+                axis: Axis::Y,
+            }),
+            194u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedOakLog,
+                axis: Axis::Z,
+            }),
+            225u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedOakWood,
+                axis: Axis::X,
+            }),
+            226u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedOakWood,
+                axis: Axis::Y,
+            }),
+            227u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedOakWood,
+                axis: Axis::Z,
+            }),
+            189u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedPaleOakLog,
+                axis: Axis::X,
+            }),
+            190u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedPaleOakLog,
+                axis: Axis::Y,
+            }),
+            191u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedPaleOakLog,
+                axis: Axis::Z,
+            }),
+            246u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedPaleOakWood,
+                axis: Axis::X,
+            }),
+            247u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedPaleOakWood,
+                axis: Axis::Y,
+            }),
+            248u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedPaleOakWood,
+                axis: Axis::Z,
+            }),
+            171u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedSpruceLog,
+                axis: Axis::X,
+            }),
+            172u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedSpruceLog,
+                axis: Axis::Y,
+            }),
+            173u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedSpruceLog,
+                axis: Axis::Z,
+            }),
+            228u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedSpruceWood,
+                axis: Axis::X,
+            }),
+            229u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedSpruceWood,
+                axis: Axis::Y,
+            }),
+            230u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedSpruceWood,
+                axis: Axis::Z,
+            }),
+            19611u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedWarpedHyphae,
+                axis: Axis::X,
+            }),
+            19612u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedWarpedHyphae,
+                axis: Axis::Y,
+            }),
+            19613u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedWarpedHyphae,
+                axis: Axis::Z,
+            }),
+            19605u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedWarpedStem,
+                axis: Axis::X,
+            }),
+            19606u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedWarpedStem,
+                axis: Axis::Y,
+            }),
+            19607u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::StrippedWarpedStem,
+                axis: Axis::Z,
+            }),
+            27626u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::VerdantFroglight,
+                axis: Axis::X,
+            }),
+            27627u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::VerdantFroglight,
+                axis: Axis::Y,
+            }),
+            27628u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::VerdantFroglight,
+                axis: Axis::Z,
+            }),
+            19608u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::WarpedHyphae,
+                axis: Axis::X,
+            }),
+            19609u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::WarpedHyphae,
+                axis: Axis::Y,
+            }),
+            19610u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::WarpedHyphae,
+                axis: Axis::Z,
+            }),
+            19602u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::WarpedStem,
+                axis: Axis::X,
+            }),
+            19603u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::WarpedStem,
+                axis: Axis::Y,
+            }),
+            19604u32 => Ok(PillarBlock {
+                block_type: PillarBlockType::WarpedStem,
+                axis: Axis::Z,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for PillarBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

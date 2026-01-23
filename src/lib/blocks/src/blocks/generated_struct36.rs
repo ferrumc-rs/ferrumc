@@ -6,6 +6,58 @@ pub struct GeneratedStruct36 {
     pub enabled: bool,
     pub facing: Direction,
 }
+impl GeneratedStruct36 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct36>();
+}
+impl TryFrom<u32> for GeneratedStruct36 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            10034u32 => Ok(GeneratedStruct36 {
+                enabled: true,
+                facing: Direction::Down,
+            }),
+            10035u32 => Ok(GeneratedStruct36 {
+                enabled: true,
+                facing: Direction::North,
+            }),
+            10036u32 => Ok(GeneratedStruct36 {
+                enabled: true,
+                facing: Direction::South,
+            }),
+            10037u32 => Ok(GeneratedStruct36 {
+                enabled: true,
+                facing: Direction::West,
+            }),
+            10038u32 => Ok(GeneratedStruct36 {
+                enabled: true,
+                facing: Direction::East,
+            }),
+            10039u32 => Ok(GeneratedStruct36 {
+                enabled: false,
+                facing: Direction::Down,
+            }),
+            10040u32 => Ok(GeneratedStruct36 {
+                enabled: false,
+                facing: Direction::North,
+            }),
+            10041u32 => Ok(GeneratedStruct36 {
+                enabled: false,
+                facing: Direction::South,
+            }),
+            10042u32 => Ok(GeneratedStruct36 {
+                enabled: false,
+                facing: Direction::West,
+            }),
+            10043u32 => Ok(GeneratedStruct36 {
+                enabled: false,
+                facing: Direction::East,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct36 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

@@ -5,6 +5,26 @@ use ferrumc_block_properties::*;
 pub struct GeneratedStruct74 {
     pub layers: i32,
 }
+impl GeneratedStruct74 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct74>();
+}
+impl TryFrom<u32> for GeneratedStruct74 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            5950u32 => Ok(GeneratedStruct74 { layers: 1i32 }),
+            5951u32 => Ok(GeneratedStruct74 { layers: 2i32 }),
+            5952u32 => Ok(GeneratedStruct74 { layers: 3i32 }),
+            5953u32 => Ok(GeneratedStruct74 { layers: 4i32 }),
+            5954u32 => Ok(GeneratedStruct74 { layers: 5i32 }),
+            5955u32 => Ok(GeneratedStruct74 { layers: 6i32 }),
+            5956u32 => Ok(GeneratedStruct74 { layers: 7i32 }),
+            5957u32 => Ok(GeneratedStruct74 { layers: 8i32 }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct74 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

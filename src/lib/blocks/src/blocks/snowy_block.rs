@@ -13,6 +13,42 @@ pub struct SnowyBlock {
     pub block_type: SnowyBlockType,
     pub snowy: bool,
 }
+impl SnowyBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<SnowyBlock>();
+}
+impl TryFrom<u32> for SnowyBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            8u32 => Ok(SnowyBlock {
+                block_type: SnowyBlockType::GrassBlock,
+                snowy: true,
+            }),
+            9u32 => Ok(SnowyBlock {
+                block_type: SnowyBlockType::GrassBlock,
+                snowy: false,
+            }),
+            7640u32 => Ok(SnowyBlock {
+                block_type: SnowyBlockType::Mycelium,
+                snowy: true,
+            }),
+            7641u32 => Ok(SnowyBlock {
+                block_type: SnowyBlockType::Mycelium,
+                snowy: false,
+            }),
+            12u32 => Ok(SnowyBlock {
+                block_type: SnowyBlockType::Podzol,
+                snowy: true,
+            }),
+            13u32 => Ok(SnowyBlock {
+                block_type: SnowyBlockType::Podzol,
+                snowy: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for SnowyBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

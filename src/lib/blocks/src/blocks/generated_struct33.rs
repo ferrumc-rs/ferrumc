@@ -9,6 +9,242 @@ pub struct GeneratedStruct33 {
     pub up: bool,
     pub west: bool,
 }
+impl GeneratedStruct33 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct33>();
+}
+impl TryFrom<u32> for GeneratedStruct33 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            7080u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: true,
+                up: true,
+                west: true,
+            }),
+            7081u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: true,
+                up: true,
+                west: false,
+            }),
+            7082u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: true,
+                up: false,
+                west: true,
+            }),
+            7083u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: true,
+                up: false,
+                west: false,
+            }),
+            7084u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: false,
+                up: true,
+                west: true,
+            }),
+            7085u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: false,
+                up: true,
+                west: false,
+            }),
+            7086u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: false,
+                up: false,
+                west: true,
+            }),
+            7087u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: true,
+                south: false,
+                up: false,
+                west: false,
+            }),
+            7088u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: true,
+                up: true,
+                west: true,
+            }),
+            7089u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: true,
+                up: true,
+                west: false,
+            }),
+            7090u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: true,
+                up: false,
+                west: true,
+            }),
+            7091u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: true,
+                up: false,
+                west: false,
+            }),
+            7092u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: false,
+                up: true,
+                west: true,
+            }),
+            7093u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: false,
+                up: true,
+                west: false,
+            }),
+            7094u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: false,
+                up: false,
+                west: true,
+            }),
+            7095u32 => Ok(GeneratedStruct33 {
+                east: true,
+                north: false,
+                south: false,
+                up: false,
+                west: false,
+            }),
+            7096u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: true,
+                up: true,
+                west: true,
+            }),
+            7097u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: true,
+                up: true,
+                west: false,
+            }),
+            7098u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: true,
+                up: false,
+                west: true,
+            }),
+            7099u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: true,
+                up: false,
+                west: false,
+            }),
+            7100u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: false,
+                up: true,
+                west: true,
+            }),
+            7101u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: false,
+                up: true,
+                west: false,
+            }),
+            7102u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: false,
+                up: false,
+                west: true,
+            }),
+            7103u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: true,
+                south: false,
+                up: false,
+                west: false,
+            }),
+            7104u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: true,
+                up: true,
+                west: true,
+            }),
+            7105u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: true,
+                up: true,
+                west: false,
+            }),
+            7106u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: true,
+                up: false,
+                west: true,
+            }),
+            7107u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: true,
+                up: false,
+                west: false,
+            }),
+            7108u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: false,
+                up: true,
+                west: true,
+            }),
+            7109u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: false,
+                up: true,
+                west: false,
+            }),
+            7110u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: false,
+                up: false,
+                west: true,
+            }),
+            7111u32 => Ok(GeneratedStruct33 {
+                east: false,
+                north: false,
+                south: false,
+                up: false,
+                west: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct33 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

@@ -68,12 +68,11 @@ fn main() {
     let len = block_state_mappings.len();
 
     let mapping_constant = quote! {
-        use ferrumc_block_properties::*;
         use crate::simple_blocks::SimpleBlock;
         use crate::blocks::*;
 
-        pub const BLOCK_MAPPINGS: [&dyn std::any::Any; #len] = [
-            #(&#block_state_mappings),*
+        pub const BLOCK_MAPPINGS: [crate::StateBehaviorTable; #len] = [
+            #(#block_state_mappings),*
         ];
     };
 

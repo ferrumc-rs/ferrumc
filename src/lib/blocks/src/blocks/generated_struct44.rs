@@ -7,6 +7,98 @@ pub struct GeneratedStruct44 {
     pub half: DoubleBlockHalf,
     pub waterlogged: bool,
 }
+impl GeneratedStruct44 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct44>();
+}
+impl TryFrom<u32> for GeneratedStruct44 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            25944u32 => Ok(GeneratedStruct44 {
+                facing: Direction::North,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: true,
+            }),
+            25945u32 => Ok(GeneratedStruct44 {
+                facing: Direction::North,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: false,
+            }),
+            25946u32 => Ok(GeneratedStruct44 {
+                facing: Direction::North,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: true,
+            }),
+            25947u32 => Ok(GeneratedStruct44 {
+                facing: Direction::North,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: false,
+            }),
+            25948u32 => Ok(GeneratedStruct44 {
+                facing: Direction::South,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: true,
+            }),
+            25949u32 => Ok(GeneratedStruct44 {
+                facing: Direction::South,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: false,
+            }),
+            25950u32 => Ok(GeneratedStruct44 {
+                facing: Direction::South,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: true,
+            }),
+            25951u32 => Ok(GeneratedStruct44 {
+                facing: Direction::South,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: false,
+            }),
+            25952u32 => Ok(GeneratedStruct44 {
+                facing: Direction::West,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: true,
+            }),
+            25953u32 => Ok(GeneratedStruct44 {
+                facing: Direction::West,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: false,
+            }),
+            25954u32 => Ok(GeneratedStruct44 {
+                facing: Direction::West,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: true,
+            }),
+            25955u32 => Ok(GeneratedStruct44 {
+                facing: Direction::West,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: false,
+            }),
+            25956u32 => Ok(GeneratedStruct44 {
+                facing: Direction::East,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: true,
+            }),
+            25957u32 => Ok(GeneratedStruct44 {
+                facing: Direction::East,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: false,
+            }),
+            25958u32 => Ok(GeneratedStruct44 {
+                facing: Direction::East,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: true,
+            }),
+            25959u32 => Ok(GeneratedStruct44 {
+                facing: Direction::East,
+                half: DoubleBlockHalf::Lower,
+                waterlogged: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct44 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

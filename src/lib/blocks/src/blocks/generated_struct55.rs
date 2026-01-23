@@ -6,6 +6,66 @@ pub struct GeneratedStruct55 {
     pub facing: Direction,
     pub open: bool,
 }
+impl GeneratedStruct55 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct55>();
+}
+impl TryFrom<u32> for GeneratedStruct55 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            19431u32 => Ok(GeneratedStruct55 {
+                facing: Direction::North,
+                open: true,
+            }),
+            19432u32 => Ok(GeneratedStruct55 {
+                facing: Direction::North,
+                open: false,
+            }),
+            19433u32 => Ok(GeneratedStruct55 {
+                facing: Direction::East,
+                open: true,
+            }),
+            19434u32 => Ok(GeneratedStruct55 {
+                facing: Direction::East,
+                open: false,
+            }),
+            19435u32 => Ok(GeneratedStruct55 {
+                facing: Direction::South,
+                open: true,
+            }),
+            19436u32 => Ok(GeneratedStruct55 {
+                facing: Direction::South,
+                open: false,
+            }),
+            19437u32 => Ok(GeneratedStruct55 {
+                facing: Direction::West,
+                open: true,
+            }),
+            19438u32 => Ok(GeneratedStruct55 {
+                facing: Direction::West,
+                open: false,
+            }),
+            19439u32 => Ok(GeneratedStruct55 {
+                facing: Direction::Up,
+                open: true,
+            }),
+            19440u32 => Ok(GeneratedStruct55 {
+                facing: Direction::Up,
+                open: false,
+            }),
+            19441u32 => Ok(GeneratedStruct55 {
+                facing: Direction::Down,
+                open: true,
+            }),
+            19442u32 => Ok(GeneratedStruct55 {
+                facing: Direction::Down,
+                open: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct55 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

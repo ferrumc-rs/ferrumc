@@ -5,6 +5,21 @@ use ferrumc_block_properties::*;
 pub struct GeneratedStruct71 {
     pub hatch: i32,
 }
+impl GeneratedStruct71 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct71>();
+}
+impl TryFrom<u32> for GeneratedStruct71 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            13823u32 => Ok(GeneratedStruct71 { hatch: 0i32 }),
+            13824u32 => Ok(GeneratedStruct71 { hatch: 1i32 }),
+            13825u32 => Ok(GeneratedStruct71 { hatch: 2i32 }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct71 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

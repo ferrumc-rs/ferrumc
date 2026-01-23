@@ -13,6 +13,138 @@ pub struct PistonBlock {
     pub extended: bool,
     pub facing: Direction,
 }
+impl PistonBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<PistonBlock>();
+}
+impl TryFrom<u32> for PistonBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            2057u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: true,
+                facing: Direction::North,
+            }),
+            2058u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: true,
+                facing: Direction::East,
+            }),
+            2059u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: true,
+                facing: Direction::South,
+            }),
+            2060u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: true,
+                facing: Direction::West,
+            }),
+            2061u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: true,
+                facing: Direction::Up,
+            }),
+            2062u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: true,
+                facing: Direction::Down,
+            }),
+            2063u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: false,
+                facing: Direction::North,
+            }),
+            2064u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: false,
+                facing: Direction::East,
+            }),
+            2065u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: false,
+                facing: Direction::South,
+            }),
+            2066u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: false,
+                facing: Direction::West,
+            }),
+            2067u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: false,
+                facing: Direction::Up,
+            }),
+            2068u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::Piston,
+                extended: false,
+                facing: Direction::Down,
+            }),
+            2035u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: true,
+                facing: Direction::North,
+            }),
+            2036u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: true,
+                facing: Direction::East,
+            }),
+            2037u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: true,
+                facing: Direction::South,
+            }),
+            2038u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: true,
+                facing: Direction::West,
+            }),
+            2039u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: true,
+                facing: Direction::Up,
+            }),
+            2040u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: true,
+                facing: Direction::Down,
+            }),
+            2041u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: false,
+                facing: Direction::North,
+            }),
+            2042u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: false,
+                facing: Direction::East,
+            }),
+            2043u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: false,
+                facing: Direction::South,
+            }),
+            2044u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: false,
+                facing: Direction::West,
+            }),
+            2045u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: false,
+                facing: Direction::Up,
+            }),
+            2046u32 => Ok(PistonBlock {
+                block_type: PistonBlockType::StickyPiston,
+                extended: false,
+                facing: Direction::Down,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for PistonBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

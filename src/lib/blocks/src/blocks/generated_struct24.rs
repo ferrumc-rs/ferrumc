@@ -7,6 +7,258 @@ pub struct GeneratedStruct24 {
     pub orientation: FrontAndTop,
     pub triggered: bool,
 }
+impl GeneratedStruct24 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct24>();
+}
+impl TryFrom<u32> for GeneratedStruct24 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            27650u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownEast,
+                triggered: true,
+            }),
+            27651u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownEast,
+                triggered: false,
+            }),
+            27652u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownNorth,
+                triggered: true,
+            }),
+            27653u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownNorth,
+                triggered: false,
+            }),
+            27654u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownSouth,
+                triggered: true,
+            }),
+            27655u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownSouth,
+                triggered: false,
+            }),
+            27656u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownWest,
+                triggered: true,
+            }),
+            27657u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::DownWest,
+                triggered: false,
+            }),
+            27658u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpEast,
+                triggered: true,
+            }),
+            27659u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpEast,
+                triggered: false,
+            }),
+            27660u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpNorth,
+                triggered: true,
+            }),
+            27661u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpNorth,
+                triggered: false,
+            }),
+            27662u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpSouth,
+                triggered: true,
+            }),
+            27663u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpSouth,
+                triggered: false,
+            }),
+            27664u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpWest,
+                triggered: true,
+            }),
+            27665u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::UpWest,
+                triggered: false,
+            }),
+            27666u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::WestUp,
+                triggered: true,
+            }),
+            27667u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::WestUp,
+                triggered: false,
+            }),
+            27668u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::EastUp,
+                triggered: true,
+            }),
+            27669u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::EastUp,
+                triggered: false,
+            }),
+            27670u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::NorthUp,
+                triggered: true,
+            }),
+            27671u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::NorthUp,
+                triggered: false,
+            }),
+            27672u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::SouthUp,
+                triggered: true,
+            }),
+            27673u32 => Ok(GeneratedStruct24 {
+                crafting: true,
+                orientation: FrontAndTop::SouthUp,
+                triggered: false,
+            }),
+            27674u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownEast,
+                triggered: true,
+            }),
+            27675u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownEast,
+                triggered: false,
+            }),
+            27676u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownNorth,
+                triggered: true,
+            }),
+            27677u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownNorth,
+                triggered: false,
+            }),
+            27678u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownSouth,
+                triggered: true,
+            }),
+            27679u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownSouth,
+                triggered: false,
+            }),
+            27680u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownWest,
+                triggered: true,
+            }),
+            27681u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::DownWest,
+                triggered: false,
+            }),
+            27682u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpEast,
+                triggered: true,
+            }),
+            27683u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpEast,
+                triggered: false,
+            }),
+            27684u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpNorth,
+                triggered: true,
+            }),
+            27685u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpNorth,
+                triggered: false,
+            }),
+            27686u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpSouth,
+                triggered: true,
+            }),
+            27687u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpSouth,
+                triggered: false,
+            }),
+            27688u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpWest,
+                triggered: true,
+            }),
+            27689u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::UpWest,
+                triggered: false,
+            }),
+            27690u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::WestUp,
+                triggered: true,
+            }),
+            27691u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::WestUp,
+                triggered: false,
+            }),
+            27692u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::EastUp,
+                triggered: true,
+            }),
+            27693u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::EastUp,
+                triggered: false,
+            }),
+            27694u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::NorthUp,
+                triggered: true,
+            }),
+            27695u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::NorthUp,
+                triggered: false,
+            }),
+            27696u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::SouthUp,
+                triggered: true,
+            }),
+            27697u32 => Ok(GeneratedStruct24 {
+                crafting: false,
+                orientation: FrontAndTop::SouthUp,
+                triggered: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct24 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

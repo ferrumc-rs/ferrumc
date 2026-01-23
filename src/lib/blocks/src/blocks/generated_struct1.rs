@@ -6,6 +6,226 @@ pub struct GeneratedStruct1 {
     pub age: i32,
     pub berries: bool,
 }
+impl GeneratedStruct1 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct1>();
+}
+impl TryFrom<u32> for GeneratedStruct1 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            25797u32 => Ok(GeneratedStruct1 {
+                age: 0i32,
+                berries: true,
+            }),
+            25798u32 => Ok(GeneratedStruct1 {
+                age: 0i32,
+                berries: false,
+            }),
+            25799u32 => Ok(GeneratedStruct1 {
+                age: 1i32,
+                berries: true,
+            }),
+            25800u32 => Ok(GeneratedStruct1 {
+                age: 1i32,
+                berries: false,
+            }),
+            25801u32 => Ok(GeneratedStruct1 {
+                age: 2i32,
+                berries: true,
+            }),
+            25802u32 => Ok(GeneratedStruct1 {
+                age: 2i32,
+                berries: false,
+            }),
+            25803u32 => Ok(GeneratedStruct1 {
+                age: 3i32,
+                berries: true,
+            }),
+            25804u32 => Ok(GeneratedStruct1 {
+                age: 3i32,
+                berries: false,
+            }),
+            25805u32 => Ok(GeneratedStruct1 {
+                age: 4i32,
+                berries: true,
+            }),
+            25806u32 => Ok(GeneratedStruct1 {
+                age: 4i32,
+                berries: false,
+            }),
+            25807u32 => Ok(GeneratedStruct1 {
+                age: 5i32,
+                berries: true,
+            }),
+            25808u32 => Ok(GeneratedStruct1 {
+                age: 5i32,
+                berries: false,
+            }),
+            25809u32 => Ok(GeneratedStruct1 {
+                age: 6i32,
+                berries: true,
+            }),
+            25810u32 => Ok(GeneratedStruct1 {
+                age: 6i32,
+                berries: false,
+            }),
+            25811u32 => Ok(GeneratedStruct1 {
+                age: 7i32,
+                berries: true,
+            }),
+            25812u32 => Ok(GeneratedStruct1 {
+                age: 7i32,
+                berries: false,
+            }),
+            25813u32 => Ok(GeneratedStruct1 {
+                age: 8i32,
+                berries: true,
+            }),
+            25814u32 => Ok(GeneratedStruct1 {
+                age: 8i32,
+                berries: false,
+            }),
+            25815u32 => Ok(GeneratedStruct1 {
+                age: 9i32,
+                berries: true,
+            }),
+            25816u32 => Ok(GeneratedStruct1 {
+                age: 9i32,
+                berries: false,
+            }),
+            25817u32 => Ok(GeneratedStruct1 {
+                age: 10i32,
+                berries: true,
+            }),
+            25818u32 => Ok(GeneratedStruct1 {
+                age: 10i32,
+                berries: false,
+            }),
+            25819u32 => Ok(GeneratedStruct1 {
+                age: 11i32,
+                berries: true,
+            }),
+            25820u32 => Ok(GeneratedStruct1 {
+                age: 11i32,
+                berries: false,
+            }),
+            25821u32 => Ok(GeneratedStruct1 {
+                age: 12i32,
+                berries: true,
+            }),
+            25822u32 => Ok(GeneratedStruct1 {
+                age: 12i32,
+                berries: false,
+            }),
+            25823u32 => Ok(GeneratedStruct1 {
+                age: 13i32,
+                berries: true,
+            }),
+            25824u32 => Ok(GeneratedStruct1 {
+                age: 13i32,
+                berries: false,
+            }),
+            25825u32 => Ok(GeneratedStruct1 {
+                age: 14i32,
+                berries: true,
+            }),
+            25826u32 => Ok(GeneratedStruct1 {
+                age: 14i32,
+                berries: false,
+            }),
+            25827u32 => Ok(GeneratedStruct1 {
+                age: 15i32,
+                berries: true,
+            }),
+            25828u32 => Ok(GeneratedStruct1 {
+                age: 15i32,
+                berries: false,
+            }),
+            25829u32 => Ok(GeneratedStruct1 {
+                age: 16i32,
+                berries: true,
+            }),
+            25830u32 => Ok(GeneratedStruct1 {
+                age: 16i32,
+                berries: false,
+            }),
+            25831u32 => Ok(GeneratedStruct1 {
+                age: 17i32,
+                berries: true,
+            }),
+            25832u32 => Ok(GeneratedStruct1 {
+                age: 17i32,
+                berries: false,
+            }),
+            25833u32 => Ok(GeneratedStruct1 {
+                age: 18i32,
+                berries: true,
+            }),
+            25834u32 => Ok(GeneratedStruct1 {
+                age: 18i32,
+                berries: false,
+            }),
+            25835u32 => Ok(GeneratedStruct1 {
+                age: 19i32,
+                berries: true,
+            }),
+            25836u32 => Ok(GeneratedStruct1 {
+                age: 19i32,
+                berries: false,
+            }),
+            25837u32 => Ok(GeneratedStruct1 {
+                age: 20i32,
+                berries: true,
+            }),
+            25838u32 => Ok(GeneratedStruct1 {
+                age: 20i32,
+                berries: false,
+            }),
+            25839u32 => Ok(GeneratedStruct1 {
+                age: 21i32,
+                berries: true,
+            }),
+            25840u32 => Ok(GeneratedStruct1 {
+                age: 21i32,
+                berries: false,
+            }),
+            25841u32 => Ok(GeneratedStruct1 {
+                age: 22i32,
+                berries: true,
+            }),
+            25842u32 => Ok(GeneratedStruct1 {
+                age: 22i32,
+                berries: false,
+            }),
+            25843u32 => Ok(GeneratedStruct1 {
+                age: 23i32,
+                berries: true,
+            }),
+            25844u32 => Ok(GeneratedStruct1 {
+                age: 23i32,
+                berries: false,
+            }),
+            25845u32 => Ok(GeneratedStruct1 {
+                age: 24i32,
+                berries: true,
+            }),
+            25846u32 => Ok(GeneratedStruct1 {
+                age: 24i32,
+                berries: false,
+            }),
+            25847u32 => Ok(GeneratedStruct1 {
+                age: 25i32,
+                berries: true,
+            }),
+            25848u32 => Ok(GeneratedStruct1 {
+                age: 25i32,
+                berries: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct1 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

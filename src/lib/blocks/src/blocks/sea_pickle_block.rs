@@ -6,6 +6,50 @@ pub struct SeaPickleBlock {
     pub pickles: i32,
     pub waterlogged: bool,
 }
+impl SeaPickleBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<SeaPickleBlock>();
+}
+impl TryFrom<u32> for SeaPickleBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            13956u32 => Ok(SeaPickleBlock {
+                pickles: 1i32,
+                waterlogged: true,
+            }),
+            13957u32 => Ok(SeaPickleBlock {
+                pickles: 1i32,
+                waterlogged: false,
+            }),
+            13958u32 => Ok(SeaPickleBlock {
+                pickles: 2i32,
+                waterlogged: true,
+            }),
+            13959u32 => Ok(SeaPickleBlock {
+                pickles: 2i32,
+                waterlogged: false,
+            }),
+            13960u32 => Ok(SeaPickleBlock {
+                pickles: 3i32,
+                waterlogged: true,
+            }),
+            13961u32 => Ok(SeaPickleBlock {
+                pickles: 3i32,
+                waterlogged: false,
+            }),
+            13962u32 => Ok(SeaPickleBlock {
+                pickles: 4i32,
+                waterlogged: true,
+            }),
+            13963u32 => Ok(SeaPickleBlock {
+                pickles: 4i32,
+                waterlogged: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for SeaPickleBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

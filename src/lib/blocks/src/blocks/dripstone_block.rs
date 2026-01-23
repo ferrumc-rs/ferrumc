@@ -7,6 +7,118 @@ pub struct DripstoneBlock {
     pub vertical_direction: Direction,
     pub waterlogged: bool,
 }
+impl DripstoneBlock {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<DripstoneBlock>();
+}
+impl TryFrom<u32> for DripstoneBlock {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            25776u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::TipMerge,
+                vertical_direction: Direction::Up,
+                waterlogged: true,
+            }),
+            25777u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::TipMerge,
+                vertical_direction: Direction::Up,
+                waterlogged: false,
+            }),
+            25778u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::TipMerge,
+                vertical_direction: Direction::Down,
+                waterlogged: true,
+            }),
+            25779u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::TipMerge,
+                vertical_direction: Direction::Down,
+                waterlogged: false,
+            }),
+            25780u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Tip,
+                vertical_direction: Direction::Up,
+                waterlogged: true,
+            }),
+            25781u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Tip,
+                vertical_direction: Direction::Up,
+                waterlogged: false,
+            }),
+            25782u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Tip,
+                vertical_direction: Direction::Down,
+                waterlogged: true,
+            }),
+            25783u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Tip,
+                vertical_direction: Direction::Down,
+                waterlogged: false,
+            }),
+            25784u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Frustum,
+                vertical_direction: Direction::Up,
+                waterlogged: true,
+            }),
+            25785u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Frustum,
+                vertical_direction: Direction::Up,
+                waterlogged: false,
+            }),
+            25786u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Frustum,
+                vertical_direction: Direction::Down,
+                waterlogged: true,
+            }),
+            25787u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Frustum,
+                vertical_direction: Direction::Down,
+                waterlogged: false,
+            }),
+            25788u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Middle,
+                vertical_direction: Direction::Up,
+                waterlogged: true,
+            }),
+            25789u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Middle,
+                vertical_direction: Direction::Up,
+                waterlogged: false,
+            }),
+            25790u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Middle,
+                vertical_direction: Direction::Down,
+                waterlogged: true,
+            }),
+            25791u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Middle,
+                vertical_direction: Direction::Down,
+                waterlogged: false,
+            }),
+            25792u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Base,
+                vertical_direction: Direction::Up,
+                waterlogged: true,
+            }),
+            25793u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Base,
+                vertical_direction: Direction::Up,
+                waterlogged: false,
+            }),
+            25794u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Base,
+                vertical_direction: Direction::Down,
+                waterlogged: true,
+            }),
+            25795u32 => Ok(DripstoneBlock {
+                thickness: DripstoneThickness::Base,
+                vertical_direction: Direction::Down,
+                waterlogged: false,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for DripstoneBlock {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {

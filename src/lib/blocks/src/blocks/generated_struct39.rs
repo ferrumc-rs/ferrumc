@@ -6,6 +6,66 @@ pub struct GeneratedStruct39 {
     pub face: AttachFace,
     pub facing: Direction,
 }
+impl GeneratedStruct39 {
+    pub(crate) const VTABLE: crate::BlockBehaviorTable =
+        crate::BlockBehaviorTable::from::<GeneratedStruct39>();
+}
+impl TryFrom<u32> for GeneratedStruct39 {
+    type Error = ();
+    fn try_from(data: u32) -> Result<Self, Self::Error> {
+        match data {
+            19461u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Floor,
+                facing: Direction::North,
+            }),
+            19462u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Floor,
+                facing: Direction::South,
+            }),
+            19463u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Floor,
+                facing: Direction::West,
+            }),
+            19464u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Floor,
+                facing: Direction::East,
+            }),
+            19465u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Wall,
+                facing: Direction::North,
+            }),
+            19466u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Wall,
+                facing: Direction::South,
+            }),
+            19467u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Wall,
+                facing: Direction::West,
+            }),
+            19468u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Wall,
+                facing: Direction::East,
+            }),
+            19469u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Ceiling,
+                facing: Direction::North,
+            }),
+            19470u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Ceiling,
+                facing: Direction::South,
+            }),
+            19471u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Ceiling,
+                facing: Direction::West,
+            }),
+            19472u32 => Ok(GeneratedStruct39 {
+                face: AttachFace::Ceiling,
+                facing: Direction::East,
+            }),
+            _ => Err(()),
+        }
+    }
+}
 impl TryInto<u32> for GeneratedStruct39 {
     type Error = ();
     fn try_into(self) -> Result<u32, Self::Error> {
