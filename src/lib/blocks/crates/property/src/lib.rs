@@ -9,7 +9,11 @@ pub use double_block_half::DoubleBlockHalf;
 pub use note_block_instrument::NoteBlockInstrument;
 
 /// Marker trait for types that can be used as block state property values
-pub trait BlockStateProperty: FromStr + ToString {}
+pub trait BlockStateProperty: FromStr + ToString {
+    fn values(&self) -> &[&str] {
+        &[]
+    }
+}
 
 impl BlockStateProperty for i32 {}
 impl BlockStateProperty for bool {}
@@ -41,6 +45,10 @@ macro_rules! enum_property {
             }
         }
 
-        impl $crate::BlockStateProperty for $name {}
+        impl $crate::BlockStateProperty for $name {
+            fn values(&self) -> &[&str] {
+                &[$($variant_str),*]
+            }
+        }
     };
 }

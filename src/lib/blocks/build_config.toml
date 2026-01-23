@@ -1,8 +1,7 @@
 [name_overrides]
 "snowy" = "SnowyBlock"
-"age" = "Crop"
-""
+"age" = "CropBlock"
+"type+waterlogged" = "SlabBlock"
 
-
-[SlabType]
-name = "slab_type"
+[block_overrides]
+"minecraft:redstone_ore" = "RedstoneOreBlock"
