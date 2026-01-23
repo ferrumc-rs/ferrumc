@@ -2,7 +2,6 @@ pub mod errors;
 
 use crate::errors::AnvilError;
 use memmap2::Mmap;
-use std::io::Read;
 use std::path::PathBuf;
 use tracing::error;
 use yazi::Adler32;
@@ -168,10 +167,7 @@ impl LoadedAnvilFile {
 
         match compression_type {
             1 => {
-                let mut decompressed_data = Vec::new();
-                let mut decoder = flate2::read::GzDecoder::new(chunk_compressed_data);
-                decoder.read_to_end(&mut decompressed_data).unwrap();
-                Ok(Some(decompressed_data))
+                panic!("Gzip compression is not yet supported");
             }
             2 => {
                 let out = yazi::decompress(chunk_compressed_data, yazi::Format::Zlib).ok();
@@ -191,9 +187,7 @@ impl LoadedAnvilFile {
             }
             3 => Ok(Some(chunk_compressed_data.to_vec())),
             4 => {
-                let mut decompressed_data = vec![];
-                lzzzz::lz4::decompress(chunk_compressed_data, &mut decompressed_data)?;
-                Ok(Some(decompressed_data))
+                panic!("LZ4 compression is not yet supported");
             }
             _ => {
                 error!("Unknown compression type: {}", compression_type);
