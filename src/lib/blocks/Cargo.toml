@@ -1,0 +1,9 @@
+[package]
+name = "ferrumc-blocks"
+edition.workspace = true
+version = "0.0.1"
+
+[dependencies]
+
+[lints]
+workspace = true
