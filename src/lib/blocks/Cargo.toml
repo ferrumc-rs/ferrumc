@@ -2,9 +2,11 @@
 name = "ferrumc-blocks"
 edition.workspace = true
 version = "0.0.1"
+build = "build/build.rs"
 
 [dependencies]
 ferrumc-world = { workspace = true }
+ferrumc-block-properties = { workspace = true }
 
 [build-dependencies]
 bevy_math = { workspace = true }
