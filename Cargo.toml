@@ -257,11 +257,17 @@ phf_codegen = { version = "0.11" }
 axum = { version = "0.8.7", features = ["tokio", "ws"] }
 
 # Stats
-sysinfo = "0.37.2"
+sysinfo = { version = "0.37.2", default-features = false, features = ["system"] }
 dir-size = "0.1.1"
 
 [profile.dev.package.yazi]
 opt-level = 3
 
 [profile.dev.package.bevy_ecs]
+rustflags = ["-Zhint-mostly-unused"]
+
+[profile.dev.package.windows]
+rustflags = ["-Zhint-mostly-unused"]
+
+[profile.dev.package.windows-sys]
 rustflags = ["-Zhint-mostly-unused"]
