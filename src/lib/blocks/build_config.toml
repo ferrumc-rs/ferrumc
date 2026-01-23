@@ -1,0 +1,8 @@
+[name_overrides]
+"snowy" = "SnowyBlock"
+"age" = "Crop"
+""
+
+
+[SlabType]
+name = "slab_type"

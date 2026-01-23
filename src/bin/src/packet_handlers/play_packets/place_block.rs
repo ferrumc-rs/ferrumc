@@ -21,7 +21,6 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
 use bevy_math::DVec3;
-use ferrumc_world::block::{PlacementContext, BLOCK_BEHAVIOR_REGISTRY};
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -106,16 +105,16 @@ pub fn handle(
                     }
                     let offset_pos = pos + event.face.translation_vec().into();
 
-                    if let Some(behavior) = BLOCK_BEHAVIOR_REGISTRY.get(block_data.name.as_str()) {
-                        behavior.get_placement_state(
-                            &mut block_data,
-                            PlacementContext {
-                                face: event.face,
-                                face_position: DVec3::new(event.cursor_x as _, event.cursor_y as _, event.cursor_z as _),
-                            },
-                            offset_pos.clone(),
-                        );
-                    }
+                    // if let Some(behavior) = BLOCK_BEHAVIOR_REGISTRY.get(block_data.name.as_str()) {
+                    //     behavior.get_placement_state(
+                    //         &mut block_data,
+                    //         PlacementContext {
+                    //             face: event.face,
+                    //             face_position: DVec3::new(event.cursor_x as _, event.cursor_y as _, event.cursor_z as _),
+                    //         },
+                    //         offset_pos.clone(),
+                    //     );
+                    // }
 
                     let mapped_block_state_id = block_data.to_block_state_id();
 

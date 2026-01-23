@@ -6,5 +6,16 @@ version = "0.0.1"
 [dependencies]
 bevy_math = { workspace = true }
 
+[build-dependencies]
+bevy_math = { workspace = true }
+ferrumc-block-properties = { path = "crates/property" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+heck = "0.5"
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["extra-traits"] }
+rayon = "1.11.0"
+
 [lints]
 workspace = true

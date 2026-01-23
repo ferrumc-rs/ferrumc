@@ -6,7 +6,6 @@ mod importing;
 mod player;
 pub mod pos;
 pub mod vanilla_chunk_format;
-pub mod block;
 
 use crate::chunk::Chunk;
 use crate::errors::WorldError;
