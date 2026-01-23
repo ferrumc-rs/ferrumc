@@ -7,6 +7,7 @@ use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_messages::teleport_player::TeleportPlayer;
 use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::synchronise_vehicle_position::SynchroniseVehiclePosition;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use tracing::error;
@@ -57,24 +58,17 @@ pub fn teleport_player(
                     error!("Failed to send teleport packet: {}", err);
                     continue;
                 }
-
-                // Notify the chunk calculation system to recalculate chunks for this player
-                chunk_calc_msg.write(ChunkCalc(message_entity));
-
-                // Notify the player update system to send the new position to the client
-                player_update_msg.write(SendEntityUpdate(message_entity));
             } else {
-                if let Err(err) = conn.send_packet(SynchroniseVehiclePosition {
+                if let Err(err) = conn.send_packet(TeleportEntityPacket {
                     entity_id: id.short_uuid.into(),
                     x: message.x,
                     y: message.y,
                     z: message.z,
-                    vel_x: message.vel_x,
-                    vel_y: message.vel_y,
-                    vel_z: message.vel_z,
+                    vel_x: 0.0,
+                    vel_y: 0.0,
+                    vel_z: 0.0,
                     yaw: rot.yaw,
                     pitch: rot.pitch,
-                    flags: 0,
                     on_ground: false,
                 }) {
                     error!("Failed to send teleport packet: {}", err);
@@ -82,5 +76,11 @@ pub fn teleport_player(
                 }
             }
         }
+
+        // Notify the player update system to send the new position to the client
+        player_update_msg.write(SendEntityUpdate(message_entity));
+
+        // Notify the chunk calculation system to recalculate chunks for this player
+        chunk_calc_msg.write(ChunkCalc(message_entity));
     }
 }

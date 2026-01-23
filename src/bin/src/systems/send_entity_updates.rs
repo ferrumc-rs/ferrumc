@@ -45,7 +45,7 @@ pub fn handle(
                 );
                 continue;
             };
-            if last_synced.0.distance(pos.coords) > 8.0 {
+            if last_synced.0.distance(pos.coords) >= 8.0 {
                 let packet = TeleportEntityPacket {
                     entity_id: id.into(),
                     x: pos.x,
