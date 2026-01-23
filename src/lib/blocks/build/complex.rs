@@ -3,11 +3,12 @@ use ferrumc_block_properties::{PropertyDescriptor, TYPES};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use std::collections::HashMap;
+use std::env::var;
 use heck::ToPascalCase;
 
 struct BlockStateConfiguration {
     name: String,
-    properties: HashMap<String, String>,
+    properties: Vec<(String, String)>,
     values: HashMap<u32, HashMap<String, String>>,
 }
 
@@ -52,7 +53,7 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
                 }
             }
 
-            let mut property_map = HashMap::new();
+            let mut property_map = Vec::new();
 
             for (name, (possible_types, values)) in property_values {
                 let property_type = possible_types
@@ -60,8 +61,10 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
                     .find(|ty| values.iter().all(|value| (property_descriptor_of(ty.as_str()).matches_values)(value.as_str())))
                     .unwrap_or_else(|| panic!("Failed to find property type for values {values:?}"));
 
-                property_map.insert(name, property_type);
+                property_map.push((name, property_type));
             }
+
+            property_map.sort();
 
             BlockStateConfiguration {
                 name,
@@ -71,28 +74,79 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
         })
         .collect::<Vec<_>>();
 
+    let mut configs = blocks
+        .iter()
+        .map(|block| &block.properties)
+        .collect::<Vec<_>>();
+
+    configs.sort();
+    configs.dedup();
+
     let mut structs = Vec::with_capacity(blocks.len());
 
-    for BlockStateConfiguration { name, properties, .. } in &blocks {
-        let struct_name = format_ident!("GeneratedBlock_{}", name.strip_prefix("minecraft:").unwrap_or(name.as_str()).to_pascal_case());
+    for config in configs {
+        let blocks = blocks
+            .iter()
+            .filter(|block| {
+                &block.properties == config
+            })
+            .collect::<Vec<_>>();
 
-        let field = properties.keys().into_iter().map(|name| {
+        let field = config.iter().map(|(name, _)| {
             if name == "type" {
                 format_ident!("ty")
             } else {
                 format_ident!("{}", name)
             }
         }).collect::<Vec<_>>();
-        let types = properties.values().into_iter().map(|properties| format_ident!("{}", properties)).collect::<Vec<_>>();
+        let types = config.iter().map(|(_, value)| format_ident!("{}", value)).collect::<Vec<_>>();
 
-        structs.push(quote! {
-            #[allow(non_camel_case_types, dead_code)]
-            pub struct #struct_name {
-                #(
-                    #field: #types,
-                )*
+        match blocks.len() {
+            0 => continue,
+            1 => {
+                let block = blocks[0];
+
+                let struct_name = format_ident!("GeneratedBlock_{}", block.name.strip_prefix("minecraft:").unwrap_or(block.name.as_str()).to_pascal_case());
+
+                structs.push(quote! {
+                    #[allow(dead_code, non_camel_case_types)]
+                    pub struct #struct_name {
+                        #(
+                            pub #field: #types,
+                        )*
+                    }
+                });
+            },
+            _ => {
+                let mut variants = Vec::with_capacity(blocks.len());
+                for BlockStateConfiguration { name, .. } in blocks {
+                    let variant = format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name.as_str()).to_pascal_case());
+                    variants.push(variant);
+                }
+
+                variants.sort();
+
+                let struct_name = format_ident!("GeneratedBlock_{}", structs.len());
+                let enum_name = format_ident!("{}_BlockType", struct_name);
+
+                structs.push(quote! {
+                    #[allow(dead_code, non_camel_case_types)]
+                    pub enum #enum_name {
+                        #(
+                            #variants,
+                        )*
+                    }
+
+                    #[allow(dead_code, non_camel_case_types)]
+                    pub struct #struct_name {
+                        pub block_type: #enum_name,
+                        #(
+                            pub #field: #types,
+                        )*
+                    }
+                })
             }
-        });
+        }
     }
 
     quote! {
