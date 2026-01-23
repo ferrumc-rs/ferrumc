@@ -18,20 +18,20 @@ impl TryFrom<u32> for GeneratedStruct59 {
                 segment_amount: 2i32,
             }),
             25889u32 => Ok(GeneratedStruct59 {
-                facing: Direction::North,
                 segment_amount: 3i32,
+                facing: Direction::North,
             }),
             25890u32 => Ok(GeneratedStruct59 {
                 segment_amount: 4i32,
                 facing: Direction::North,
             }),
             25891u32 => Ok(GeneratedStruct59 {
-                facing: Direction::South,
                 segment_amount: 1i32,
+                facing: Direction::South,
             }),
             25892u32 => Ok(GeneratedStruct59 {
-                facing: Direction::South,
                 segment_amount: 2i32,
+                facing: Direction::South,
             }),
             25893u32 => Ok(GeneratedStruct59 {
                 segment_amount: 3i32,
@@ -42,16 +42,16 @@ impl TryFrom<u32> for GeneratedStruct59 {
                 facing: Direction::South,
             }),
             25895u32 => Ok(GeneratedStruct59 {
-                segment_amount: 1i32,
                 facing: Direction::West,
+                segment_amount: 1i32,
             }),
             25896u32 => Ok(GeneratedStruct59 {
                 segment_amount: 2i32,
                 facing: Direction::West,
             }),
             25897u32 => Ok(GeneratedStruct59 {
-                segment_amount: 3i32,
                 facing: Direction::West,
+                segment_amount: 3i32,
             }),
             25898u32 => Ok(GeneratedStruct59 {
                 segment_amount: 4i32,
@@ -62,12 +62,12 @@ impl TryFrom<u32> for GeneratedStruct59 {
                 facing: Direction::East,
             }),
             25900u32 => Ok(GeneratedStruct59 {
-                segment_amount: 2i32,
                 facing: Direction::East,
+                segment_amount: 2i32,
             }),
             25901u32 => Ok(GeneratedStruct59 {
-                segment_amount: 3i32,
                 facing: Direction::East,
+                segment_amount: 3i32,
             }),
             25902u32 => Ok(GeneratedStruct59 {
                 facing: Direction::East,
@@ -91,20 +91,20 @@ impl TryInto<u32> for GeneratedStruct59 {
                 segment_amount: 2i32,
             } => Ok(25888u32),
             GeneratedStruct59 {
-                facing: Direction::North,
                 segment_amount: 3i32,
+                facing: Direction::North,
             } => Ok(25889u32),
             GeneratedStruct59 {
                 segment_amount: 4i32,
                 facing: Direction::North,
             } => Ok(25890u32),
             GeneratedStruct59 {
-                facing: Direction::South,
                 segment_amount: 1i32,
+                facing: Direction::South,
             } => Ok(25891u32),
             GeneratedStruct59 {
-                facing: Direction::South,
                 segment_amount: 2i32,
+                facing: Direction::South,
             } => Ok(25892u32),
             GeneratedStruct59 {
                 segment_amount: 3i32,
@@ -115,16 +115,16 @@ impl TryInto<u32> for GeneratedStruct59 {
                 facing: Direction::South,
             } => Ok(25894u32),
             GeneratedStruct59 {
-                segment_amount: 1i32,
                 facing: Direction::West,
+                segment_amount: 1i32,
             } => Ok(25895u32),
             GeneratedStruct59 {
                 segment_amount: 2i32,
                 facing: Direction::West,
             } => Ok(25896u32),
             GeneratedStruct59 {
-                segment_amount: 3i32,
                 facing: Direction::West,
+                segment_amount: 3i32,
             } => Ok(25897u32),
             GeneratedStruct59 {
                 segment_amount: 4i32,
@@ -135,12 +135,12 @@ impl TryInto<u32> for GeneratedStruct59 {
                 facing: Direction::East,
             } => Ok(25899u32),
             GeneratedStruct59 {
-                segment_amount: 2i32,
                 facing: Direction::East,
+                segment_amount: 2i32,
             } => Ok(25900u32),
             GeneratedStruct59 {
-                segment_amount: 3i32,
                 facing: Direction::East,
+                segment_amount: 3i32,
             } => Ok(25901u32),
             GeneratedStruct59 {
                 facing: Direction::East,

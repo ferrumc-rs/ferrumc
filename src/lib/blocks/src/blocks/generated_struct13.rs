@@ -10,20 +10,20 @@ impl TryFrom<u32> for GeneratedStruct13 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             7016u32 => Ok(GeneratedStruct13 {
-                waterlogged: true,
                 axis: Axis::X,
+                waterlogged: true,
             }),
             7017u32 => Ok(GeneratedStruct13 {
                 waterlogged: false,
                 axis: Axis::X,
             }),
             7018u32 => Ok(GeneratedStruct13 {
-                waterlogged: true,
                 axis: Axis::Y,
+                waterlogged: true,
             }),
             7019u32 => Ok(GeneratedStruct13 {
-                axis: Axis::Y,
                 waterlogged: false,
+                axis: Axis::Y,
             }),
             7020u32 => Ok(GeneratedStruct13 {
                 waterlogged: true,
@@ -43,20 +43,20 @@ impl TryInto<u32> for GeneratedStruct13 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct13 {
-                waterlogged: true,
                 axis: Axis::X,
+                waterlogged: true,
             } => Ok(7016u32),
             GeneratedStruct13 {
                 waterlogged: false,
                 axis: Axis::X,
             } => Ok(7017u32),
             GeneratedStruct13 {
-                waterlogged: true,
                 axis: Axis::Y,
+                waterlogged: true,
             } => Ok(7018u32),
             GeneratedStruct13 {
-                axis: Axis::Y,
                 waterlogged: false,
+                axis: Axis::Y,
             } => Ok(7019u32),
             GeneratedStruct13 {
                 waterlogged: true,

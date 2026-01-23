@@ -34,8 +34,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             19454u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::BlastFurnace,
-                lit: false,
                 facing: Direction::South,
+                lit: false,
             }),
             19455u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::BlastFurnace,
@@ -54,8 +54,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             19458u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::BlastFurnace,
-                lit: false,
                 facing: Direction::East,
+                lit: false,
             }),
             4358u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
@@ -79,8 +79,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             4362u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
-                lit: true,
                 facing: Direction::West,
+                lit: true,
             }),
             4363u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
@@ -89,8 +89,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             4364u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
-                lit: true,
                 facing: Direction::East,
+                lit: true,
             }),
             4365u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
@@ -99,13 +99,13 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             5918u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: true,
                 facing: Direction::North,
+                lit: true,
             }),
             5919u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: false,
                 facing: Direction::North,
+                lit: false,
             }),
             5920u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
@@ -119,8 +119,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             5922u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: true,
                 facing: Direction::West,
+                lit: true,
             }),
             5923u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
@@ -129,8 +129,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             5924u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: true,
                 facing: Direction::East,
+                lit: true,
             }),
             5925u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
@@ -159,8 +159,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             19447u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
-                lit: true,
                 facing: Direction::West,
+                lit: true,
             }),
             19448u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
@@ -169,8 +169,8 @@ impl TryFrom<u32> for GeneratedStruct50 {
             }),
             19449u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
-                lit: true,
                 facing: Direction::East,
+                lit: true,
             }),
             19450u32 => Ok(GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
@@ -203,8 +203,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(19453u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::BlastFurnace,
-                lit: false,
                 facing: Direction::South,
+                lit: false,
             } => Ok(19454u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::BlastFurnace,
@@ -223,8 +223,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(19457u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::BlastFurnace,
-                lit: false,
                 facing: Direction::East,
+                lit: false,
             } => Ok(19458u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
@@ -248,8 +248,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(4361u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
-                lit: true,
                 facing: Direction::West,
+                lit: true,
             } => Ok(4362u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
@@ -258,8 +258,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(4363u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
-                lit: true,
                 facing: Direction::East,
+                lit: true,
             } => Ok(4364u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Furnace,
@@ -268,13 +268,13 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(4365u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: true,
                 facing: Direction::North,
+                lit: true,
             } => Ok(5918u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: false,
                 facing: Direction::North,
+                lit: false,
             } => Ok(5919u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
@@ -288,8 +288,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(5921u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: true,
                 facing: Direction::West,
+                lit: true,
             } => Ok(5922u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
@@ -298,8 +298,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(5923u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
-                lit: true,
                 facing: Direction::East,
+                lit: true,
             } => Ok(5924u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::RedstoneWallTorch,
@@ -328,8 +328,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(19446u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
-                lit: true,
                 facing: Direction::West,
+                lit: true,
             } => Ok(19447u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
@@ -338,8 +338,8 @@ impl TryInto<u32> for GeneratedStruct50 {
             } => Ok(19448u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,
-                lit: true,
                 facing: Direction::East,
+                lit: true,
             } => Ok(19449u32),
             GeneratedStruct50 {
                 block_type: GeneratedStruct50Type::Smoker,

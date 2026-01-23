@@ -2,8 +2,8 @@ use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>) -> TokenStream {
-    simple_blocks.sort();
+pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>, mappings: &mut [TokenStream]) -> TokenStream {
+    simple_blocks.sort_by_key(|(id, _)| *id);
 
     let mut match_arms_from = Vec::new();
     let mut match_arms_into = Vec::new();
@@ -12,6 +12,8 @@ pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>) -> Toke
     for (id, name) in simple_blocks {
         let variant = name.strip_prefix("minecraft:").unwrap_or(&name);
         let variant = format_ident!("{}", variant.to_pascal_case());
+
+        mappings[id as usize] = quote! { SimpleBlock::#variant };
 
         enum_variants.push(quote! { #variant });
         match_arms_from.push(quote! { #id => Ok(Self::#variant) });
@@ -36,11 +38,13 @@ pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>) -> Toke
             }
         }
 
-        impl Into<BlockStateId> for SimpleBlock {
-            fn into(self) -> BlockStateId {
-                BlockStateId::new(match self {
+        impl TryInto<BlockStateId> for SimpleBlock {
+            type Error = ();
+
+            fn try_into(self) -> Result<BlockStateId, Self::Error> {
+                Ok(BlockStateId::new(match self {
                     #(#match_arms_into),*
-                })
+                }))
             }
         }
     }

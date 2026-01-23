@@ -38,13 +38,13 @@ impl TryFrom<u32> for GeneratedStruct78 {
             }),
             25723u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::CopperBulb,
-                powered: false,
                 lit: false,
+                powered: false,
             }),
             25724u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::ExposedCopperBulb,
-                powered: true,
                 lit: true,
+                powered: true,
             }),
             25725u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::ExposedCopperBulb,
@@ -63,18 +63,18 @@ impl TryFrom<u32> for GeneratedStruct78 {
             }),
             25732u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
-                powered: true,
                 lit: true,
+                powered: true,
             }),
             25733u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
-                powered: false,
                 lit: true,
+                powered: false,
             }),
             25734u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             }),
             25735u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
@@ -83,8 +83,8 @@ impl TryFrom<u32> for GeneratedStruct78 {
             }),
             25736u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedCopperBulb,
-                powered: true,
                 lit: true,
+                powered: true,
             }),
             25737u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedCopperBulb,
@@ -133,8 +133,8 @@ impl TryFrom<u32> for GeneratedStruct78 {
             }),
             25750u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedOxidizedCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             }),
             25751u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedOxidizedCopperBulb,
@@ -153,13 +153,13 @@ impl TryFrom<u32> for GeneratedStruct78 {
             }),
             25746u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedWeatheredCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             }),
             25747u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedWeatheredCopperBulb,
-                powered: false,
                 lit: false,
+                powered: false,
             }),
             25728u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
@@ -168,13 +168,13 @@ impl TryFrom<u32> for GeneratedStruct78 {
             }),
             25729u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
-                powered: false,
                 lit: true,
+                powered: false,
             }),
             25730u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             }),
             25731u32 => Ok(GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
@@ -207,13 +207,13 @@ impl TryInto<u32> for GeneratedStruct78 {
             } => Ok(25722u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::CopperBulb,
-                powered: false,
                 lit: false,
+                powered: false,
             } => Ok(25723u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::ExposedCopperBulb,
-                powered: true,
                 lit: true,
+                powered: true,
             } => Ok(25724u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::ExposedCopperBulb,
@@ -232,18 +232,18 @@ impl TryInto<u32> for GeneratedStruct78 {
             } => Ok(25727u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
-                powered: true,
                 lit: true,
+                powered: true,
             } => Ok(25732u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
-                powered: false,
                 lit: true,
+                powered: false,
             } => Ok(25733u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             } => Ok(25734u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::OxidizedCopperBulb,
@@ -252,8 +252,8 @@ impl TryInto<u32> for GeneratedStruct78 {
             } => Ok(25735u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedCopperBulb,
-                powered: true,
                 lit: true,
+                powered: true,
             } => Ok(25736u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedCopperBulb,
@@ -302,8 +302,8 @@ impl TryInto<u32> for GeneratedStruct78 {
             } => Ok(25749u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedOxidizedCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             } => Ok(25750u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedOxidizedCopperBulb,
@@ -322,13 +322,13 @@ impl TryInto<u32> for GeneratedStruct78 {
             } => Ok(25745u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedWeatheredCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             } => Ok(25746u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WaxedWeatheredCopperBulb,
-                powered: false,
                 lit: false,
+                powered: false,
             } => Ok(25747u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
@@ -337,13 +337,13 @@ impl TryInto<u32> for GeneratedStruct78 {
             } => Ok(25728u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
-                powered: false,
                 lit: true,
+                powered: false,
             } => Ok(25729u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,
-                powered: true,
                 lit: false,
+                powered: true,
             } => Ok(25730u32),
             GeneratedStruct78 {
                 block_type: GeneratedStruct78Type::WeatheredCopperBulb,

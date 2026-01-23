@@ -87,13 +87,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12077u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12078u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12079u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
@@ -102,18 +102,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12080u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             15159u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15160u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             15161u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
@@ -122,8 +122,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15162u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15163u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
@@ -137,23 +137,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12111u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             12112u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12113u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12114u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12115u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
@@ -172,13 +172,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12106u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12107u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12108u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
@@ -187,8 +187,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12109u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12110u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
@@ -197,8 +197,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12063u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BirchSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             12064u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BirchSlab,
@@ -222,8 +222,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12068u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BirchSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             20893u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
@@ -237,13 +237,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             20895u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             20896u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             20897u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
@@ -252,8 +252,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             20898u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12153u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
@@ -262,8 +262,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12154u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12155u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
@@ -282,8 +282,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12158u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12081u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CherrySlab,
@@ -307,8 +307,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12085u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CherrySlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12086u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CherrySlab,
@@ -322,18 +322,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             26049u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             26050u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             26051u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             26052u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
@@ -357,23 +357,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12149u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12150u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12151u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12152u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             19691u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CrimsonSlab,
@@ -387,8 +387,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             19693u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CrimsonSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             19694u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CrimsonSlab,
@@ -407,8 +407,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24322u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             24323u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutCopperSlab,
@@ -457,13 +457,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12193u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutRedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12194u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutRedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12135u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutSandstoneSlab,
@@ -487,23 +487,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12139u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12140u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::CutSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12087u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             12088u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12089u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
@@ -517,8 +517,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12091u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12092u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
@@ -527,8 +527,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             11607u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             11608u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
@@ -547,13 +547,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             11611u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             11612u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             27281u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
@@ -562,18 +562,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             27282u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             27283u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             27284u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             27285u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
@@ -582,23 +582,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             27286u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             26870u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             26871u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             26872u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             26873u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
@@ -612,13 +612,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             26875u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             15177u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15178u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
@@ -637,8 +637,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15181u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             15182u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
@@ -647,38 +647,38 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15135u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15136u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             15137u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             15138u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15139u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             15140u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             24316u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             24317u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
@@ -687,8 +687,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24318u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             24319u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
@@ -712,8 +712,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15154u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             15155u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
@@ -722,8 +722,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15156u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15157u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
@@ -732,8 +732,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15158u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12069u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::JungleSlab,
@@ -767,8 +767,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12099u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             12100u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
@@ -777,13 +777,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12101u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12102u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12103u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
@@ -792,13 +792,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12104u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             15129u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15130u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
@@ -812,13 +812,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15132u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15133u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             15134u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
@@ -827,8 +827,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15117u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15118u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
@@ -842,8 +842,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15120u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15121u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
@@ -882,18 +882,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12170u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::MudBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12171u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             12172u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12173u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
@@ -902,13 +902,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12174u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12175u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12176u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
@@ -922,8 +922,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12052u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OakSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12053u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OakSlab,
@@ -932,13 +932,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12054u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OakSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12055u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12056u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OakSlab,
@@ -952,8 +952,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24305u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             24306u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
@@ -962,18 +962,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24307u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             24308u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             24309u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12093u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
@@ -992,13 +992,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12096u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12097u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12098u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
@@ -1012,13 +1012,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12142u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12143u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12144u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
@@ -1027,8 +1027,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12145u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12146u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
@@ -1037,13 +1037,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15171u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedAndesiteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15172u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedAndesiteSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             15173u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedAndesiteSlab,
@@ -1072,8 +1072,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             20904u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             20905u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
@@ -1082,8 +1082,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             20906u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             20907u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
@@ -1097,13 +1097,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             21394u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             21395u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             21396u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
@@ -1122,8 +1122,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             21399u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             26459u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedDeepslateSlab,
@@ -1187,8 +1187,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15105u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15106u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
@@ -1197,13 +1197,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15107u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             15108u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15109u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
@@ -1212,8 +1212,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15110u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             22521u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
@@ -1222,8 +1222,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             22522u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             22523u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
@@ -1232,23 +1232,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             22524u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             22525u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             22526u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             11601u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             11602u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
@@ -1267,8 +1267,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             11605u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             11606u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
@@ -1287,23 +1287,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             11597u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             11598u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             11599u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             11600u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12195u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PurpurSlab,
@@ -1317,8 +1317,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12197u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PurpurSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12198u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::PurpurSlab,
@@ -1357,18 +1357,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12181u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::QuartzSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12182u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::QuartzSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             15165u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15166u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
@@ -1387,8 +1387,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15169u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             15170u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
@@ -1407,23 +1407,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12185u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12186u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12187u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12188u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             7725u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
@@ -1432,8 +1432,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             7726u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             7727u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
@@ -1442,8 +1442,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             7728u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             7729u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
@@ -1452,8 +1452,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             7730u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             12129u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
@@ -1462,8 +1462,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12130u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             12131u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
@@ -1477,8 +1477,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12133u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12134u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
@@ -1497,13 +1497,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15149u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             15150u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15151u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
@@ -1512,13 +1512,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15152u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             15111u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothRedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             15112u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothRedSandstoneSlab,
@@ -1542,8 +1542,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15116u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothRedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             15141u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
@@ -1562,13 +1562,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             15144u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             15145u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             15146u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
@@ -1587,8 +1587,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12125u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothStoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12126u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SmoothStoneSlab,
@@ -1607,8 +1607,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12057u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             12058u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
@@ -1617,8 +1617,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12059u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12060u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
@@ -1647,18 +1647,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12161u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             12162u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             12163u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             12164u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
@@ -1692,8 +1692,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             12122u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::StoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             22933u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffBrickSlab,
@@ -1722,18 +1722,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             22938u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             22110u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             22111u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             }),
             22112u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
@@ -1742,23 +1742,23 @@ impl TryFrom<u32> for SlabBlock {
             }),
             22113u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             22114u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             22115u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             19697u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             }),
             19698u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
@@ -1767,8 +1767,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             19699u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             19700u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
@@ -1782,8 +1782,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             19702u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             24674u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
@@ -1797,18 +1797,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24676u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             24677u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             24678u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             24679u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
@@ -1842,8 +1842,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24673u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedExposedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             24656u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedOxidizedCutCopperSlab,
@@ -1862,8 +1862,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24659u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedOxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             24660u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedOxidizedCutCopperSlab,
@@ -1887,13 +1887,13 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24664u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             }),
             24665u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             24666u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
@@ -1902,8 +1902,8 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24667u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             24310u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
@@ -1922,18 +1922,18 @@ impl TryFrom<u32> for SlabBlock {
             }),
             24313u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             }),
             24314u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             }),
             24315u32 => Ok(SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             }),
             _ => Err(()),
         }
@@ -1956,13 +1956,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12076u32),
             SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12077u32),
             SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12078u32),
             SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
@@ -1971,18 +1971,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12079u32),
             SlabBlock {
                 block_type: SlabBlockType::AcaciaSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12080u32),
             SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15159u32),
             SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(15160u32),
             SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
@@ -1991,8 +1991,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15161u32),
             SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15162u32),
             SlabBlock {
                 block_type: SlabBlockType::AndesiteSlab,
@@ -2006,23 +2006,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15164u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(12111u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12112u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12113u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12114u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooMosaicSlab,
@@ -2041,13 +2041,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12105u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12106u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12107u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
@@ -2056,8 +2056,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12108u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12109u32),
             SlabBlock {
                 block_type: SlabBlockType::BambooSlab,
@@ -2066,8 +2066,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12110u32),
             SlabBlock {
                 block_type: SlabBlockType::BirchSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(12063u32),
             SlabBlock {
                 block_type: SlabBlockType::BirchSlab,
@@ -2091,8 +2091,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12067u32),
             SlabBlock {
                 block_type: SlabBlockType::BirchSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12068u32),
             SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
@@ -2106,13 +2106,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(20894u32),
             SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(20895u32),
             SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(20896u32),
             SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
@@ -2121,8 +2121,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(20897u32),
             SlabBlock {
                 block_type: SlabBlockType::BlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(20898u32),
             SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
@@ -2131,8 +2131,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12153u32),
             SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12154u32),
             SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
@@ -2151,8 +2151,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12157u32),
             SlabBlock {
                 block_type: SlabBlockType::BrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12158u32),
             SlabBlock {
                 block_type: SlabBlockType::CherrySlab,
@@ -2176,8 +2176,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12084u32),
             SlabBlock {
                 block_type: SlabBlockType::CherrySlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12085u32),
             SlabBlock {
                 block_type: SlabBlockType::CherrySlab,
@@ -2191,18 +2191,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(26048u32),
             SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(26049u32),
             SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(26050u32),
             SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(26051u32),
             SlabBlock {
                 block_type: SlabBlockType::CobbledDeepslateSlab,
@@ -2226,23 +2226,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12148u32),
             SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12149u32),
             SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12150u32),
             SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12151u32),
             SlabBlock {
                 block_type: SlabBlockType::CobblestoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12152u32),
             SlabBlock {
                 block_type: SlabBlockType::CrimsonSlab,
@@ -2256,8 +2256,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(19692u32),
             SlabBlock {
                 block_type: SlabBlockType::CrimsonSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(19693u32),
             SlabBlock {
                 block_type: SlabBlockType::CrimsonSlab,
@@ -2276,8 +2276,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(19696u32),
             SlabBlock {
                 block_type: SlabBlockType::CutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(24322u32),
             SlabBlock {
                 block_type: SlabBlockType::CutCopperSlab,
@@ -2326,13 +2326,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12192u32),
             SlabBlock {
                 block_type: SlabBlockType::CutRedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12193u32),
             SlabBlock {
                 block_type: SlabBlockType::CutRedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12194u32),
             SlabBlock {
                 block_type: SlabBlockType::CutSandstoneSlab,
@@ -2356,23 +2356,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12138u32),
             SlabBlock {
                 block_type: SlabBlockType::CutSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12139u32),
             SlabBlock {
                 block_type: SlabBlockType::CutSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12140u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(12087u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12088u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
@@ -2386,8 +2386,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12090u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12091u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkOakSlab,
@@ -2396,8 +2396,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12092u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(11607u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
@@ -2416,13 +2416,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(11610u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(11611u32),
             SlabBlock {
                 block_type: SlabBlockType::DarkPrismarineSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(11612u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
@@ -2431,18 +2431,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(27281u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(27282u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(27283u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(27284u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
@@ -2451,23 +2451,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(27285u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(27286u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(26870u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(26871u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(26872u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
@@ -2481,13 +2481,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(26874u32),
             SlabBlock {
                 block_type: SlabBlockType::DeepslateTileSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(26875u32),
             SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15177u32),
             SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
@@ -2506,8 +2506,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15180u32),
             SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(15181u32),
             SlabBlock {
                 block_type: SlabBlockType::DioriteSlab,
@@ -2516,38 +2516,38 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15182u32),
             SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15135u32),
             SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(15136u32),
             SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(15137u32),
             SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15138u32),
             SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(15139u32),
             SlabBlock {
                 block_type: SlabBlockType::EndStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(15140u32),
             SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(24316u32),
             SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
@@ -2556,8 +2556,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24317u32),
             SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(24318u32),
             SlabBlock {
                 block_type: SlabBlockType::ExposedCutCopperSlab,
@@ -2581,8 +2581,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15153u32),
             SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(15154u32),
             SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
@@ -2591,8 +2591,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15155u32),
             SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15156u32),
             SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
@@ -2601,8 +2601,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15157u32),
             SlabBlock {
                 block_type: SlabBlockType::GraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(15158u32),
             SlabBlock {
                 block_type: SlabBlockType::JungleSlab,
@@ -2636,8 +2636,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12074u32),
             SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(12099u32),
             SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
@@ -2646,13 +2646,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12100u32),
             SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12101u32),
             SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12102u32),
             SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
@@ -2661,13 +2661,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12103u32),
             SlabBlock {
                 block_type: SlabBlockType::MangroveSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12104u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15129u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
@@ -2681,13 +2681,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15131u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15132u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(15133u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyCobblestoneSlab,
@@ -2696,8 +2696,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15134u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15117u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
@@ -2711,8 +2711,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15119u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15120u32),
             SlabBlock {
                 block_type: SlabBlockType::MossyStoneBrickSlab,
@@ -2751,18 +2751,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12169u32),
             SlabBlock {
                 block_type: SlabBlockType::MudBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12170u32),
             SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(12171u32),
             SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12172u32),
             SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
@@ -2771,13 +2771,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12173u32),
             SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12174u32),
             SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12175u32),
             SlabBlock {
                 block_type: SlabBlockType::NetherBrickSlab,
@@ -2791,8 +2791,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12051u32),
             SlabBlock {
                 block_type: SlabBlockType::OakSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12052u32),
             SlabBlock {
                 block_type: SlabBlockType::OakSlab,
@@ -2801,13 +2801,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12053u32),
             SlabBlock {
                 block_type: SlabBlockType::OakSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12054u32),
             SlabBlock {
                 block_type: SlabBlockType::OakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12055u32),
             SlabBlock {
                 block_type: SlabBlockType::OakSlab,
@@ -2821,8 +2821,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24304u32),
             SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(24305u32),
             SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
@@ -2831,18 +2831,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24306u32),
             SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(24307u32),
             SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(24308u32),
             SlabBlock {
                 block_type: SlabBlockType::OxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(24309u32),
             SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
@@ -2861,13 +2861,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12095u32),
             SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12096u32),
             SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12097u32),
             SlabBlock {
                 block_type: SlabBlockType::PaleOakSlab,
@@ -2881,13 +2881,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12141u32),
             SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12142u32),
             SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12143u32),
             SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
@@ -2896,8 +2896,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12144u32),
             SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12145u32),
             SlabBlock {
                 block_type: SlabBlockType::PetrifiedOakSlab,
@@ -2906,13 +2906,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12146u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedAndesiteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15171u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedAndesiteSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(15172u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedAndesiteSlab,
@@ -2941,8 +2941,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(20903u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(20904u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
@@ -2951,8 +2951,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(20905u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(20906u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneBrickSlab,
@@ -2966,13 +2966,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(20908u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(21394u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(21395u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
@@ -2991,8 +2991,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(21398u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedBlackstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(21399u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedDeepslateSlab,
@@ -3056,8 +3056,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15128u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15105u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
@@ -3066,13 +3066,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15106u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(15107u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15108u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
@@ -3081,8 +3081,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15109u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedGraniteSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(15110u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
@@ -3091,8 +3091,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(22521u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(22522u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
@@ -3101,23 +3101,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(22523u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(22524u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(22525u32),
             SlabBlock {
                 block_type: SlabBlockType::PolishedTuffSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(22526u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(11601u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
@@ -3136,8 +3136,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(11604u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(11605u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineBrickSlab,
@@ -3156,23 +3156,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(11596u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(11597u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(11598u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(11599u32),
             SlabBlock {
                 block_type: SlabBlockType::PrismarineSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(11600u32),
             SlabBlock {
                 block_type: SlabBlockType::PurpurSlab,
@@ -3186,8 +3186,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12196u32),
             SlabBlock {
                 block_type: SlabBlockType::PurpurSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12197u32),
             SlabBlock {
                 block_type: SlabBlockType::PurpurSlab,
@@ -3226,18 +3226,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12180u32),
             SlabBlock {
                 block_type: SlabBlockType::QuartzSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12181u32),
             SlabBlock {
                 block_type: SlabBlockType::QuartzSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12182u32),
             SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15165u32),
             SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
@@ -3256,8 +3256,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15168u32),
             SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(15169u32),
             SlabBlock {
                 block_type: SlabBlockType::RedNetherBrickSlab,
@@ -3276,23 +3276,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12184u32),
             SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12185u32),
             SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12186u32),
             SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12187u32),
             SlabBlock {
                 block_type: SlabBlockType::RedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12188u32),
             SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
@@ -3301,8 +3301,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(7725u32),
             SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(7726u32),
             SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
@@ -3311,8 +3311,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(7727u32),
             SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(7728u32),
             SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
@@ -3321,8 +3321,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(7729u32),
             SlabBlock {
                 block_type: SlabBlockType::ResinBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(7730u32),
             SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
@@ -3331,8 +3331,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12129u32),
             SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(12130u32),
             SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
@@ -3346,8 +3346,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12132u32),
             SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12133u32),
             SlabBlock {
                 block_type: SlabBlockType::SandstoneSlab,
@@ -3366,13 +3366,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15148u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(15149u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15150u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
@@ -3381,13 +3381,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15151u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothQuartzSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(15152u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothRedSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(15111u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothRedSandstoneSlab,
@@ -3411,8 +3411,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15115u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothRedSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(15116u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
@@ -3431,13 +3431,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(15143u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(15144u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(15145u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothSandstoneSlab,
@@ -3456,8 +3456,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12124u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothStoneSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12125u32),
             SlabBlock {
                 block_type: SlabBlockType::SmoothStoneSlab,
@@ -3476,8 +3476,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12128u32),
             SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(12057u32),
             SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
@@ -3486,8 +3486,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12058u32),
             SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12059u32),
             SlabBlock {
                 block_type: SlabBlockType::SpruceSlab,
@@ -3516,18 +3516,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12160u32),
             SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(12161u32),
             SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(12162u32),
             SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(12163u32),
             SlabBlock {
                 block_type: SlabBlockType::StoneBrickSlab,
@@ -3561,8 +3561,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(12121u32),
             SlabBlock {
                 block_type: SlabBlockType::StoneSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(12122u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffBrickSlab,
@@ -3591,18 +3591,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(22937u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffBrickSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(22938u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(22110u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: false,
                 ty: SlabType::Top,
+                waterlogged: false,
             } => Ok(22111u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
@@ -3611,23 +3611,23 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(22112u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(22113u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(22114u32),
             SlabBlock {
                 block_type: SlabBlockType::TuffSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(22115u32),
             SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
-                waterlogged: true,
                 ty: SlabType::Top,
+                waterlogged: true,
             } => Ok(19697u32),
             SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
@@ -3636,8 +3636,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(19698u32),
             SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(19699u32),
             SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
@@ -3651,8 +3651,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(19701u32),
             SlabBlock {
                 block_type: SlabBlockType::WarpedSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(19702u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
@@ -3666,18 +3666,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24675u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(24676u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(24677u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(24678u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedCutCopperSlab,
@@ -3711,8 +3711,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24672u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedExposedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(24673u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedOxidizedCutCopperSlab,
@@ -3731,8 +3731,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24658u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedOxidizedCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(24659u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedOxidizedCutCopperSlab,
@@ -3756,13 +3756,13 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24663u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Bottom,
+                waterlogged: true,
             } => Ok(24664u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(24665u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
@@ -3771,8 +3771,8 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24666u32),
             SlabBlock {
                 block_type: SlabBlockType::WaxedWeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(24667u32),
             SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
@@ -3791,18 +3791,18 @@ impl TryInto<u32> for SlabBlock {
             } => Ok(24312u32),
             SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Bottom,
+                waterlogged: false,
             } => Ok(24313u32),
             SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
-                waterlogged: true,
                 ty: SlabType::Double,
+                waterlogged: true,
             } => Ok(24314u32),
             SlabBlock {
                 block_type: SlabBlockType::WeatheredCutCopperSlab,
-                waterlogged: false,
                 ty: SlabType::Double,
+                waterlogged: false,
             } => Ok(24315u32),
             _ => Err(()),
         }

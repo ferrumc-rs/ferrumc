@@ -12,11 +12,11 @@ struct BlockStateConfiguration<'a> {
     values: HashMap<u32, &'a HashMap<String, String>>,
 }
 
-pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u32, ComplexBlock)>) -> TokenStream {
+pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u32, ComplexBlock)>, mappings: &mut [TokenStream]) -> TokenStream {
     let mut missing_types = build_config.property_types
         .values()
         .flatten()
-        .filter(|str| !TYPES.iter().any(|(name, _)| *name == str.as_str()))
+        .filter(|str| !TYPES.contains_key(str.as_str()))
         .collect::<Vec<_>>();
 
     missing_types.sort();
@@ -126,7 +126,7 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
             match blocks.len() {
                 0 => panic!("No blocks for {struct_name}"),
                 1 => {
-                    let trait_impl = generate_trait_impls(&struct_name, None, &blocks);
+                    let trait_impl = generate_trait_impls(&struct_name, None, &blocks, mappings);
 
                     (quote! {
                         #[allow(dead_code)]
@@ -150,7 +150,7 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
                     variants.sort();
 
                     let enum_name = format_ident!("{}Type", struct_name);
-                    let trait_impl = generate_trait_impls(&struct_name, Some((&enum_name, &variants)), &blocks);
+                    let trait_impl = generate_trait_impls(&struct_name, Some((&enum_name, &variants)), &blocks, mappings);
 
                     (quote! {
                         #[allow(dead_code)]
@@ -205,13 +205,11 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
 
 fn property_descriptor_of(key: &str) -> &PropertyDescriptor {
     &TYPES
-        .iter()
-        .find(|(name, _)| name == &key)
-        .unwrap_or_else(|| panic!("Property type for {} not found!", key))
-        .1
+        .get(key)
+        .unwrap_or_else(|| panic!("Property type for {key} not found!"))
 }
 
-fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident])>, values: &[&BlockStateConfiguration]) -> TokenStream {
+fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident])>, values: &[&BlockStateConfiguration], mappings: &mut [TokenStream]) -> TokenStream {
     let (from_match_arms, into_match_arms): (Vec<TokenStream>, Vec<TokenStream>) = match enum_name {
         Some((enum_name, enum_variants)) => {
             let mut values = values.into_iter().collect::<Vec<_>>();
@@ -226,29 +224,48 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                             let mut values = values.into_iter().collect::<Vec<_>>();
                             values.sort_by(|(id_a, _), (id_b, _)| id_a.cmp(id_b));
 
-                            values.into_iter()
-                                .map(move |(id, values)| {
-                                    let fields = values.keys().map(|str| {
-                                        if str == "type" {
-                                            format_ident!("ty")
-                                        } else {
-                                            format_ident!("{str}")
-                                        }
-                                    }).collect::<Vec<_>>();
-                                    let values = values.iter().map(|(name, value)| {
-                                        let ty = &properties.iter().find(|(name1, _)| name == name1).unwrap().1;
-                                        (property_descriptor_of(ty).ident_for)(value.as_str())
-                                    }).collect::<Vec<_>>();
+                            let mut out = Vec::with_capacity(values.len());
 
-                                    (
-                                        quote! {
-                                            #id => Ok(#struct_name { block_type: #enum_name::#variant, #(#fields: #values),* })
-                                        },
-                                        quote! {
-                                            #struct_name { block_type: #enum_name::#variant, #(#fields: #values),* } => Ok(#id)
-                                        }
-                                    )
-                                })
+                            for (id, values) in values {
+                                let mut values = values
+                                    .into_iter()
+                                    .collect::<Vec<_>>();
+
+                                values.sort_by_key(|(field, _)| field.as_str());
+
+                                let (fields, values) = values
+                                    .into_iter()
+                                    .map(|(field, value)| {
+                                        (
+                                            match field.as_str() {
+                                                "type" => format_ident!("ty"),
+                                                field => format_ident!("{field}"),
+                                            },
+                                            {
+                                                let ty = &properties.iter().find(|(name1, _)| *name1 == field.as_str()).unwrap().1;
+                                                (property_descriptor_of(ty).ident_for)(value.as_str())
+                                            }
+                                        )
+                                    })
+                                    .unzip();
+
+                                let data = quote! {
+                                    #struct_name { block_type: #enum_name::#variant, #(#fields: #values),* }
+                                };
+
+                                mappings[*id as usize] = data.clone();
+
+                                out.push((
+                                    quote! {
+                                        #id => Ok(#data)
+                                    },
+                                    quote! {
+                                        #data => Ok(#id)
+                                    }
+                                ))
+                            }
+
+                            out
                         },
                         None => panic!("could not find {} enum variant for {}", enum_name, name),
                     }
@@ -275,12 +292,18 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                         (property_descriptor_of(ty).ident_for)(value.as_str())
                     }).collect::<Vec<_>>();
 
+                    let data = quote! {
+                        #struct_name { #(#fields: #values),* }
+                    };
+
+                    mappings[*id as usize] = data.clone();
+
                     (
                         quote! {
-                            #id => Ok(#struct_name { #(#fields: #values),* })
+                            #id => Ok(#data)
                         },
                         quote! {
-                            #struct_name { #(#fields: #values),* } => Ok(#id)
+                            #data => Ok(#id)
                         }
                     )
                 })

@@ -14,48 +14,48 @@ impl TryFrom<u32> for GeneratedStruct3 {
                 facing: Direction::North,
             }),
             8204u32 => Ok(GeneratedStruct3 {
-                age: 0i32,
                 facing: Direction::South,
+                age: 0i32,
             }),
             8205u32 => Ok(GeneratedStruct3 {
-                age: 0i32,
                 facing: Direction::West,
+                age: 0i32,
             }),
             8206u32 => Ok(GeneratedStruct3 {
-                age: 0i32,
                 facing: Direction::East,
+                age: 0i32,
             }),
             8207u32 => Ok(GeneratedStruct3 {
                 age: 1i32,
                 facing: Direction::North,
             }),
             8208u32 => Ok(GeneratedStruct3 {
-                facing: Direction::South,
                 age: 1i32,
+                facing: Direction::South,
             }),
             8209u32 => Ok(GeneratedStruct3 {
-                age: 1i32,
                 facing: Direction::West,
+                age: 1i32,
             }),
             8210u32 => Ok(GeneratedStruct3 {
-                facing: Direction::East,
                 age: 1i32,
+                facing: Direction::East,
             }),
             8211u32 => Ok(GeneratedStruct3 {
-                age: 2i32,
                 facing: Direction::North,
+                age: 2i32,
             }),
             8212u32 => Ok(GeneratedStruct3 {
-                facing: Direction::South,
                 age: 2i32,
+                facing: Direction::South,
             }),
             8213u32 => Ok(GeneratedStruct3 {
                 facing: Direction::West,
                 age: 2i32,
             }),
             8214u32 => Ok(GeneratedStruct3 {
-                facing: Direction::East,
                 age: 2i32,
+                facing: Direction::East,
             }),
             _ => Err(()),
         }
@@ -71,48 +71,48 @@ impl TryInto<u32> for GeneratedStruct3 {
                 facing: Direction::North,
             } => Ok(8203u32),
             GeneratedStruct3 {
-                age: 0i32,
                 facing: Direction::South,
+                age: 0i32,
             } => Ok(8204u32),
             GeneratedStruct3 {
-                age: 0i32,
                 facing: Direction::West,
+                age: 0i32,
             } => Ok(8205u32),
             GeneratedStruct3 {
-                age: 0i32,
                 facing: Direction::East,
+                age: 0i32,
             } => Ok(8206u32),
             GeneratedStruct3 {
                 age: 1i32,
                 facing: Direction::North,
             } => Ok(8207u32),
             GeneratedStruct3 {
-                facing: Direction::South,
                 age: 1i32,
+                facing: Direction::South,
             } => Ok(8208u32),
             GeneratedStruct3 {
-                age: 1i32,
                 facing: Direction::West,
+                age: 1i32,
             } => Ok(8209u32),
             GeneratedStruct3 {
-                facing: Direction::East,
                 age: 1i32,
+                facing: Direction::East,
             } => Ok(8210u32),
             GeneratedStruct3 {
-                age: 2i32,
                 facing: Direction::North,
+                age: 2i32,
             } => Ok(8211u32),
             GeneratedStruct3 {
-                facing: Direction::South,
                 age: 2i32,
+                facing: Direction::South,
             } => Ok(8212u32),
             GeneratedStruct3 {
                 facing: Direction::West,
                 age: 2i32,
             } => Ok(8213u32),
             GeneratedStruct3 {
-                facing: Direction::East,
                 age: 2i32,
+                facing: Direction::East,
             } => Ok(8214u32),
             _ => Err(()),
         }

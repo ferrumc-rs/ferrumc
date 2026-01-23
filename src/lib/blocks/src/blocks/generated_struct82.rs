@@ -10,8 +10,8 @@ impl TryFrom<u32> for GeneratedStruct82 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             27698u32 => Ok(GeneratedStruct82 {
-                ominous: true,
                 trial_spawner_state: TrialSpawnerState::Inactive,
+                ominous: true,
             }),
             27699u32 => Ok(GeneratedStruct82 {
                 trial_spawner_state: TrialSpawnerState::WaitingForPlayers,
@@ -22,12 +22,12 @@ impl TryFrom<u32> for GeneratedStruct82 {
                 trial_spawner_state: TrialSpawnerState::Active,
             }),
             27701u32 => Ok(GeneratedStruct82 {
-                ominous: true,
                 trial_spawner_state: TrialSpawnerState::WaitingForRewardEjection,
+                ominous: true,
             }),
             27702u32 => Ok(GeneratedStruct82 {
-                trial_spawner_state: TrialSpawnerState::EjectingReward,
                 ominous: true,
+                trial_spawner_state: TrialSpawnerState::EjectingReward,
             }),
             27703u32 => Ok(GeneratedStruct82 {
                 trial_spawner_state: TrialSpawnerState::Cooldown,
@@ -67,8 +67,8 @@ impl TryInto<u32> for GeneratedStruct82 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct82 {
-                ominous: true,
                 trial_spawner_state: TrialSpawnerState::Inactive,
+                ominous: true,
             } => Ok(27698u32),
             GeneratedStruct82 {
                 trial_spawner_state: TrialSpawnerState::WaitingForPlayers,
@@ -79,12 +79,12 @@ impl TryInto<u32> for GeneratedStruct82 {
                 trial_spawner_state: TrialSpawnerState::Active,
             } => Ok(27700u32),
             GeneratedStruct82 {
-                ominous: true,
                 trial_spawner_state: TrialSpawnerState::WaitingForRewardEjection,
+                ominous: true,
             } => Ok(27701u32),
             GeneratedStruct82 {
-                trial_spawner_state: TrialSpawnerState::EjectingReward,
                 ominous: true,
+                trial_spawner_state: TrialSpawnerState::EjectingReward,
             } => Ok(27702u32),
             GeneratedStruct82 {
                 trial_spawner_state: TrialSpawnerState::Cooldown,

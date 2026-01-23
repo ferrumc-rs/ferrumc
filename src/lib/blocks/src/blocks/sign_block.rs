@@ -32,8 +32,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4463u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             }),
             4464u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -52,13 +52,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4467u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4468u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             }),
             4469u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -72,18 +72,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4471u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             }),
             4472u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             }),
             4473u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4474u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -92,13 +92,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4475u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             }),
             4476u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             4477u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -112,18 +112,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4479u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             }),
             4480u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             4481u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4482u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -132,8 +132,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4483u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             4484u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -147,13 +147,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4486u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             }),
             4487u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             4488u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -162,13 +162,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4489u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4490u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             }),
             4491u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -177,8 +177,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4492u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             }),
             4493u32 => Ok(SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -187,8 +187,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4654u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             }),
             4655u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -197,8 +197,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4656u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             }),
             4657u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -212,13 +212,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4659u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4660u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             }),
             4661u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -232,13 +232,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4663u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             }),
             4664u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             }),
             4665u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -247,8 +247,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4666u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             }),
             4667u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -257,8 +257,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4668u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             4669u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -307,8 +307,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4678u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             }),
             4679u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -317,13 +317,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4680u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4681u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4682u32 => Ok(SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -347,8 +347,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4430u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             }),
             4431u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -367,13 +367,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4434u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             }),
             4435u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4436u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -387,8 +387,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4438u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 4i32,
+                waterlogged: true,
             }),
             4439u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -397,28 +397,28 @@ impl TryFrom<u32> for SignBlock {
             }),
             4440u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             }),
             4441u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4442u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             }),
             4443u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             }),
             4444u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             4445u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -427,8 +427,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4446u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             4447u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -442,18 +442,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4449u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4450u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             }),
             4451u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             4452u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -462,13 +462,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4453u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             }),
             4454u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             }),
             4455u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -477,28 +477,28 @@ impl TryFrom<u32> for SignBlock {
             }),
             4456u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4457u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4458u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             }),
             4459u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             }),
             4460u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             }),
             4461u32 => Ok(SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -507,23 +507,23 @@ impl TryFrom<u32> for SignBlock {
             }),
             4494u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             }),
             4495u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             }),
             4496u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             }),
             4497u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             }),
             4498u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -532,18 +532,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4499u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4500u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             }),
             4501u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 3i32,
+                waterlogged: false,
             }),
             4502u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -562,13 +562,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4505u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4506u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             }),
             4507u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -592,18 +592,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4511u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             }),
             4512u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             4513u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4514u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -612,18 +612,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4515u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             4516u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             }),
             4517u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             }),
             4518u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -632,13 +632,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4519u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             4520u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4521u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -647,8 +647,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4522u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             }),
             4523u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -662,8 +662,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4525u32 => Ok(SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             20299u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -672,13 +672,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             20300u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             }),
             20301u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             }),
             20302u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -692,8 +692,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20304u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             20305u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -707,8 +707,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20307u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 4i32,
+                waterlogged: true,
             }),
             20308u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -717,8 +717,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20309u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             }),
             20310u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -737,18 +737,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             20313u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             20314u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 7i32,
+                waterlogged: false,
             }),
             20315u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             20316u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -757,8 +757,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20317u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             20318u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -782,8 +782,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20322u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             }),
             20323u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -792,13 +792,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             20324u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             20325u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             20326u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -807,13 +807,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             20327u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             }),
             20328u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             }),
             20329u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -822,8 +822,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20330u32 => Ok(SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             4558u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -852,8 +852,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4563u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4564u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -867,8 +867,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4566u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 4i32,
+                waterlogged: true,
             }),
             4567u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -887,8 +887,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4570u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             }),
             4571u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -907,13 +907,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4574u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             4575u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             }),
             4576u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -922,13 +922,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4577u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4578u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             }),
             4579u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -942,28 +942,28 @@ impl TryFrom<u32> for SignBlock {
             }),
             4581u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             }),
             4582u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             }),
             4583u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             4584u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4585u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4586u32 => Ok(SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -992,8 +992,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4527u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             }),
             4528u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -1002,18 +1002,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4529u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             }),
             4530u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             }),
             4531u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4532u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -1057,18 +1057,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4540u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             4541u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 7i32,
+                waterlogged: false,
             }),
             4542u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             4543u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -1077,18 +1077,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4544u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             4545u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4546u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             }),
             4547u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -1097,13 +1097,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4548u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             }),
             4549u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             }),
             4550u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -1112,23 +1112,23 @@ impl TryFrom<u32> for SignBlock {
             }),
             4551u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             4552u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4553u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4554u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             }),
             4555u32 => Ok(SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -1147,13 +1147,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4622u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             }),
             4623u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             }),
             4624u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1162,13 +1162,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4625u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             }),
             4626u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             }),
             4627u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1192,8 +1192,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4631u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             }),
             4632u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1202,23 +1202,23 @@ impl TryFrom<u32> for SignBlock {
             }),
             4633u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4634u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             }),
             4635u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             }),
             4636u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             4637u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1227,8 +1227,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4638u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             4639u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1242,23 +1242,23 @@ impl TryFrom<u32> for SignBlock {
             }),
             4641u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4642u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             }),
             4643u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             4644u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             }),
             4645u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1272,8 +1272,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4647u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             4648u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1282,18 +1282,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4649u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4650u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             }),
             4651u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             }),
             4652u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -1302,13 +1302,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4653u32 => Ok(SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             4366u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             }),
             4367u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1322,13 +1322,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4369u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             }),
             4370u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             }),
             4371u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1342,8 +1342,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4373u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 3i32,
+                waterlogged: false,
             }),
             4374u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1352,8 +1352,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4375u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             }),
             4376u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1362,8 +1362,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4377u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4378u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1397,8 +1397,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4384u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             4385u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1432,13 +1432,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4391u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             }),
             4392u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4393u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -1457,13 +1457,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4396u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             }),
             4397u32 => Ok(SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             4590u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1472,18 +1472,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4591u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             }),
             4592u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             }),
             4593u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             }),
             4594u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1492,8 +1492,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4595u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4596u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1502,8 +1502,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4597u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 3i32,
+                waterlogged: false,
             }),
             4598u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1512,8 +1512,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4599u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             }),
             4600u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1522,8 +1522,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4601u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4602u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1532,13 +1532,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4603u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             }),
             4604u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             4605u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1552,18 +1552,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4607u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             }),
             4608u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             4609u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             }),
             4610u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1572,8 +1572,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4611u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             4612u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1582,8 +1582,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4613u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             }),
             4614u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -1617,18 +1617,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4620u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             }),
             4621u32 => Ok(SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             4398u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             }),
             4399u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1637,8 +1637,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4400u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             }),
             4401u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1647,13 +1647,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4402u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             }),
             4403u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             }),
             4404u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1672,8 +1672,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4407u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             }),
             4408u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1682,13 +1682,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4409u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             4410u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             }),
             4411u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1707,18 +1707,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             4414u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             4415u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             }),
             4416u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             }),
             4417u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1732,8 +1732,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4419u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             4420u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1757,13 +1757,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             4424u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             }),
             4425u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             }),
             4426u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1772,8 +1772,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4427u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             }),
             4428u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -1782,8 +1782,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             4429u32 => Ok(SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             20331u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -1802,13 +1802,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             20334u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             }),
             20335u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             }),
             20336u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -1817,8 +1817,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20337u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             }),
             20338u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -1842,8 +1842,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20342u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             }),
             20343u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -1857,18 +1857,18 @@ impl TryFrom<u32> for SignBlock {
             }),
             20345u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             }),
             20346u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 7i32,
+                waterlogged: false,
             }),
             20347u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             }),
             20348u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -1892,13 +1892,13 @@ impl TryFrom<u32> for SignBlock {
             }),
             20352u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             }),
             20353u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             }),
             20354u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -1942,8 +1942,8 @@ impl TryFrom<u32> for SignBlock {
             }),
             20362u32 => Ok(SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             }),
             _ => Err(()),
         }
@@ -1961,8 +1961,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4462u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             } => Ok(4463u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -1981,13 +1981,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4466u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4467u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             } => Ok(4468u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2001,18 +2001,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4470u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             } => Ok(4471u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             } => Ok(4472u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4473u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2021,13 +2021,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4474u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             } => Ok(4475u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(4476u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2041,18 +2041,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4478u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             } => Ok(4479u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(4480u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4481u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2061,8 +2061,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4482u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(4483u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2076,13 +2076,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4485u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             } => Ok(4486u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(4487u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2091,13 +2091,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4488u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4489u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             } => Ok(4490u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2106,8 +2106,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4491u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             } => Ok(4492u32),
             SignBlock {
                 block_type: SignBlockType::AcaciaSign,
@@ -2116,8 +2116,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4493u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             } => Ok(4654u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2126,8 +2126,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4655u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             } => Ok(4656u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2141,13 +2141,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4658u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4659u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             } => Ok(4660u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2161,13 +2161,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4662u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             } => Ok(4663u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             } => Ok(4664u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2176,8 +2176,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4665u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             } => Ok(4666u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2186,8 +2186,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4667u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(4668u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2236,8 +2236,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4677u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             } => Ok(4678u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2246,13 +2246,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4679u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4680u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4681u32),
             SignBlock {
                 block_type: SignBlockType::BambooSign,
@@ -2276,8 +2276,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4685u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             } => Ok(4430u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2296,13 +2296,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4433u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             } => Ok(4434u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4435u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2316,8 +2316,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4437u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 4i32,
+                waterlogged: true,
             } => Ok(4438u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2326,28 +2326,28 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4439u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             } => Ok(4440u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4441u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             } => Ok(4442u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             } => Ok(4443u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(4444u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2356,8 +2356,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4445u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(4446u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2371,18 +2371,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4448u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4449u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             } => Ok(4450u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(4451u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2391,13 +2391,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4452u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             } => Ok(4453u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             } => Ok(4454u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2406,28 +2406,28 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4455u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4456u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4457u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             } => Ok(4458u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             } => Ok(4459u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             } => Ok(4460u32),
             SignBlock {
                 block_type: SignBlockType::BirchSign,
@@ -2436,23 +2436,23 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4461u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             } => Ok(4494u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             } => Ok(4495u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             } => Ok(4496u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             } => Ok(4497u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2461,18 +2461,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4498u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4499u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             } => Ok(4500u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 3i32,
+                waterlogged: false,
             } => Ok(4501u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2491,13 +2491,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4504u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4505u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             } => Ok(4506u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2521,18 +2521,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4510u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             } => Ok(4511u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(4512u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4513u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2541,18 +2541,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4514u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(4515u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             } => Ok(4516u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             } => Ok(4517u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2561,13 +2561,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4518u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(4519u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4520u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2576,8 +2576,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4521u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             } => Ok(4522u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
@@ -2591,8 +2591,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4524u32),
             SignBlock {
                 block_type: SignBlockType::CherrySign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(4525u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2601,13 +2601,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20299u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             } => Ok(20300u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             } => Ok(20301u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2621,8 +2621,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20303u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(20304u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2636,8 +2636,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20306u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 4i32,
+                waterlogged: true,
             } => Ok(20307u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2646,8 +2646,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20308u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 5i32,
+                waterlogged: true,
             } => Ok(20309u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2666,18 +2666,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20312u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(20313u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 7i32,
+                waterlogged: false,
             } => Ok(20314u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(20315u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2686,8 +2686,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20316u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(20317u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2711,8 +2711,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20321u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             } => Ok(20322u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2721,13 +2721,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20323u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(20324u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(20325u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2736,13 +2736,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20326u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             } => Ok(20327u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             } => Ok(20328u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
@@ -2751,8 +2751,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20329u32),
             SignBlock {
                 block_type: SignBlockType::CrimsonSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(20330u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2781,8 +2781,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4562u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4563u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2796,8 +2796,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4565u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 4i32,
+                waterlogged: true,
             } => Ok(4566u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2816,8 +2816,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4569u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             } => Ok(4570u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2836,13 +2836,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4573u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(4574u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             } => Ok(4575u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2851,13 +2851,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4576u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4577u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             } => Ok(4578u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2871,28 +2871,28 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4580u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             } => Ok(4581u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 12i32,
+                waterlogged: true,
             } => Ok(4582u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(4583u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4584u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4585u32),
             SignBlock {
                 block_type: SignBlockType::DarkOakSign,
@@ -2921,8 +2921,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4526u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             } => Ok(4527u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -2931,18 +2931,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4528u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             } => Ok(4529u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             } => Ok(4530u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4531u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -2986,18 +2986,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4539u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(4540u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 7i32,
+                waterlogged: false,
             } => Ok(4541u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(4542u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -3006,18 +3006,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4543u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(4544u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4545u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             } => Ok(4546u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -3026,13 +3026,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4547u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             } => Ok(4548u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             } => Ok(4549u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -3041,23 +3041,23 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4550u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(4551u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4552u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4553u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             } => Ok(4554u32),
             SignBlock {
                 block_type: SignBlockType::JungleSign,
@@ -3076,13 +3076,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4557u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             } => Ok(4622u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             } => Ok(4623u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3091,13 +3091,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4624u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             } => Ok(4625u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             } => Ok(4626u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3121,8 +3121,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4630u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             } => Ok(4631u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3131,23 +3131,23 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4632u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4633u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             } => Ok(4634u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             } => Ok(4635u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(4636u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3156,8 +3156,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4637u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(4638u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3171,23 +3171,23 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4640u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4641u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 10i32,
+                waterlogged: true,
             } => Ok(4642u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(4643u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             } => Ok(4644u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3201,8 +3201,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4646u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(4647u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3211,18 +3211,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4648u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4649u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: true,
                 rotation: 14i32,
+                waterlogged: true,
             } => Ok(4650u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             } => Ok(4651u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
@@ -3231,13 +3231,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4652u32),
             SignBlock {
                 block_type: SignBlockType::MangroveSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(4653u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             } => Ok(4366u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3251,13 +3251,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4368u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             } => Ok(4369u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             } => Ok(4370u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3271,8 +3271,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4372u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 3i32,
+                waterlogged: false,
             } => Ok(4373u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3281,8 +3281,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4374u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             } => Ok(4375u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3291,8 +3291,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4376u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4377u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3326,8 +3326,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4383u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(4384u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3361,13 +3361,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4390u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 12i32,
+                waterlogged: false,
             } => Ok(4391u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4392u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
@@ -3386,13 +3386,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4395u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             } => Ok(4396u32),
             SignBlock {
                 block_type: SignBlockType::OakSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(4397u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3401,18 +3401,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4590u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 0i32,
+                waterlogged: false,
             } => Ok(4591u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             } => Ok(4592u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             } => Ok(4593u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3421,8 +3421,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4594u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4595u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3431,8 +3431,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4596u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 3i32,
+                waterlogged: false,
             } => Ok(4597u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3441,8 +3441,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4598u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             } => Ok(4599u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3451,8 +3451,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4600u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4601u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3461,13 +3461,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4602u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 6i32,
+                waterlogged: false,
             } => Ok(4603u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(4604u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3481,18 +3481,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4606u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             } => Ok(4607u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(4608u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 9i32,
+                waterlogged: false,
             } => Ok(4609u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3501,8 +3501,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4610u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(4611u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3511,8 +3511,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4612u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 11i32,
+                waterlogged: false,
             } => Ok(4613u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
@@ -3546,18 +3546,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4619u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: true,
                 rotation: 15i32,
+                waterlogged: true,
             } => Ok(4620u32),
             SignBlock {
                 block_type: SignBlockType::PaleOakSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(4621u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 0i32,
+                waterlogged: true,
             } => Ok(4398u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3566,8 +3566,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4399u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 1i32,
+                waterlogged: true,
             } => Ok(4400u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3576,13 +3576,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4401u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             } => Ok(4402u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 2i32,
+                waterlogged: false,
             } => Ok(4403u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3601,8 +3601,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4406u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 4i32,
+                waterlogged: false,
             } => Ok(4407u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3611,13 +3611,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4408u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(4409u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 6i32,
+                waterlogged: true,
             } => Ok(4410u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3636,18 +3636,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4413u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(4414u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 8i32,
+                waterlogged: false,
             } => Ok(4415u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 9i32,
+                waterlogged: true,
             } => Ok(4416u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3661,8 +3661,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4418u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(4419u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3686,13 +3686,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4423u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: true,
                 rotation: 13i32,
+                waterlogged: true,
             } => Ok(4424u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 13i32,
+                waterlogged: false,
             } => Ok(4425u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3701,8 +3701,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4426u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 14i32,
+                waterlogged: false,
             } => Ok(4427u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
@@ -3711,8 +3711,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(4428u32),
             SignBlock {
                 block_type: SignBlockType::SpruceSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(4429u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -3731,13 +3731,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20333u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 1i32,
+                waterlogged: false,
             } => Ok(20334u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 2i32,
+                waterlogged: true,
             } => Ok(20335u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -3746,8 +3746,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20336u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 3i32,
+                waterlogged: true,
             } => Ok(20337u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -3771,8 +3771,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20341u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 5i32,
+                waterlogged: false,
             } => Ok(20342u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -3786,18 +3786,18 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20344u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 7i32,
+                waterlogged: true,
             } => Ok(20345u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 7i32,
+                waterlogged: false,
             } => Ok(20346u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 8i32,
+                waterlogged: true,
             } => Ok(20347u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -3821,13 +3821,13 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20351u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 10i32,
+                waterlogged: false,
             } => Ok(20352u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: true,
                 rotation: 11i32,
+                waterlogged: true,
             } => Ok(20353u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
@@ -3871,8 +3871,8 @@ impl TryInto<u32> for SignBlock {
             } => Ok(20361u32),
             SignBlock {
                 block_type: SignBlockType::WarpedSign,
-                waterlogged: false,
                 rotation: 15i32,
+                waterlogged: false,
             } => Ok(20362u32),
             _ => Err(()),
         }

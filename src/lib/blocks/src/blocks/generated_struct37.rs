@@ -42,8 +42,8 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2062u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
-                facing: Direction::Down,
                 extended: true,
+                facing: Direction::Down,
             }),
             2063u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
@@ -52,13 +52,13 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2064u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
-                facing: Direction::East,
                 extended: false,
+                facing: Direction::East,
             }),
             2065u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
-                facing: Direction::South,
                 extended: false,
+                facing: Direction::South,
             }),
             2066u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
@@ -77,8 +77,8 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2035u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::North,
                 extended: true,
+                facing: Direction::North,
             }),
             2036u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -87,8 +87,8 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2037u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::South,
                 extended: true,
+                facing: Direction::South,
             }),
             2038u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -97,13 +97,13 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2039u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::Up,
                 extended: true,
+                facing: Direction::Up,
             }),
             2040u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::Down,
                 extended: true,
+                facing: Direction::Down,
             }),
             2041u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -112,18 +112,18 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2042u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::East,
                 extended: false,
+                facing: Direction::East,
             }),
             2043u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::South,
                 extended: false,
+                facing: Direction::South,
             }),
             2044u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::West,
                 extended: false,
+                facing: Direction::West,
             }),
             2045u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -132,8 +132,8 @@ impl TryFrom<u32> for GeneratedStruct37 {
             }),
             2046u32 => Ok(GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::Down,
                 extended: false,
+                facing: Direction::Down,
             }),
             _ => Err(()),
         }
@@ -171,8 +171,8 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2061u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
-                facing: Direction::Down,
                 extended: true,
+                facing: Direction::Down,
             } => Ok(2062u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
@@ -181,13 +181,13 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2063u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
-                facing: Direction::East,
                 extended: false,
+                facing: Direction::East,
             } => Ok(2064u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
-                facing: Direction::South,
                 extended: false,
+                facing: Direction::South,
             } => Ok(2065u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::Piston,
@@ -206,8 +206,8 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2068u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::North,
                 extended: true,
+                facing: Direction::North,
             } => Ok(2035u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -216,8 +216,8 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2036u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::South,
                 extended: true,
+                facing: Direction::South,
             } => Ok(2037u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -226,13 +226,13 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2038u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::Up,
                 extended: true,
+                facing: Direction::Up,
             } => Ok(2039u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::Down,
                 extended: true,
+                facing: Direction::Down,
             } => Ok(2040u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -241,18 +241,18 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2041u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::East,
                 extended: false,
+                facing: Direction::East,
             } => Ok(2042u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::South,
                 extended: false,
+                facing: Direction::South,
             } => Ok(2043u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::West,
                 extended: false,
+                facing: Direction::West,
             } => Ok(2044u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
@@ -261,8 +261,8 @@ impl TryInto<u32> for GeneratedStruct37 {
             } => Ok(2045u32),
             GeneratedStruct37 {
                 block_type: GeneratedStruct37Type::StickyPiston,
-                facing: Direction::Down,
                 extended: false,
+                facing: Direction::Down,
             } => Ok(2046u32),
             _ => Err(()),
         }

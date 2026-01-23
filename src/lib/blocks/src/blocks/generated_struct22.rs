@@ -18,13 +18,13 @@ impl TryFrom<u32> for GeneratedStruct22 {
         match value {
             13550u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::North,
                 conditional: true,
+                facing: Direction::North,
             }),
             13551u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::East,
                 conditional: true,
+                facing: Direction::East,
             }),
             13552u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -38,8 +38,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13554u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::Up,
                 conditional: true,
+                facing: Direction::Up,
             }),
             13555u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -53,8 +53,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13557u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::East,
                 conditional: false,
+                facing: Direction::East,
             }),
             13558u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -63,8 +63,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13559u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::West,
                 conditional: false,
+                facing: Direction::West,
             }),
             13560u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -78,8 +78,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             8690u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::North,
                 conditional: true,
+                facing: Direction::North,
             }),
             8691u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
@@ -103,13 +103,13 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             8695u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::Down,
                 conditional: true,
+                facing: Direction::Down,
             }),
             8696u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::North,
                 conditional: false,
+                facing: Direction::North,
             }),
             8697u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
@@ -128,13 +128,13 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             8700u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::Up,
                 conditional: false,
+                facing: Direction::Up,
             }),
             8701u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::Down,
                 conditional: false,
+                facing: Direction::Down,
             }),
             13538u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -143,8 +143,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13539u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::East,
                 conditional: true,
+                facing: Direction::East,
             }),
             13540u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -158,13 +158,13 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13542u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::Up,
                 conditional: true,
+                facing: Direction::Up,
             }),
             13543u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::Down,
                 conditional: true,
+                facing: Direction::Down,
             }),
             13544u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -178,8 +178,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13546u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::South,
                 conditional: false,
+                facing: Direction::South,
             }),
             13547u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -193,8 +193,8 @@ impl TryFrom<u32> for GeneratedStruct22 {
             }),
             13549u32 => Ok(GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::Down,
                 conditional: false,
+                facing: Direction::Down,
             }),
             _ => Err(()),
         }
@@ -207,13 +207,13 @@ impl TryInto<u32> for GeneratedStruct22 {
         match self {
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::North,
                 conditional: true,
+                facing: Direction::North,
             } => Ok(13550u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::East,
                 conditional: true,
+                facing: Direction::East,
             } => Ok(13551u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -227,8 +227,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13553u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::Up,
                 conditional: true,
+                facing: Direction::Up,
             } => Ok(13554u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -242,8 +242,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13556u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::East,
                 conditional: false,
+                facing: Direction::East,
             } => Ok(13557u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -252,8 +252,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13558u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
-                facing: Direction::West,
                 conditional: false,
+                facing: Direction::West,
             } => Ok(13559u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::ChainCommandBlock,
@@ -267,8 +267,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13561u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::North,
                 conditional: true,
+                facing: Direction::North,
             } => Ok(8690u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
@@ -292,13 +292,13 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(8694u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::Down,
                 conditional: true,
+                facing: Direction::Down,
             } => Ok(8695u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::North,
                 conditional: false,
+                facing: Direction::North,
             } => Ok(8696u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
@@ -317,13 +317,13 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(8699u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::Up,
                 conditional: false,
+                facing: Direction::Up,
             } => Ok(8700u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::CommandBlock,
-                facing: Direction::Down,
                 conditional: false,
+                facing: Direction::Down,
             } => Ok(8701u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -332,8 +332,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13538u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::East,
                 conditional: true,
+                facing: Direction::East,
             } => Ok(13539u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -347,13 +347,13 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13541u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::Up,
                 conditional: true,
+                facing: Direction::Up,
             } => Ok(13542u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::Down,
                 conditional: true,
+                facing: Direction::Down,
             } => Ok(13543u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -367,8 +367,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13545u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::South,
                 conditional: false,
+                facing: Direction::South,
             } => Ok(13546u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
@@ -382,8 +382,8 @@ impl TryInto<u32> for GeneratedStruct22 {
             } => Ok(13548u32),
             GeneratedStruct22 {
                 block_type: GeneratedStruct22Type::RepeatingCommandBlock,
-                facing: Direction::Down,
                 conditional: false,
+                facing: Direction::Down,
             } => Ok(13549u32),
             _ => Err(()),
         }

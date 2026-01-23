@@ -785,9 +785,10 @@ impl TryFrom<BlockStateId> for SimpleBlock {
         }
     }
 }
-impl Into<BlockStateId> for SimpleBlock {
-    fn into(self) -> BlockStateId {
-        BlockStateId::new(match self {
+impl TryInto<BlockStateId> for SimpleBlock {
+    type Error = ();
+    fn try_into(self) -> Result<BlockStateId, Self::Error> {
+        Ok(BlockStateId::new(match self {
             Self::Air => 0u32,
             Self::Stone => 1u32,
             Self::Granite => 2u32,
@@ -1176,6 +1177,6 @@ impl Into<BlockStateId> for SimpleBlock {
             Self::PottedOpenEyeblossom => 27911u32,
             Self::PottedClosedEyeblossom => 27912u32,
             Self::FireflyBush => 27913u32,
-        })
+        }))
     }
 }

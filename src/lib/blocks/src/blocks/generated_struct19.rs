@@ -11,8 +11,8 @@ impl TryFrom<u32> for GeneratedStruct19 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             23958u32 => Ok(GeneratedStruct19 {
-                can_summon: true,
                 waterlogged: true,
+                can_summon: true,
                 shrieking: true,
             }),
             23959u32 => Ok(GeneratedStruct19 {
@@ -21,14 +21,14 @@ impl TryFrom<u32> for GeneratedStruct19 {
                 shrieking: true,
             }),
             23960u32 => Ok(GeneratedStruct19 {
-                shrieking: false,
                 waterlogged: true,
+                shrieking: false,
                 can_summon: true,
             }),
             23961u32 => Ok(GeneratedStruct19 {
+                waterlogged: false,
                 can_summon: true,
                 shrieking: false,
-                waterlogged: false,
             }),
             23962u32 => Ok(GeneratedStruct19 {
                 can_summon: false,
@@ -41,14 +41,14 @@ impl TryFrom<u32> for GeneratedStruct19 {
                 shrieking: true,
             }),
             23964u32 => Ok(GeneratedStruct19 {
-                waterlogged: true,
                 can_summon: false,
+                waterlogged: true,
                 shrieking: false,
             }),
             23965u32 => Ok(GeneratedStruct19 {
                 waterlogged: false,
-                shrieking: false,
                 can_summon: false,
+                shrieking: false,
             }),
             _ => Err(()),
         }
@@ -60,8 +60,8 @@ impl TryInto<u32> for GeneratedStruct19 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct19 {
-                can_summon: true,
                 waterlogged: true,
+                can_summon: true,
                 shrieking: true,
             } => Ok(23958u32),
             GeneratedStruct19 {
@@ -70,14 +70,14 @@ impl TryInto<u32> for GeneratedStruct19 {
                 shrieking: true,
             } => Ok(23959u32),
             GeneratedStruct19 {
-                shrieking: false,
                 waterlogged: true,
+                shrieking: false,
                 can_summon: true,
             } => Ok(23960u32),
             GeneratedStruct19 {
+                waterlogged: false,
                 can_summon: true,
                 shrieking: false,
-                waterlogged: false,
             } => Ok(23961u32),
             GeneratedStruct19 {
                 can_summon: false,
@@ -90,14 +90,14 @@ impl TryInto<u32> for GeneratedStruct19 {
                 shrieking: true,
             } => Ok(23963u32),
             GeneratedStruct19 {
-                waterlogged: true,
                 can_summon: false,
+                waterlogged: true,
                 shrieking: false,
             } => Ok(23964u32),
             GeneratedStruct19 {
                 waterlogged: false,
-                shrieking: false,
                 can_summon: false,
+                shrieking: false,
             } => Ok(23965u32),
             _ => Err(()),
         }

@@ -10,8 +10,8 @@ impl TryFrom<u32> for GeneratedStruct38 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             8191u32 => Ok(GeneratedStruct38 {
-                eye: true,
                 facing: Direction::North,
+                eye: true,
             }),
             8192u32 => Ok(GeneratedStruct38 {
                 eye: true,
@@ -51,8 +51,8 @@ impl TryInto<u32> for GeneratedStruct38 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct38 {
-                eye: true,
                 facing: Direction::North,
+                eye: true,
             } => Ok(8191u32),
             GeneratedStruct38 {
                 eye: true,

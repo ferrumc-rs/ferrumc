@@ -22,12 +22,12 @@ impl TryFrom<u32> for GeneratedStruct36 {
                 facing: Direction::South,
             }),
             10037u32 => Ok(GeneratedStruct36 {
-                facing: Direction::West,
                 enabled: true,
+                facing: Direction::West,
             }),
             10038u32 => Ok(GeneratedStruct36 {
-                enabled: true,
                 facing: Direction::East,
+                enabled: true,
             }),
             10039u32 => Ok(GeneratedStruct36 {
                 facing: Direction::Down,
@@ -46,8 +46,8 @@ impl TryFrom<u32> for GeneratedStruct36 {
                 enabled: false,
             }),
             10043u32 => Ok(GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::East,
+                enabled: false,
             }),
             _ => Err(()),
         }
@@ -71,12 +71,12 @@ impl TryInto<u32> for GeneratedStruct36 {
                 facing: Direction::South,
             } => Ok(10036u32),
             GeneratedStruct36 {
-                facing: Direction::West,
                 enabled: true,
+                facing: Direction::West,
             } => Ok(10037u32),
             GeneratedStruct36 {
-                enabled: true,
                 facing: Direction::East,
+                enabled: true,
             } => Ok(10038u32),
             GeneratedStruct36 {
                 facing: Direction::Down,
@@ -95,8 +95,8 @@ impl TryInto<u32> for GeneratedStruct36 {
                 enabled: false,
             } => Ok(10042u32),
             GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::East,
+                enabled: false,
             } => Ok(10043u32),
             _ => Err(()),
         }

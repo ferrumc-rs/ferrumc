@@ -11,54 +11,54 @@ impl TryFrom<u32> for GeneratedStruct44 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             25944u32 => Ok(GeneratedStruct44 {
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
                 half: DoubleBlockHalf::Upper,
             }),
             25945u32 => Ok(GeneratedStruct44 {
-                half: DoubleBlockHalf::Upper,
                 facing: Direction::North,
                 waterlogged: false,
+                half: DoubleBlockHalf::Upper,
             }),
             25946u32 => Ok(GeneratedStruct44 {
-                waterlogged: true,
-                facing: Direction::North,
                 half: DoubleBlockHalf::Lower,
+                facing: Direction::North,
+                waterlogged: true,
             }),
             25947u32 => Ok(GeneratedStruct44 {
-                facing: Direction::North,
-                half: DoubleBlockHalf::Lower,
                 waterlogged: false,
+                half: DoubleBlockHalf::Lower,
+                facing: Direction::North,
             }),
             25948u32 => Ok(GeneratedStruct44 {
-                waterlogged: true,
-                half: DoubleBlockHalf::Upper,
                 facing: Direction::South,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: true,
             }),
             25949u32 => Ok(GeneratedStruct44 {
-                half: DoubleBlockHalf::Upper,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
+                half: DoubleBlockHalf::Upper,
             }),
             25950u32 => Ok(GeneratedStruct44 {
-                half: DoubleBlockHalf::Lower,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
+                half: DoubleBlockHalf::Lower,
             }),
             25951u32 => Ok(GeneratedStruct44 {
+                facing: Direction::South,
                 half: DoubleBlockHalf::Lower,
                 waterlogged: false,
-                facing: Direction::South,
             }),
             25952u32 => Ok(GeneratedStruct44 {
-                waterlogged: true,
                 half: DoubleBlockHalf::Upper,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             25953u32 => Ok(GeneratedStruct44 {
+                facing: Direction::West,
                 half: DoubleBlockHalf::Upper,
                 waterlogged: false,
-                facing: Direction::West,
             }),
             25954u32 => Ok(GeneratedStruct44 {
                 facing: Direction::West,
@@ -66,9 +66,9 @@ impl TryFrom<u32> for GeneratedStruct44 {
                 waterlogged: true,
             }),
             25955u32 => Ok(GeneratedStruct44 {
-                waterlogged: false,
                 half: DoubleBlockHalf::Lower,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             25956u32 => Ok(GeneratedStruct44 {
                 half: DoubleBlockHalf::Upper,
@@ -76,19 +76,19 @@ impl TryFrom<u32> for GeneratedStruct44 {
                 waterlogged: true,
             }),
             25957u32 => Ok(GeneratedStruct44 {
-                facing: Direction::East,
                 half: DoubleBlockHalf::Upper,
                 waterlogged: false,
+                facing: Direction::East,
             }),
             25958u32 => Ok(GeneratedStruct44 {
-                facing: Direction::East,
-                waterlogged: true,
                 half: DoubleBlockHalf::Lower,
+                waterlogged: true,
+                facing: Direction::East,
             }),
             25959u32 => Ok(GeneratedStruct44 {
-                waterlogged: false,
-                facing: Direction::East,
                 half: DoubleBlockHalf::Lower,
+                facing: Direction::East,
+                waterlogged: false,
             }),
             _ => Err(()),
         }
@@ -100,54 +100,54 @@ impl TryInto<u32> for GeneratedStruct44 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct44 {
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
                 half: DoubleBlockHalf::Upper,
             } => Ok(25944u32),
             GeneratedStruct44 {
-                half: DoubleBlockHalf::Upper,
                 facing: Direction::North,
                 waterlogged: false,
+                half: DoubleBlockHalf::Upper,
             } => Ok(25945u32),
             GeneratedStruct44 {
-                waterlogged: true,
-                facing: Direction::North,
                 half: DoubleBlockHalf::Lower,
+                facing: Direction::North,
+                waterlogged: true,
             } => Ok(25946u32),
             GeneratedStruct44 {
-                facing: Direction::North,
-                half: DoubleBlockHalf::Lower,
                 waterlogged: false,
+                half: DoubleBlockHalf::Lower,
+                facing: Direction::North,
             } => Ok(25947u32),
             GeneratedStruct44 {
-                waterlogged: true,
-                half: DoubleBlockHalf::Upper,
                 facing: Direction::South,
+                half: DoubleBlockHalf::Upper,
+                waterlogged: true,
             } => Ok(25948u32),
             GeneratedStruct44 {
-                half: DoubleBlockHalf::Upper,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
+                half: DoubleBlockHalf::Upper,
             } => Ok(25949u32),
             GeneratedStruct44 {
-                half: DoubleBlockHalf::Lower,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
+                half: DoubleBlockHalf::Lower,
             } => Ok(25950u32),
             GeneratedStruct44 {
+                facing: Direction::South,
                 half: DoubleBlockHalf::Lower,
                 waterlogged: false,
-                facing: Direction::South,
             } => Ok(25951u32),
             GeneratedStruct44 {
-                waterlogged: true,
                 half: DoubleBlockHalf::Upper,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(25952u32),
             GeneratedStruct44 {
+                facing: Direction::West,
                 half: DoubleBlockHalf::Upper,
                 waterlogged: false,
-                facing: Direction::West,
             } => Ok(25953u32),
             GeneratedStruct44 {
                 facing: Direction::West,
@@ -155,9 +155,9 @@ impl TryInto<u32> for GeneratedStruct44 {
                 waterlogged: true,
             } => Ok(25954u32),
             GeneratedStruct44 {
-                waterlogged: false,
                 half: DoubleBlockHalf::Lower,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(25955u32),
             GeneratedStruct44 {
                 half: DoubleBlockHalf::Upper,
@@ -165,19 +165,19 @@ impl TryInto<u32> for GeneratedStruct44 {
                 waterlogged: true,
             } => Ok(25956u32),
             GeneratedStruct44 {
-                facing: Direction::East,
                 half: DoubleBlockHalf::Upper,
                 waterlogged: false,
+                facing: Direction::East,
             } => Ok(25957u32),
             GeneratedStruct44 {
-                facing: Direction::East,
-                waterlogged: true,
                 half: DoubleBlockHalf::Lower,
+                waterlogged: true,
+                facing: Direction::East,
             } => Ok(25958u32),
             GeneratedStruct44 {
-                waterlogged: false,
-                facing: Direction::East,
                 half: DoubleBlockHalf::Lower,
+                facing: Direction::East,
+                waterlogged: false,
             } => Ok(25959u32),
             _ => Err(()),
         }

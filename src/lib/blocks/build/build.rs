@@ -4,6 +4,8 @@ mod complex;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
+use proc_macro2::TokenStream;
+use quote::quote;
 use serde::Deserialize;
 use crate::complex::generate_complex_blocks;
 use crate::simple::generate_simple_block_enum;
@@ -44,6 +46,9 @@ fn main() {
     let file = fs::read_to_string("../../../assets/data/blockstates.json").unwrap();
     let blockstates: HashMap<String, BlockState> = serde_json::from_str(&file).unwrap();
 
+    let mut block_state_mappings = Vec::with_capacity(blockstates.len());
+    block_state_mappings.resize(blockstates.len(), TokenStream::new());
+
     let mut simple_blocks = Vec::new();
     let mut complex_blocks = Vec::new();
 
@@ -57,11 +62,24 @@ fn main() {
         }
     }
 
-    let simple_blocks = generate_simple_block_enum(simple_blocks);
-    let complex_blocks = generate_complex_blocks(&config, complex_blocks);
+    let simple_blocks = generate_simple_block_enum(simple_blocks, &mut block_state_mappings);
+    let complex_blocks = generate_complex_blocks(&config, complex_blocks, &mut block_state_mappings);
+
+    let len = block_state_mappings.len();
+
+    let mapping_constant = quote! {
+        use ferrumc_block_properties::*;
+        use crate::simple_blocks::SimpleBlock;
+        use crate::blocks::*;
+
+        pub const BLOCK_MAPPINGS: [&dyn std::any::Any; #len] = [
+            #(&#block_state_mappings),*
+        ];
+    };
 
     fs::write("src/simple_blocks.rs", format_code(&simple_blocks.to_string())).unwrap();
     fs::write("src/blocks.rs", format_code(&complex_blocks.to_string())).unwrap();
+    fs::write("src/mappings.rs", format_code(&mapping_constant.to_string())).unwrap();
 }
 
 fn format_code(unformatted_code: &str) -> String {

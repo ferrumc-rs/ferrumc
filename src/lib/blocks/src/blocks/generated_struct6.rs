@@ -11,38 +11,38 @@ impl TryFrom<u32> for GeneratedStruct6 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             13968u32 => Ok(GeneratedStruct6 {
-                stage: 0i32,
                 age: 0i32,
                 leaves: BambooLeaves::None,
+                stage: 0i32,
             }),
             13969u32 => Ok(GeneratedStruct6 {
-                age: 0i32,
                 leaves: BambooLeaves::None,
                 stage: 1i32,
+                age: 0i32,
             }),
             13970u32 => Ok(GeneratedStruct6 {
                 leaves: BambooLeaves::Small,
-                stage: 0i32,
                 age: 0i32,
+                stage: 0i32,
             }),
             13971u32 => Ok(GeneratedStruct6 {
-                leaves: BambooLeaves::Small,
-                age: 0i32,
                 stage: 1i32,
+                age: 0i32,
+                leaves: BambooLeaves::Small,
             }),
             13972u32 => Ok(GeneratedStruct6 {
+                stage: 0i32,
                 leaves: BambooLeaves::Large,
                 age: 0i32,
-                stage: 0i32,
             }),
             13973u32 => Ok(GeneratedStruct6 {
                 age: 0i32,
-                stage: 1i32,
                 leaves: BambooLeaves::Large,
+                stage: 1i32,
             }),
             13974u32 => Ok(GeneratedStruct6 {
-                leaves: BambooLeaves::None,
                 age: 1i32,
+                leaves: BambooLeaves::None,
                 stage: 0i32,
             }),
             13975u32 => Ok(GeneratedStruct6 {
@@ -52,23 +52,23 @@ impl TryFrom<u32> for GeneratedStruct6 {
             }),
             13976u32 => Ok(GeneratedStruct6 {
                 leaves: BambooLeaves::Small,
-                stage: 0i32,
                 age: 1i32,
+                stage: 0i32,
             }),
             13977u32 => Ok(GeneratedStruct6 {
-                age: 1i32,
                 leaves: BambooLeaves::Small,
                 stage: 1i32,
+                age: 1i32,
             }),
             13978u32 => Ok(GeneratedStruct6 {
                 leaves: BambooLeaves::Large,
-                age: 1i32,
                 stage: 0i32,
+                age: 1i32,
             }),
             13979u32 => Ok(GeneratedStruct6 {
                 leaves: BambooLeaves::Large,
-                stage: 1i32,
                 age: 1i32,
+                stage: 1i32,
             }),
             _ => Err(()),
         }
@@ -80,38 +80,38 @@ impl TryInto<u32> for GeneratedStruct6 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct6 {
-                stage: 0i32,
                 age: 0i32,
                 leaves: BambooLeaves::None,
+                stage: 0i32,
             } => Ok(13968u32),
             GeneratedStruct6 {
-                age: 0i32,
                 leaves: BambooLeaves::None,
                 stage: 1i32,
+                age: 0i32,
             } => Ok(13969u32),
             GeneratedStruct6 {
                 leaves: BambooLeaves::Small,
-                stage: 0i32,
                 age: 0i32,
+                stage: 0i32,
             } => Ok(13970u32),
             GeneratedStruct6 {
-                leaves: BambooLeaves::Small,
-                age: 0i32,
                 stage: 1i32,
+                age: 0i32,
+                leaves: BambooLeaves::Small,
             } => Ok(13971u32),
             GeneratedStruct6 {
+                stage: 0i32,
                 leaves: BambooLeaves::Large,
                 age: 0i32,
-                stage: 0i32,
             } => Ok(13972u32),
             GeneratedStruct6 {
                 age: 0i32,
-                stage: 1i32,
                 leaves: BambooLeaves::Large,
+                stage: 1i32,
             } => Ok(13973u32),
             GeneratedStruct6 {
-                leaves: BambooLeaves::None,
                 age: 1i32,
+                leaves: BambooLeaves::None,
                 stage: 0i32,
             } => Ok(13974u32),
             GeneratedStruct6 {
@@ -121,23 +121,23 @@ impl TryInto<u32> for GeneratedStruct6 {
             } => Ok(13975u32),
             GeneratedStruct6 {
                 leaves: BambooLeaves::Small,
-                stage: 0i32,
                 age: 1i32,
+                stage: 0i32,
             } => Ok(13976u32),
             GeneratedStruct6 {
-                age: 1i32,
                 leaves: BambooLeaves::Small,
                 stage: 1i32,
+                age: 1i32,
             } => Ok(13977u32),
             GeneratedStruct6 {
                 leaves: BambooLeaves::Large,
-                age: 1i32,
                 stage: 0i32,
+                age: 1i32,
             } => Ok(13978u32),
             GeneratedStruct6 {
                 leaves: BambooLeaves::Large,
-                stage: 1i32,
                 age: 1i32,
+                stage: 1i32,
             } => Ok(13979u32),
             _ => Err(()),
         }

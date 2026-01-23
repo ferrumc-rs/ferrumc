@@ -9,56 +9,69 @@ pub use double_block_half::DoubleBlockHalf;
 pub use note_block_instrument::NoteBlockInstrument;
 
 #[cfg(feature = "block-struct-generation")]
-pub const TYPES: &[(&str, PropertyDescriptor)] = &[
-    ("i32", PropertyDescriptor {
-        matches_values: |str| str.parse::<i32>().is_ok(),
-        ident_for: |str| {
-            let val = str.parse::<i32>().expect("failed to parse i32");
-            quote::quote! { #val }
-        },
-    }),
-    ("bool", PropertyDescriptor {
-        matches_values: |str| matches!(str, "true" | "false"),
-        ident_for: |str| {
-            let val = str.parse::<bool>().expect("failed to parse bool");
-            quote::quote! { #val }
-        }
-    }),
-    ("AttachFace", AttachFace::DESCRIPTOR),
-    ("Axis", Axis::DESCRIPTOR),
-    ("BambooLeaves", BambooLeaves::DESCRIPTOR),
-    ("BedPart", BedPart::DESCRIPTOR),
-    ("BellAttachType", BellAttachType::DESCRIPTOR),
-    ("ChestType", ChestType::DESCRIPTOR),
-    ("ComparatorMode", ComparatorMode::DESCRIPTOR),
-    ("CreakingHeartState", CreakingHeartState::DESCRIPTOR),
-    ("Direction", Direction::DESCRIPTOR),
-    ("DoorHingeSide", DoorHingeSide::DESCRIPTOR),
-    ("DoubleBlockHalf", DoubleBlockHalf::DESCRIPTOR),
-    ("DripstoneThickness", DripstoneThickness::DESCRIPTOR),
-    ("FrontAndTop", FrontAndTop::DESCRIPTOR),
-    ("Half", Half::DESCRIPTOR),
-    ("NoteBlockInstrument", NoteBlockInstrument::DESCRIPTOR),
-    ("PistonType", PistonType::DESCRIPTOR),
-    ("CopperGolemPose", CopperGolemPose::DESCRIPTOR),
-    ("RailShape", RailShape::DESCRIPTOR),
-    ("RedstoneSide", RedstoneSide::DESCRIPTOR),
-    ("SculkSensorPhase", SculkSensorPhase::DESCRIPTOR),
-    ("SideChainPart", SideChainPart::DESCRIPTOR),
-    ("SlabType", SlabType::DESCRIPTOR),
-    ("StairsShape", StairsShape::DESCRIPTOR),
-    ("StructureMode", StructureMode::DESCRIPTOR),
-    ("TestBlockMode", TestBlockMode::DESCRIPTOR),
-    ("Tilt", Tilt::DESCRIPTOR),
-    ("TrialSpawnerState", TrialSpawnerState::DESCRIPTOR),
-    ("VaultState", VaultState::DESCRIPTOR),
-    ("WallSide", WallSide::DESCRIPTOR),
-];
+lazy_static::lazy_static! {
+    pub static ref TYPES: std::collections::HashMap<&'static str, PropertyDescriptor> = {
+        let mut map = std::collections::HashMap::new();
+
+        map.insert("i32", PropertyDescriptor::I32);
+        map.insert("bool", PropertyDescriptor::BOOL);
+        map.insert("AttachFace", AttachFace::DESCRIPTOR);
+        map.insert("Axis", Axis::DESCRIPTOR);
+        map.insert("BambooLeaves", BambooLeaves::DESCRIPTOR);
+        map.insert("BedPart", BedPart::DESCRIPTOR);
+        map.insert("BellAttachType", BellAttachType::DESCRIPTOR);
+        map.insert("ChestType", ChestType::DESCRIPTOR);
+        map.insert("CreakingHeartState", CreakingHeartState::DESCRIPTOR);
+        map.insert("ComparatorMode", ComparatorMode::DESCRIPTOR);
+        map.insert("Direction", Direction::DESCRIPTOR);
+        map.insert("DoorHingeSide", DoorHingeSide::DESCRIPTOR);
+        map.insert("DoubleBlockHalf", DoubleBlockHalf::DESCRIPTOR);
+        map.insert("DripstoneThickness", DripstoneThickness::DESCRIPTOR);
+        map.insert("FrontAndTop", FrontAndTop::DESCRIPTOR);
+        map.insert("Half", Half::DESCRIPTOR);
+        map.insert("NoteBlockInstrument", NoteBlockInstrument::DESCRIPTOR);
+        map.insert("PistonType", PistonType::DESCRIPTOR);
+        map.insert("CopperGolemPose", CopperGolemPose::DESCRIPTOR);
+        map.insert("RailShape", RailShape::DESCRIPTOR);
+        map.insert("RedstoneSide", RedstoneSide::DESCRIPTOR);
+        map.insert("SculkSensorPhase", SculkSensorPhase::DESCRIPTOR);
+        map.insert("SideChainPart", SideChainPart::DESCRIPTOR);
+        map.insert("SlabType", SlabType::DESCRIPTOR);
+        map.insert("StairsShape", StairsShape::DESCRIPTOR);
+        map.insert("StructureMode", StructureMode::DESCRIPTOR);
+        map.insert("TestBlockMode", TestBlockMode::DESCRIPTOR);
+        map.insert("Tilt", Tilt::DESCRIPTOR);
+        map.insert("TrialSpawnerState", TrialSpawnerState::DESCRIPTOR);
+        map.insert("VaultState", VaultState::DESCRIPTOR);
+        map.insert("WallSide", WallSide::DESCRIPTOR);
+
+        map
+    };
+}
 
 #[cfg(feature = "block-struct-generation")]
 pub struct PropertyDescriptor {
     pub matches_values: fn(&str) -> bool,
     pub ident_for: fn(&str) -> proc_macro2::TokenStream,
+}
+
+#[cfg(feature = "block-struct-generation")]
+impl PropertyDescriptor {
+    const I32: PropertyDescriptor = PropertyDescriptor {
+        matches_values: |str| str.parse::<i32>().is_ok(),
+        ident_for: |str| {
+            let val = str.parse::<i32>().expect("failed to parse i32");
+            quote::quote! { #val }
+        },
+    };
+
+    const BOOL: PropertyDescriptor = PropertyDescriptor {
+        matches_values: |str| matches!(str, "true" | "false"),
+        ident_for: |str| {
+            let val = str.parse::<bool>().expect("failed to parse bool");
+            quote::quote! { #val }
+        },
+    };
 }
 
 /// Marker trait for types that can be used as block state property values

@@ -11,14 +11,14 @@ impl TryFrom<u32> for GeneratedStruct12 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             2920u32 => Ok(GeneratedStruct12 {
-                axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Uprooted,
+                axis: Axis::X,
                 natural: true,
             }),
             2921u32 => Ok(GeneratedStruct12 {
+                axis: Axis::X,
                 natural: false,
                 creaking_heart_state: CreakingHeartState::Uprooted,
-                axis: Axis::X,
             }),
             2922u32 => Ok(GeneratedStruct12 {
                 creaking_heart_state: CreakingHeartState::Dormant,
@@ -26,19 +26,19 @@ impl TryFrom<u32> for GeneratedStruct12 {
                 axis: Axis::X,
             }),
             2923u32 => Ok(GeneratedStruct12 {
-                natural: false,
                 axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Dormant,
+                natural: false,
             }),
             2924u32 => Ok(GeneratedStruct12 {
-                axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Awake,
                 natural: true,
+                axis: Axis::X,
             }),
             2925u32 => Ok(GeneratedStruct12 {
+                natural: false,
                 axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Awake,
-                natural: false,
             }),
             2926u32 => Ok(GeneratedStruct12 {
                 axis: Axis::Y,
@@ -46,13 +46,13 @@ impl TryFrom<u32> for GeneratedStruct12 {
                 natural: true,
             }),
             2927u32 => Ok(GeneratedStruct12 {
+                natural: false,
                 creaking_heart_state: CreakingHeartState::Uprooted,
                 axis: Axis::Y,
-                natural: false,
             }),
             2928u32 => Ok(GeneratedStruct12 {
-                creaking_heart_state: CreakingHeartState::Dormant,
                 axis: Axis::Y,
+                creaking_heart_state: CreakingHeartState::Dormant,
                 natural: true,
             }),
             2929u32 => Ok(GeneratedStruct12 {
@@ -61,8 +61,8 @@ impl TryFrom<u32> for GeneratedStruct12 {
                 natural: false,
             }),
             2930u32 => Ok(GeneratedStruct12 {
-                natural: true,
                 creaking_heart_state: CreakingHeartState::Awake,
+                natural: true,
                 axis: Axis::Y,
             }),
             2931u32 => Ok(GeneratedStruct12 {
@@ -71,13 +71,13 @@ impl TryFrom<u32> for GeneratedStruct12 {
                 natural: false,
             }),
             2932u32 => Ok(GeneratedStruct12 {
-                natural: true,
                 axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Uprooted,
+                natural: true,
             }),
             2933u32 => Ok(GeneratedStruct12 {
-                axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Uprooted,
+                axis: Axis::Z,
                 natural: false,
             }),
             2934u32 => Ok(GeneratedStruct12 {
@@ -86,14 +86,14 @@ impl TryFrom<u32> for GeneratedStruct12 {
                 natural: true,
             }),
             2935u32 => Ok(GeneratedStruct12 {
-                axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Dormant,
                 natural: false,
+                axis: Axis::Z,
             }),
             2936u32 => Ok(GeneratedStruct12 {
-                natural: true,
                 axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Awake,
+                natural: true,
             }),
             2937u32 => Ok(GeneratedStruct12 {
                 natural: false,
@@ -110,14 +110,14 @@ impl TryInto<u32> for GeneratedStruct12 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct12 {
-                axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Uprooted,
+                axis: Axis::X,
                 natural: true,
             } => Ok(2920u32),
             GeneratedStruct12 {
+                axis: Axis::X,
                 natural: false,
                 creaking_heart_state: CreakingHeartState::Uprooted,
-                axis: Axis::X,
             } => Ok(2921u32),
             GeneratedStruct12 {
                 creaking_heart_state: CreakingHeartState::Dormant,
@@ -125,19 +125,19 @@ impl TryInto<u32> for GeneratedStruct12 {
                 axis: Axis::X,
             } => Ok(2922u32),
             GeneratedStruct12 {
-                natural: false,
                 axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Dormant,
+                natural: false,
             } => Ok(2923u32),
             GeneratedStruct12 {
-                axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Awake,
                 natural: true,
+                axis: Axis::X,
             } => Ok(2924u32),
             GeneratedStruct12 {
+                natural: false,
                 axis: Axis::X,
                 creaking_heart_state: CreakingHeartState::Awake,
-                natural: false,
             } => Ok(2925u32),
             GeneratedStruct12 {
                 axis: Axis::Y,
@@ -145,13 +145,13 @@ impl TryInto<u32> for GeneratedStruct12 {
                 natural: true,
             } => Ok(2926u32),
             GeneratedStruct12 {
+                natural: false,
                 creaking_heart_state: CreakingHeartState::Uprooted,
                 axis: Axis::Y,
-                natural: false,
             } => Ok(2927u32),
             GeneratedStruct12 {
-                creaking_heart_state: CreakingHeartState::Dormant,
                 axis: Axis::Y,
+                creaking_heart_state: CreakingHeartState::Dormant,
                 natural: true,
             } => Ok(2928u32),
             GeneratedStruct12 {
@@ -160,8 +160,8 @@ impl TryInto<u32> for GeneratedStruct12 {
                 natural: false,
             } => Ok(2929u32),
             GeneratedStruct12 {
-                natural: true,
                 creaking_heart_state: CreakingHeartState::Awake,
+                natural: true,
                 axis: Axis::Y,
             } => Ok(2930u32),
             GeneratedStruct12 {
@@ -170,13 +170,13 @@ impl TryInto<u32> for GeneratedStruct12 {
                 natural: false,
             } => Ok(2931u32),
             GeneratedStruct12 {
-                natural: true,
                 axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Uprooted,
+                natural: true,
             } => Ok(2932u32),
             GeneratedStruct12 {
-                axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Uprooted,
+                axis: Axis::Z,
                 natural: false,
             } => Ok(2933u32),
             GeneratedStruct12 {
@@ -185,14 +185,14 @@ impl TryInto<u32> for GeneratedStruct12 {
                 natural: true,
             } => Ok(2934u32),
             GeneratedStruct12 {
-                axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Dormant,
                 natural: false,
+                axis: Axis::Z,
             } => Ok(2935u32),
             GeneratedStruct12 {
-                natural: true,
                 axis: Axis::Z,
                 creaking_heart_state: CreakingHeartState::Awake,
+                natural: true,
             } => Ok(2936u32),
             GeneratedStruct12 {
                 natural: false,

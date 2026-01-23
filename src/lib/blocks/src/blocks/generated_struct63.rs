@@ -17,8 +17,8 @@ impl TryFrom<u32> for GeneratedStruct63 {
         match value {
             566u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: true,
                 facing: Direction::North,
+                triggered: true,
             }),
             567u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
@@ -27,13 +27,13 @@ impl TryFrom<u32> for GeneratedStruct63 {
             }),
             568u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: true,
                 facing: Direction::East,
+                triggered: true,
             }),
             569u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: false,
                 facing: Direction::East,
+                triggered: false,
             }),
             570u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
@@ -42,13 +42,13 @@ impl TryFrom<u32> for GeneratedStruct63 {
             }),
             571u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: false,
                 facing: Direction::South,
+                triggered: false,
             }),
             572u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: true,
                 facing: Direction::West,
+                triggered: true,
             }),
             573u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
@@ -82,13 +82,13 @@ impl TryFrom<u32> for GeneratedStruct63 {
             }),
             10154u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
-                triggered: false,
                 facing: Direction::North,
+                triggered: false,
             }),
             10155u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
-                triggered: true,
                 facing: Direction::East,
+                triggered: true,
             }),
             10156u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
@@ -107,8 +107,8 @@ impl TryFrom<u32> for GeneratedStruct63 {
             }),
             10159u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
-                triggered: true,
                 facing: Direction::West,
+                triggered: true,
             }),
             10160u32 => Ok(GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
@@ -146,8 +146,8 @@ impl TryInto<u32> for GeneratedStruct63 {
         match self {
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: true,
                 facing: Direction::North,
+                triggered: true,
             } => Ok(566u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
@@ -156,13 +156,13 @@ impl TryInto<u32> for GeneratedStruct63 {
             } => Ok(567u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: true,
                 facing: Direction::East,
+                triggered: true,
             } => Ok(568u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: false,
                 facing: Direction::East,
+                triggered: false,
             } => Ok(569u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
@@ -171,13 +171,13 @@ impl TryInto<u32> for GeneratedStruct63 {
             } => Ok(570u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: false,
                 facing: Direction::South,
+                triggered: false,
             } => Ok(571u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
-                triggered: true,
                 facing: Direction::West,
+                triggered: true,
             } => Ok(572u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dispenser,
@@ -211,13 +211,13 @@ impl TryInto<u32> for GeneratedStruct63 {
             } => Ok(10153u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
-                triggered: false,
                 facing: Direction::North,
+                triggered: false,
             } => Ok(10154u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
-                triggered: true,
                 facing: Direction::East,
+                triggered: true,
             } => Ok(10155u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
@@ -236,8 +236,8 @@ impl TryInto<u32> for GeneratedStruct63 {
             } => Ok(10158u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
-                triggered: true,
                 facing: Direction::West,
+                triggered: true,
             } => Ok(10159u32),
             GeneratedStruct63 {
                 block_type: GeneratedStruct63Type::Dropper,
