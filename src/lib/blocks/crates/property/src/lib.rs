@@ -12,9 +12,17 @@ pub use note_block_instrument::NoteBlockInstrument;
 pub const TYPES: &[(&str, PropertyDescriptor)] = &[
     ("i32", PropertyDescriptor {
         matches_values: |str| str.parse::<i32>().is_ok(),
+        ident_for: |str| {
+            let val = str.parse::<i32>().expect("failed to parse i32");
+            quote::quote! { #val }
+        },
     }),
     ("bool", PropertyDescriptor {
         matches_values: |str| matches!(str, "true" | "false"),
+        ident_for: |str| {
+            let val = str.parse::<bool>().expect("failed to parse bool");
+            quote::quote! { #val }
+        }
     }),
     ("AttachFace", AttachFace::DESCRIPTOR),
     ("Axis", Axis::DESCRIPTOR),
@@ -50,6 +58,7 @@ pub const TYPES: &[(&str, PropertyDescriptor)] = &[
 #[cfg(feature = "block-struct-generation")]
 pub struct PropertyDescriptor {
     pub matches_values: fn(&str) -> bool,
+    pub ident_for: fn(&str) -> proc_macro2::TokenStream,
 }
 
 /// Marker trait for types that can be used as block state property values
@@ -74,10 +83,18 @@ macro_rules! enum_property {
         impl $name {
             pub const DESCRIPTOR: $crate::PropertyDescriptor = $crate::PropertyDescriptor {
                 matches_values: Self::matches_values,
+                ident_for: Self::ident_for,
             };
 
             fn matches_values(str: &str) -> bool {
                 matches!(str, $($variant_str)|*)
+            }
+
+            fn ident_for(str: &str) -> proc_macro2::TokenStream {
+                match str {
+                    $($variant_str => quote::quote!{ $name::$variant }),*,
+                    str => panic!("{} is not a valid member of enum property {}", str, stringify!($name)),
+                }
             }
         }
 

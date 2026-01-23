@@ -1,9 +1,8 @@
 use crate::{BuildConfig, ComplexBlock, SingleOrMultiple};
 use ferrumc_block_properties::{PropertyDescriptor, TYPES};
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use std::collections::HashMap;
-use std::env::var;
 use heck::ToPascalCase;
 
 struct BlockStateConfiguration {
@@ -101,12 +100,16 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
         }).collect::<Vec<_>>();
         let types = config.iter().map(|(_, value)| format_ident!("{}", value)).collect::<Vec<_>>();
 
+        let values = blocks.iter().map(|block| (&block.name, &block.values)).collect::<Vec<_>>();
+
         match blocks.len() {
             0 => continue,
             1 => {
                 let block = blocks[0];
 
                 let struct_name = format_ident!("GeneratedBlock_{}", block.name.strip_prefix("minecraft:").unwrap_or(block.name.as_str()).to_pascal_case());
+
+                let trait_impl = generate_trait_impls(&struct_name, None, &blocks);
 
                 structs.push(quote! {
                     #[allow(dead_code, non_camel_case_types)]
@@ -115,11 +118,13 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
                             pub #field: #types,
                         )*
                     }
+
+                    #trait_impl
                 });
             },
             _ => {
                 let mut variants = Vec::with_capacity(blocks.len());
-                for BlockStateConfiguration { name, .. } in blocks {
+                for BlockStateConfiguration { name, .. } in &blocks {
                     let variant = format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name.as_str()).to_pascal_case());
                     variants.push(variant);
                 }
@@ -128,6 +133,8 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
 
                 let struct_name = format_ident!("GeneratedBlock_{}", structs.len());
                 let enum_name = format_ident!("{}_BlockType", struct_name);
+
+                let trait_impl = generate_trait_impls(&struct_name, Some((&enum_name, &variants)), &blocks);
 
                 structs.push(quote! {
                     #[allow(dead_code, non_camel_case_types)]
@@ -144,6 +151,8 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
                             pub #field: #types,
                         )*
                     }
+
+                    #trait_impl
                 })
             }
         }
@@ -161,4 +170,68 @@ fn property_descriptor_of(key: &str) -> &PropertyDescriptor {
         .find(|(name, _)| name == &key)
         .unwrap_or_else(|| panic!("Property type for {} not found!", key))
         .1
+}
+
+fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident])>, values: &[&BlockStateConfiguration]) -> TokenStream {
+    let mut from_match_arms = TokenStream::new();
+    let mut into_match_arms = TokenStream::new();
+
+    match enum_name {
+        Some(enum_name) => {
+
+        },
+        None => {
+            let BlockStateConfiguration { properties, values, .. } = values[0];
+
+            let mut values = values.into_iter().collect::<Vec<_>>();
+            values.sort_by(|(id_a, _), (id_b, _)| id_a.cmp(id_b));
+
+            for (id, values) in values {
+                let fields = values.keys().map(|str| {
+                    if str == "type" {
+                        format_ident!("ty")
+                    } else {
+                        format_ident!("{str}")
+                    }
+                }).collect::<Vec<_>>();
+                let values = values.iter().map(|(name, value)| {
+                    let ty = &properties.iter().find(|(name1, _)| name == name1).unwrap().1;
+                    (property_descriptor_of(ty.as_str()).ident_for)(value.as_str())
+                }).collect::<Vec<_>>();
+
+                from_match_arms.extend(quote! {
+                    #id => Ok(#struct_name { #(#fields: #values),* }),
+                });
+
+                into_match_arms.extend(quote! {
+                    #struct_name { #(#fields: #values),* } => Ok(#id),
+                });
+            }
+        }
+    }
+
+    quote! {
+        impl TryFrom<u32> for #struct_name {
+            type Error = ();
+
+            fn try_from(value: u32) -> Result<Self, Self::Error> {
+                match value {
+                    #from_match_arms
+                    _ => Err(())
+                }
+            }
+        }
+
+        impl TryInto<u32> for #struct_name {
+            type Error = ();
+
+            fn try_into(self) -> Result<u32, Self::Error> {
+                #[allow(unreachable_patterns)]
+                match self {
+                    #into_match_arms
+                    _ => Err(())
+                }
+            }
+        }
+    }
 }

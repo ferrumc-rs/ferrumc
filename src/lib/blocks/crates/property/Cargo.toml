@@ -5,7 +5,9 @@ edition = "2024"
 
 [dependencies]
 bevy_math = { workspace = true }
+proc-macro2 = { workspace = true, optional = true }
+quote = { workspace = true, optional = true }
 
 [features]
 default = []
-block-struct-generation = []
+block-struct-generation = ["dep:proc-macro2", "dep:quote"]
