@@ -3,10 +3,18 @@
 "snowy" = "SnowyBlock"
 "age" = "CropBlock"
 "type+waterlogged" = "SlabBlock"
+"attached+rotation+waterlogged" = "HangingSignBlock"
+"waterlogged" = "WaterloggableBlock"
+"thickness+vertical_direction+waterlogged" = "DripstoneBlock"
+"stage" = "SaplingBlock"
+"rotation+waterlogged" = "SignBlock"
+"rotation" = "BannerBlock"
+"powered" = "PressurePlateBlock"
 
 # Tells the generator to use a different struct for the block specified.
 # If the struct is defined above and the property map of the block and struct don't match, the generator will panic
 [block_overrides]
+"minecraft:frosted_ice" = "FrostedIceBlock"
 "minecraft:redstone_ore" = "RedstoneOreBlock"
 
 # From Minecraft's net.minecraft.world.level.block.state.properties.BlockStateProperties class
