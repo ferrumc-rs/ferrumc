@@ -13,12 +13,13 @@
 /// # Example
 ///
 /// ```
+/// # use crate::ferrumc_utils::maths::step::step_between;
 /// use bevy_math::Vec3A;
 /// let start = Vec3A::new(0.0, 0.0, 0.0);
 /// let end = Vec3A::new(1.0, 1.0, 1.0);
 /// let step = 0.5;
 /// let points = step_between(start, end, step);
-/// assert_eq!(points.len(), 3);
+/// assert_eq!(points.len(), 5);
 /// ```
 pub fn step_between(
     start: bevy_math::Vec3A,
@@ -40,4 +41,22 @@ pub fn step_between(
     }
     points.push(end); // Ensure the end point is included in the list.
     points
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bevy_math::Vec3A;
+
+    #[test]
+    fn test_step_between() {
+        let start = Vec3A::new(0.0, 0.0, 0.0);
+        let end = Vec3A::new(0.0, 0.0, 1.0);
+        let step = 0.5;
+        let points = step_between(start, end, step);
+        assert_eq!(points.len(), 3);
+        assert_eq!(points[0], Vec3A::new(0.0, 0.0, 0.0));
+        assert_eq!(points[1], Vec3A::new(0.0, 0.0, 0.5));
+        assert_eq!(points[2], Vec3A::new(0.0, 0.0, 1.0));
+    }
 }
