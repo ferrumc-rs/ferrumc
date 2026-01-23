@@ -5,8 +5,7 @@ use quote::{format_ident, quote};
 pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>, mappings: &mut [TokenStream]) -> TokenStream {
     simple_blocks.sort_by_key(|(id, _)| *id);
 
-    let mut match_arms_from = Vec::new();
-    let mut match_arms_into = Vec::new();
+    let mut map_entries = Vec::new();
     let mut enum_variants = Vec::new();
 
     for (id, name) in simple_blocks {
@@ -16,13 +15,18 @@ pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>, mapping
         mappings[id as usize] = quote! { SimpleBlock::#variant };
 
         enum_variants.push(quote! { #variant });
-        match_arms_from.push(quote! { #id => Ok(Self::#variant) });
-        match_arms_into.push(quote! { Self::#variant => #id });
+        map_entries.push(quote! { #id });
     }
 
     quote! {
         use ferrumc_world::block_state_id::BlockStateId;
 
+        const SIMPLE_BLOCK_STATE_MAP: &[u32] = &[
+            #(#map_entries,)*
+        ];
+
+        #[repr(usize)]
+        #[derive(Clone, Debug)]
         pub enum SimpleBlock {
             #(#enum_variants),*
         }
@@ -31,9 +35,7 @@ pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>, mapping
             type Error = ();
 
             fn try_into(self) -> Result<BlockStateId, Self::Error> {
-                Ok(BlockStateId::new(match self {
-                    #(#match_arms_into),*
-                }))
+                Ok(BlockStateId::new(SIMPLE_BLOCK_STATE_MAP[self as usize]))
             }
         }
     }
