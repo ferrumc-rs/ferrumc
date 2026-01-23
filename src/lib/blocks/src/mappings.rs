@@ -1,6 +1,5 @@
 use crate::blocks::*;
 use crate::simple_blocks::SimpleBlock;
-use ferrumc_block_properties::*;
 pub const BLOCK_MAPPINGS: [crate::StateBehaviorTable; 27914usize] = [
     crate::StateBehaviorTable::spin_off(&SimpleBlock::VTABLE, 0u32),
     crate::StateBehaviorTable::spin_off(&SimpleBlock::VTABLE, 1u32),
