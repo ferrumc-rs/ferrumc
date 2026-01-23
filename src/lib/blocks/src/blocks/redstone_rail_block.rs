@@ -1,0 +1,458 @@
+#[allow(unused_imports)]
+use ferrumc_block_properties::*;
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+pub enum RedstoneRailBlockType {
+    ActivatorRail,
+    DetectorRail,
+    PoweredRail,
+}
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+pub struct RedstoneRailBlock {
+    pub block_type: RedstoneRailBlockType,
+    pub powered: bool,
+    pub shape: RailShape,
+    pub waterlogged: bool,
+}
+impl TryInto<u32> for RedstoneRailBlock {
+    type Error = ();
+    fn try_into(self) -> Result<u32, Self::Error> {
+        #[allow(unreachable_patterns)]
+        match self {
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::NorthSouth,
+                waterlogged: true,
+            } => Ok(10129u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::NorthSouth,
+                waterlogged: false,
+            } => Ok(10130u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::EastWest,
+                waterlogged: true,
+            } => Ok(10131u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::EastWest,
+                waterlogged: false,
+            } => Ok(10132u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingEast,
+                waterlogged: true,
+            } => Ok(10133u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingEast,
+                waterlogged: false,
+            } => Ok(10134u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingWest,
+                waterlogged: true,
+            } => Ok(10135u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingWest,
+                waterlogged: false,
+            } => Ok(10136u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingNorth,
+                waterlogged: true,
+            } => Ok(10137u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingNorth,
+                waterlogged: false,
+            } => Ok(10138u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingSouth,
+                waterlogged: true,
+            } => Ok(10139u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: true,
+                shape: RailShape::AscendingSouth,
+                waterlogged: false,
+            } => Ok(10140u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::NorthSouth,
+                waterlogged: true,
+            } => Ok(10141u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::NorthSouth,
+                waterlogged: false,
+            } => Ok(10142u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::EastWest,
+                waterlogged: true,
+            } => Ok(10143u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::EastWest,
+                waterlogged: false,
+            } => Ok(10144u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingEast,
+                waterlogged: true,
+            } => Ok(10145u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingEast,
+                waterlogged: false,
+            } => Ok(10146u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingWest,
+                waterlogged: true,
+            } => Ok(10147u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingWest,
+                waterlogged: false,
+            } => Ok(10148u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingNorth,
+                waterlogged: true,
+            } => Ok(10149u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingNorth,
+                waterlogged: false,
+            } => Ok(10150u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingSouth,
+                waterlogged: true,
+            } => Ok(10151u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::ActivatorRail,
+                powered: false,
+                shape: RailShape::AscendingSouth,
+                waterlogged: false,
+            } => Ok(10152u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::NorthSouth,
+                waterlogged: true,
+            } => Ok(2011u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::NorthSouth,
+                waterlogged: false,
+            } => Ok(2012u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::EastWest,
+                waterlogged: true,
+            } => Ok(2013u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::EastWest,
+                waterlogged: false,
+            } => Ok(2014u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingEast,
+                waterlogged: true,
+            } => Ok(2015u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingEast,
+                waterlogged: false,
+            } => Ok(2016u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingWest,
+                waterlogged: true,
+            } => Ok(2017u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingWest,
+                waterlogged: false,
+            } => Ok(2018u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingNorth,
+                waterlogged: true,
+            } => Ok(2019u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingNorth,
+                waterlogged: false,
+            } => Ok(2020u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingSouth,
+                waterlogged: true,
+            } => Ok(2021u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: true,
+                shape: RailShape::AscendingSouth,
+                waterlogged: false,
+            } => Ok(2022u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::NorthSouth,
+                waterlogged: true,
+            } => Ok(2023u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::NorthSouth,
+                waterlogged: false,
+            } => Ok(2024u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::EastWest,
+                waterlogged: true,
+            } => Ok(2025u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::EastWest,
+                waterlogged: false,
+            } => Ok(2026u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingEast,
+                waterlogged: true,
+            } => Ok(2027u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingEast,
+                waterlogged: false,
+            } => Ok(2028u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingWest,
+                waterlogged: true,
+            } => Ok(2029u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingWest,
+                waterlogged: false,
+            } => Ok(2030u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingNorth,
+                waterlogged: true,
+            } => Ok(2031u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingNorth,
+                waterlogged: false,
+            } => Ok(2032u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingSouth,
+                waterlogged: true,
+            } => Ok(2033u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::DetectorRail,
+                powered: false,
+                shape: RailShape::AscendingSouth,
+                waterlogged: false,
+            } => Ok(2034u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::NorthSouth,
+                waterlogged: true,
+            } => Ok(1987u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::NorthSouth,
+                waterlogged: false,
+            } => Ok(1988u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::EastWest,
+                waterlogged: true,
+            } => Ok(1989u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::EastWest,
+                waterlogged: false,
+            } => Ok(1990u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingEast,
+                waterlogged: true,
+            } => Ok(1991u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingEast,
+                waterlogged: false,
+            } => Ok(1992u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingWest,
+                waterlogged: true,
+            } => Ok(1993u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingWest,
+                waterlogged: false,
+            } => Ok(1994u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingNorth,
+                waterlogged: true,
+            } => Ok(1995u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingNorth,
+                waterlogged: false,
+            } => Ok(1996u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingSouth,
+                waterlogged: true,
+            } => Ok(1997u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: true,
+                shape: RailShape::AscendingSouth,
+                waterlogged: false,
+            } => Ok(1998u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::NorthSouth,
+                waterlogged: true,
+            } => Ok(1999u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::NorthSouth,
+                waterlogged: false,
+            } => Ok(2000u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::EastWest,
+                waterlogged: true,
+            } => Ok(2001u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::EastWest,
+                waterlogged: false,
+            } => Ok(2002u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingEast,
+                waterlogged: true,
+            } => Ok(2003u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingEast,
+                waterlogged: false,
+            } => Ok(2004u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingWest,
+                waterlogged: true,
+            } => Ok(2005u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingWest,
+                waterlogged: false,
+            } => Ok(2006u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingNorth,
+                waterlogged: true,
+            } => Ok(2007u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingNorth,
+                waterlogged: false,
+            } => Ok(2008u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingSouth,
+                waterlogged: true,
+            } => Ok(2009u32),
+            RedstoneRailBlock {
+                block_type: RedstoneRailBlockType::PoweredRail,
+                powered: false,
+                shape: RailShape::AscendingSouth,
+                waterlogged: false,
+            } => Ok(2010u32),
+            _ => Err(()),
+        }
+    }
+}

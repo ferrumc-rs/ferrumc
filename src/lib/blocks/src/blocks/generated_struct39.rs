@@ -1,65 +1,10 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct39 {
     pub face: AttachFace,
     pub facing: Direction,
-}
-impl TryFrom<u32> for GeneratedStruct39 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            19461u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Floor,
-                facing: Direction::North,
-            }),
-            19462u32 => Ok(GeneratedStruct39 {
-                facing: Direction::South,
-                face: AttachFace::Floor,
-            }),
-            19463u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Floor,
-                facing: Direction::West,
-            }),
-            19464u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Floor,
-                facing: Direction::East,
-            }),
-            19465u32 => Ok(GeneratedStruct39 {
-                facing: Direction::North,
-                face: AttachFace::Wall,
-            }),
-            19466u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Wall,
-                facing: Direction::South,
-            }),
-            19467u32 => Ok(GeneratedStruct39 {
-                facing: Direction::West,
-                face: AttachFace::Wall,
-            }),
-            19468u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Wall,
-                facing: Direction::East,
-            }),
-            19469u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Ceiling,
-                facing: Direction::North,
-            }),
-            19470u32 => Ok(GeneratedStruct39 {
-                facing: Direction::South,
-                face: AttachFace::Ceiling,
-            }),
-            19471u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Ceiling,
-                facing: Direction::West,
-            }),
-            19472u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Ceiling,
-                facing: Direction::East,
-            }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct39 {
     type Error = ();
@@ -71,8 +16,8 @@ impl TryInto<u32> for GeneratedStruct39 {
                 facing: Direction::North,
             } => Ok(19461u32),
             GeneratedStruct39 {
-                facing: Direction::South,
                 face: AttachFace::Floor,
+                facing: Direction::South,
             } => Ok(19462u32),
             GeneratedStruct39 {
                 face: AttachFace::Floor,
@@ -83,16 +28,16 @@ impl TryInto<u32> for GeneratedStruct39 {
                 facing: Direction::East,
             } => Ok(19464u32),
             GeneratedStruct39 {
-                facing: Direction::North,
                 face: AttachFace::Wall,
+                facing: Direction::North,
             } => Ok(19465u32),
             GeneratedStruct39 {
                 face: AttachFace::Wall,
                 facing: Direction::South,
             } => Ok(19466u32),
             GeneratedStruct39 {
-                facing: Direction::West,
                 face: AttachFace::Wall,
+                facing: Direction::West,
             } => Ok(19467u32),
             GeneratedStruct39 {
                 face: AttachFace::Wall,
@@ -103,8 +48,8 @@ impl TryInto<u32> for GeneratedStruct39 {
                 facing: Direction::North,
             } => Ok(19469u32),
             GeneratedStruct39 {
-                facing: Direction::South,
                 face: AttachFace::Ceiling,
+                facing: Direction::South,
             } => Ok(19470u32),
             GeneratedStruct39 {
                 face: AttachFace::Ceiling,

@@ -1,178 +1,11 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct17 {
     pub bottom: bool,
     pub distance: i32,
     pub waterlogged: bool,
-}
-impl TryFrom<u32> for GeneratedStruct17 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            19395u32 => Ok(GeneratedStruct17 {
-                waterlogged: true,
-                distance: 0i32,
-                bottom: true,
-            }),
-            19396u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                distance: 0i32,
-                waterlogged: false,
-            }),
-            19397u32 => Ok(GeneratedStruct17 {
-                distance: 1i32,
-                waterlogged: true,
-                bottom: true,
-            }),
-            19398u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                waterlogged: false,
-                distance: 1i32,
-            }),
-            19399u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                distance: 2i32,
-                waterlogged: true,
-            }),
-            19400u32 => Ok(GeneratedStruct17 {
-                distance: 2i32,
-                bottom: true,
-                waterlogged: false,
-            }),
-            19401u32 => Ok(GeneratedStruct17 {
-                waterlogged: true,
-                distance: 3i32,
-                bottom: true,
-            }),
-            19402u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                distance: 3i32,
-                waterlogged: false,
-            }),
-            19403u32 => Ok(GeneratedStruct17 {
-                distance: 4i32,
-                bottom: true,
-                waterlogged: true,
-            }),
-            19404u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                distance: 4i32,
-                waterlogged: false,
-            }),
-            19405u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                distance: 5i32,
-                waterlogged: true,
-            }),
-            19406u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                waterlogged: false,
-                distance: 5i32,
-            }),
-            19407u32 => Ok(GeneratedStruct17 {
-                distance: 6i32,
-                waterlogged: true,
-                bottom: true,
-            }),
-            19408u32 => Ok(GeneratedStruct17 {
-                waterlogged: false,
-                distance: 6i32,
-                bottom: true,
-            }),
-            19409u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                distance: 7i32,
-                waterlogged: true,
-            }),
-            19410u32 => Ok(GeneratedStruct17 {
-                bottom: true,
-                waterlogged: false,
-                distance: 7i32,
-            }),
-            19411u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                distance: 0i32,
-                waterlogged: true,
-            }),
-            19412u32 => Ok(GeneratedStruct17 {
-                waterlogged: false,
-                bottom: false,
-                distance: 0i32,
-            }),
-            19413u32 => Ok(GeneratedStruct17 {
-                distance: 1i32,
-                waterlogged: true,
-                bottom: false,
-            }),
-            19414u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                distance: 1i32,
-                waterlogged: false,
-            }),
-            19415u32 => Ok(GeneratedStruct17 {
-                distance: 2i32,
-                waterlogged: true,
-                bottom: false,
-            }),
-            19416u32 => Ok(GeneratedStruct17 {
-                waterlogged: false,
-                bottom: false,
-                distance: 2i32,
-            }),
-            19417u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                distance: 3i32,
-                waterlogged: true,
-            }),
-            19418u32 => Ok(GeneratedStruct17 {
-                distance: 3i32,
-                waterlogged: false,
-                bottom: false,
-            }),
-            19419u32 => Ok(GeneratedStruct17 {
-                waterlogged: true,
-                bottom: false,
-                distance: 4i32,
-            }),
-            19420u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                distance: 4i32,
-                waterlogged: false,
-            }),
-            19421u32 => Ok(GeneratedStruct17 {
-                distance: 5i32,
-                bottom: false,
-                waterlogged: true,
-            }),
-            19422u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                distance: 5i32,
-                waterlogged: false,
-            }),
-            19423u32 => Ok(GeneratedStruct17 {
-                waterlogged: true,
-                bottom: false,
-                distance: 6i32,
-            }),
-            19424u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                distance: 6i32,
-                waterlogged: false,
-            }),
-            19425u32 => Ok(GeneratedStruct17 {
-                bottom: false,
-                waterlogged: true,
-                distance: 7i32,
-            }),
-            19426u32 => Ok(GeneratedStruct17 {
-                waterlogged: false,
-                distance: 7i32,
-                bottom: false,
-            }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct17 {
     type Error = ();
@@ -180,9 +13,9 @@ impl TryInto<u32> for GeneratedStruct17 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct17 {
-                waterlogged: true,
-                distance: 0i32,
                 bottom: true,
+                distance: 0i32,
+                waterlogged: true,
             } => Ok(19395u32),
             GeneratedStruct17 {
                 bottom: true,
@@ -190,14 +23,14 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: false,
             } => Ok(19396u32),
             GeneratedStruct17 {
+                bottom: true,
                 distance: 1i32,
                 waterlogged: true,
-                bottom: true,
             } => Ok(19397u32),
             GeneratedStruct17 {
                 bottom: true,
-                waterlogged: false,
                 distance: 1i32,
+                waterlogged: false,
             } => Ok(19398u32),
             GeneratedStruct17 {
                 bottom: true,
@@ -205,14 +38,14 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: true,
             } => Ok(19399u32),
             GeneratedStruct17 {
-                distance: 2i32,
                 bottom: true,
+                distance: 2i32,
                 waterlogged: false,
             } => Ok(19400u32),
             GeneratedStruct17 {
-                waterlogged: true,
-                distance: 3i32,
                 bottom: true,
+                distance: 3i32,
+                waterlogged: true,
             } => Ok(19401u32),
             GeneratedStruct17 {
                 bottom: true,
@@ -220,8 +53,8 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: false,
             } => Ok(19402u32),
             GeneratedStruct17 {
-                distance: 4i32,
                 bottom: true,
+                distance: 4i32,
                 waterlogged: true,
             } => Ok(19403u32),
             GeneratedStruct17 {
@@ -236,18 +69,18 @@ impl TryInto<u32> for GeneratedStruct17 {
             } => Ok(19405u32),
             GeneratedStruct17 {
                 bottom: true,
-                waterlogged: false,
                 distance: 5i32,
+                waterlogged: false,
             } => Ok(19406u32),
             GeneratedStruct17 {
+                bottom: true,
                 distance: 6i32,
                 waterlogged: true,
-                bottom: true,
             } => Ok(19407u32),
             GeneratedStruct17 {
-                waterlogged: false,
-                distance: 6i32,
                 bottom: true,
+                distance: 6i32,
+                waterlogged: false,
             } => Ok(19408u32),
             GeneratedStruct17 {
                 bottom: true,
@@ -256,8 +89,8 @@ impl TryInto<u32> for GeneratedStruct17 {
             } => Ok(19409u32),
             GeneratedStruct17 {
                 bottom: true,
-                waterlogged: false,
                 distance: 7i32,
+                waterlogged: false,
             } => Ok(19410u32),
             GeneratedStruct17 {
                 bottom: false,
@@ -265,14 +98,14 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: true,
             } => Ok(19411u32),
             GeneratedStruct17 {
-                waterlogged: false,
                 bottom: false,
                 distance: 0i32,
+                waterlogged: false,
             } => Ok(19412u32),
             GeneratedStruct17 {
+                bottom: false,
                 distance: 1i32,
                 waterlogged: true,
-                bottom: false,
             } => Ok(19413u32),
             GeneratedStruct17 {
                 bottom: false,
@@ -280,14 +113,14 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: false,
             } => Ok(19414u32),
             GeneratedStruct17 {
+                bottom: false,
                 distance: 2i32,
                 waterlogged: true,
-                bottom: false,
             } => Ok(19415u32),
             GeneratedStruct17 {
-                waterlogged: false,
                 bottom: false,
                 distance: 2i32,
+                waterlogged: false,
             } => Ok(19416u32),
             GeneratedStruct17 {
                 bottom: false,
@@ -295,14 +128,14 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: true,
             } => Ok(19417u32),
             GeneratedStruct17 {
+                bottom: false,
                 distance: 3i32,
                 waterlogged: false,
-                bottom: false,
             } => Ok(19418u32),
             GeneratedStruct17 {
-                waterlogged: true,
                 bottom: false,
                 distance: 4i32,
+                waterlogged: true,
             } => Ok(19419u32),
             GeneratedStruct17 {
                 bottom: false,
@@ -310,8 +143,8 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: false,
             } => Ok(19420u32),
             GeneratedStruct17 {
-                distance: 5i32,
                 bottom: false,
+                distance: 5i32,
                 waterlogged: true,
             } => Ok(19421u32),
             GeneratedStruct17 {
@@ -320,9 +153,9 @@ impl TryInto<u32> for GeneratedStruct17 {
                 waterlogged: false,
             } => Ok(19422u32),
             GeneratedStruct17 {
-                waterlogged: true,
                 bottom: false,
                 distance: 6i32,
+                waterlogged: true,
             } => Ok(19423u32),
             GeneratedStruct17 {
                 bottom: false,
@@ -331,13 +164,13 @@ impl TryInto<u32> for GeneratedStruct17 {
             } => Ok(19424u32),
             GeneratedStruct17 {
                 bottom: false,
-                waterlogged: true,
                 distance: 7i32,
+                waterlogged: true,
             } => Ok(19425u32),
             GeneratedStruct17 {
-                waterlogged: false,
-                distance: 7i32,
                 bottom: false,
+                distance: 7i32,
+                waterlogged: false,
             } => Ok(19426u32),
             _ => Err(()),
         }

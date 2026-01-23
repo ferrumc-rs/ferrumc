@@ -27,17 +27,6 @@ pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>, mapping
             #(#enum_variants),*
         }
 
-        impl TryFrom<BlockStateId> for SimpleBlock {
-            type Error = ();
-
-            fn try_from(value: BlockStateId) -> Result<Self, Self::Error> {
-                match value.raw() {
-                    #(#match_arms_from),*,
-                    _ => Err(()),
-                }
-            }
-        }
-
         impl TryInto<BlockStateId> for SimpleBlock {
             type Error = ();
 

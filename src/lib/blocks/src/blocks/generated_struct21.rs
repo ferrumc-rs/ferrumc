@@ -1,21 +1,9 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct21 {
     pub charges: i32,
-}
-impl TryFrom<u32> for GeneratedStruct21 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            20478u32 => Ok(GeneratedStruct21 { charges: 0i32 }),
-            20479u32 => Ok(GeneratedStruct21 { charges: 1i32 }),
-            20480u32 => Ok(GeneratedStruct21 { charges: 2i32 }),
-            20481u32 => Ok(GeneratedStruct21 { charges: 3i32 }),
-            20482u32 => Ok(GeneratedStruct21 { charges: 4i32 }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct21 {
     type Error = ();

@@ -1,28 +1,9 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct80 {
     pub mode: TestBlockMode,
-}
-impl TryFrom<u32> for GeneratedStruct80 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            20395u32 => Ok(GeneratedStruct80 {
-                mode: TestBlockMode::Start,
-            }),
-            20396u32 => Ok(GeneratedStruct80 {
-                mode: TestBlockMode::Log,
-            }),
-            20397u32 => Ok(GeneratedStruct80 {
-                mode: TestBlockMode::Fail,
-            }),
-            20398u32 => Ok(GeneratedStruct80 {
-                mode: TestBlockMode::Accept,
-            }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct80 {
     type Error = ();

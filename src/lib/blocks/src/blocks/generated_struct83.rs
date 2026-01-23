@@ -1,52 +1,9 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct83 {
     pub orientation: FrontAndTop,
-}
-impl TryFrom<u32> for GeneratedStruct83 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            20383u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::DownEast,
-            }),
-            20384u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::DownNorth,
-            }),
-            20385u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::DownSouth,
-            }),
-            20386u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::DownWest,
-            }),
-            20387u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::UpEast,
-            }),
-            20388u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::UpNorth,
-            }),
-            20389u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::UpSouth,
-            }),
-            20390u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::UpWest,
-            }),
-            20391u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::WestUp,
-            }),
-            20392u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::EastUp,
-            }),
-            20393u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::NorthUp,
-            }),
-            20394u32 => Ok(GeneratedStruct83 {
-                orientation: FrontAndTop::SouthUp,
-            }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct83 {
     type Error = ();

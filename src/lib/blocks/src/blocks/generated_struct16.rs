@@ -1,18 +1,9 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct16 {
     pub bloom: bool,
-}
-impl TryFrom<u32> for GeneratedStruct16 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            23956u32 => Ok(GeneratedStruct16 { bloom: true }),
-            23957u32 => Ok(GeneratedStruct16 { bloom: false }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct16 {
     type Error = ();

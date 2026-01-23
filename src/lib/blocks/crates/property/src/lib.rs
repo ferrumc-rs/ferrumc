@@ -88,6 +88,7 @@ impl BlockStateProperty for bool {}
 #[macro_export]
 macro_rules! enum_property {
     ($name:ident, $($variant:ident => $variant_str:expr),* $(,)?) => {
+        #[derive(Clone, Debug)]
         pub enum $name {
             $($variant),*
         }

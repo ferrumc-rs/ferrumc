@@ -1,18 +1,9 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct GeneratedStruct14 {
     pub berries: bool,
-}
-impl TryFrom<u32> for GeneratedStruct14 {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            25849u32 => Ok(GeneratedStruct14 { berries: true }),
-            25850u32 => Ok(GeneratedStruct14 { berries: false }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for GeneratedStruct14 {
     type Error = ();

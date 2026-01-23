@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub enum PressurePlateBlockType {
     AcaciaPressurePlate,
     BambooPressurePlate,
@@ -18,129 +19,10 @@ pub enum PressurePlateBlockType {
     WarpedPressurePlate,
 }
 #[allow(dead_code)]
+#[derive(Clone, Debug)]
 pub struct PressurePlateBlock {
     pub block_type: PressurePlateBlockType,
     pub powered: bool,
-}
-impl TryFrom<u32> for PressurePlateBlock {
-    type Error = ();
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            5900u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::AcaciaPressurePlate,
-                powered: true,
-            }),
-            5901u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::AcaciaPressurePlate,
-                powered: false,
-            }),
-            5910u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::BambooPressurePlate,
-                powered: true,
-            }),
-            5911u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::BambooPressurePlate,
-                powered: false,
-            }),
-            5896u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::BirchPressurePlate,
-                powered: true,
-            }),
-            5897u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::BirchPressurePlate,
-                powered: false,
-            }),
-            5902u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::CherryPressurePlate,
-                powered: true,
-            }),
-            5903u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::CherryPressurePlate,
-                powered: false,
-            }),
-            19703u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::CrimsonPressurePlate,
-                powered: true,
-            }),
-            19704u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::CrimsonPressurePlate,
-                powered: false,
-            }),
-            5904u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::DarkOakPressurePlate,
-                powered: true,
-            }),
-            5905u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::DarkOakPressurePlate,
-                powered: false,
-            }),
-            5898u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::JunglePressurePlate,
-                powered: true,
-            }),
-            5899u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::JunglePressurePlate,
-                powered: false,
-            }),
-            5908u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::MangrovePressurePlate,
-                powered: true,
-            }),
-            5909u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::MangrovePressurePlate,
-                powered: false,
-            }),
-            5892u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::OakPressurePlate,
-                powered: true,
-            }),
-            5893u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::OakPressurePlate,
-                powered: false,
-            }),
-            5906u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::PaleOakPressurePlate,
-                powered: true,
-            }),
-            5907u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::PaleOakPressurePlate,
-                powered: false,
-            }),
-            21400u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::PolishedBlackstonePressurePlate,
-                powered: true,
-            }),
-            21401u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::PolishedBlackstonePressurePlate,
-                powered: false,
-            }),
-            5894u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::SprucePressurePlate,
-                powered: true,
-            }),
-            5895u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::SprucePressurePlate,
-                powered: false,
-            }),
-            5826u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::StonePressurePlate,
-                powered: true,
-            }),
-            5827u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::StonePressurePlate,
-                powered: false,
-            }),
-            19705u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::WarpedPressurePlate,
-                powered: true,
-            }),
-            19706u32 => Ok(PressurePlateBlock {
-                block_type: PressurePlateBlockType::WarpedPressurePlate,
-                powered: false,
-            }),
-            _ => Err(()),
-        }
-    }
 }
 impl TryInto<u32> for PressurePlateBlock {
     type Error = ();

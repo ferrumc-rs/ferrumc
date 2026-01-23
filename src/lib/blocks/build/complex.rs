@@ -130,6 +130,7 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
 
                     (quote! {
                         #[allow(dead_code)]
+                        #[derive(Clone, Debug)]
                         pub struct #struct_name {
                             #(
                                 pub #fields: #types,
@@ -154,6 +155,7 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
 
                     (quote! {
                         #[allow(dead_code)]
+                        #[derive(Clone, Debug)]
                         pub enum #enum_name {
                             #(
                                 #variants,
@@ -161,6 +163,7 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
                         }
 
                         #[allow(dead_code)]
+                        #[derive(Clone, Debug)]
                         pub struct #struct_name {
                             pub block_type: #enum_name,
                             #(
@@ -210,7 +213,7 @@ fn property_descriptor_of(key: &str) -> &PropertyDescriptor {
 }
 
 fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident])>, values: &[&BlockStateConfiguration], mappings: &mut [TokenStream]) -> TokenStream {
-    let (from_match_arms, into_match_arms): (Vec<TokenStream>, Vec<TokenStream>) = match enum_name {
+    let into_match_arms = match enum_name {
         Some((enum_name, enum_variants)) => {
             let mut values = values.into_iter().collect::<Vec<_>>();
             values.sort_by_key(|BlockStateConfiguration { name, .. }| name);
@@ -233,7 +236,7 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
 
                                 values.sort_by_key(|(field, _)| field.as_str());
 
-                                let (fields, values) = values
+                                let (fields, values): (Vec<Ident>, Vec<TokenStream>) = values
                                     .into_iter()
                                     .map(|(field, value)| {
                                         (
@@ -255,14 +258,11 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
 
                                 mappings[*id as usize] = data.clone();
 
-                                out.push((
-                                    quote! {
-                                        #id => Ok(#data)
-                                    },
+                                out.push(
                                     quote! {
                                         #data => Ok(#id)
                                     }
-                                ))
+                                )
                             }
 
                             out
@@ -271,7 +271,7 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                     }
                 })
                 .flatten()
-                .unzip()
+                .collect::<Vec<_>>()
         },
         None => {
             let BlockStateConfiguration { properties, values, .. } = values[0];
@@ -281,16 +281,27 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
 
             values.into_iter()
                 .map(|(id, values)| {
-                    let fields = values.keys().map(|str| {
-                        match str.as_str() {
-                            "type" => format_ident!("ty"),
-                            str => format_ident!("{str}"),
-                        }
-                    }).collect::<Vec<_>>();
-                    let values = values.iter().map(|(name, value)| {
-                        let ty = &properties.iter().find(|(name1, _)| name == name1).unwrap().1;
-                        (property_descriptor_of(ty).ident_for)(value.as_str())
-                    }).collect::<Vec<_>>();
+                    let mut values = values
+                        .into_iter()
+                        .collect::<Vec<_>>();
+
+                    values.sort_by_key(|(field, _)| field.as_str());
+
+                    let (fields, values): (Vec<Ident>, Vec<TokenStream>) = values
+                        .into_iter()
+                        .map(|(field, value)| {
+                            (
+                                match field.as_str() {
+                                    "type" => format_ident!("ty"),
+                                    field => format_ident!("{field}"),
+                                },
+                                {
+                                    let ty = &properties.iter().find(|(name1, _)| *name1 == field.as_str()).unwrap().1;
+                                    (property_descriptor_of(ty).ident_for)(value.as_str())
+                                }
+                            )
+                        })
+                        .unzip();
 
                     let data = quote! {
                         #struct_name { #(#fields: #values),* }
@@ -298,31 +309,16 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
 
                     mappings[*id as usize] = data.clone();
 
-                    (
-                        quote! {
-                            #id => Ok(#data)
-                        },
-                        quote! {
-                            #data => Ok(#id)
-                        }
-                    )
+
+                    quote! {
+                        #data => Ok(#id)
+                    }
                 })
-                .unzip()
+                .collect::<Vec<_>>()
         }
     };
 
     quote! {
-        impl TryFrom<u32> for #struct_name {
-            type Error = ();
-
-            fn try_from(value: u32) -> Result<Self, Self::Error> {
-                match value {
-                    #(#from_match_arms),*,
-                    _ => Err(())
-                }
-            }
-        }
-
         impl TryInto<u32> for #struct_name {
             type Error = ();
 
