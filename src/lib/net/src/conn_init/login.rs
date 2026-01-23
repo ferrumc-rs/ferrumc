@@ -132,7 +132,7 @@ async fn setup_encryption_and_auth(
 
     // Generate verify token
     let mut verify_token = vec![0u8; 16];
-    rand::rng().fill_bytes(&mut verify_token);
+    rand::thread_rng().fill_bytes(&mut verify_token);
 
     // Send encryption request
     let encryption_packet = EncryptionRequest {

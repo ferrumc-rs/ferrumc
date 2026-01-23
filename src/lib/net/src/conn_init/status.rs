@@ -12,7 +12,7 @@ use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
-use rand::prelude::IndexedRandom;
+use rand::prelude::SliceRandom;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::warn;
 
@@ -196,7 +196,7 @@ fn get_server_status(state: &GlobalState) -> String {
     const DEFAULT_MOTD: &str = "A FerrumC Server";
     let motd: &str = config
         .motd
-        .choose(&mut rand::rng())
+        .choose(&mut rand::thread_rng())
         .map(|s| s.as_str())
         .unwrap_or_else(|| {
             warn!("Add a MOTD line to your server config. Using default for now.");

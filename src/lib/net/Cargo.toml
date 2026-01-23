@@ -28,7 +28,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 serde_derive = { workspace = true }
 rand = { workspace = true }
-uuid = { workspace = true, features = ["v4"] }
+uuid = { workspace = true }
 ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }
 typename = { workspace = true }
