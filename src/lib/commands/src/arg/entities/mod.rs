@@ -15,6 +15,20 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 /// Represents an entity argument in a command.
 /// It can be a player name, UUID, or special selectors like @e, @p, @r, @a.
 /// This won't get you an entity directly, use `resolve()` to get the entities.
+///
+/// # Example
+/// ```ignore
+/// # use ferrumc_commands::arg::entities::EntityArgument;
+/// # use ferrumc_core::identity::entity_identity::EntityIdentity;
+/// # use ferrumc_core::identity::player_identity::PlayerIdentity;
+/// # use bevy_ecs::prelude::World;
+///
+/// fn my_command(query: Query<(Entity, Option<&EntityIdentity>, Option<&PlayerIdentity>)>) {
+///     let arg = EntityArgument::PlayerName("Steve".to_string());
+///     let result = arg.resolve(query.iter());
+///     assert_eq!(result, vec![entity]);
+/// }
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub enum EntityArgument {
     PlayerName(String),
@@ -106,7 +120,8 @@ impl EntityArgument {
             EntityArgument::AnyEntity => any_entity::resolve_any_entity(iter),
             EntityArgument::AnyPlayer => any_player::resolve_any_player(iter),
             EntityArgument::NearestPlayer => {
-                unimplemented!()
+                // TODO: Figure this out
+                vec![]
             }
             EntityArgument::RandomPlayer => random_player::resolve_random_player(iter)
                 .map(|e| vec![e])

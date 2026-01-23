@@ -4,6 +4,23 @@ use crate::arg::{CommandArgument, ParserResult};
 use crate::{CommandContext, Suggestion};
 use ferrumc_core::transform::position::Position;
 
+/// Represents a position argument in a command, which can be absolute or relative.
+/// For example: "100 64 -200" (absolute) or "~10 ~ ~-5" (relative).
+///
+/// The coordinates are initially opaque, in order to get an actual world position you must pass in
+/// a base position to resolve against, usually the player calling the command. You can pass in a
+/// 0,0,0 position if you want absolute coordinates only.
+///
+/// # Example
+/// ```ignore
+/// use ferrumc_commands::arg::position::CommandPosition;
+/// use ferrumc_core::transform::position::Position;
+///
+/// let cmd_pos = CommandPosition::parse("~10 64 ~-5").unwrap;
+/// let base_position = Position::new(100.0, 64.0, 100.0);
+/// let resolved_position = cmd_pos.resolve(&base_position);
+/// assert_eq!(resolved_position, Position::new(110.0, 64.0, 95.0));
+/// ```
 pub struct CommandPosition {
     x: PositionType,
     y: PositionType,
