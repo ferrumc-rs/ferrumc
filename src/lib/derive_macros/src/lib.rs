@@ -6,12 +6,12 @@ use proc_macro::TokenStream;
 mod block;
 mod commands;
 mod helpers;
+mod misc;
 mod nbt;
 mod net;
 mod profiling;
 mod registries_packets;
 mod static_loading;
-mod misc;
 
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -143,7 +143,6 @@ pub fn block(input: TokenStream) -> TokenStream {
 pub fn match_block(input: TokenStream) -> TokenStream {
     matches::matches_block(input)
 }
-
 
 /// Derive macro to get the discriminant value of an enum as an i32.
 /// Usage:
