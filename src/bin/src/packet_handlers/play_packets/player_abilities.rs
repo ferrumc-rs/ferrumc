@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_net::connection::StreamWriter;
-use tracing::{debug, error, trace, warn};
+use tracing::{error, trace, warn};
 
 use ferrumc_net::PlayerAbilitiesReceiver;
 

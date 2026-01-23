@@ -3,10 +3,10 @@ use ferrumc_components::player::teleport_tracker::TeleportTracker;
 use ferrumc_net::ConfirmPlayerTeleportReceiver;
 
 pub fn handle(
-    reciever: Res<ConfirmPlayerTeleportReceiver>,
-    mut query: Query<&mut TeleportTracker>
+    receiver: Res<ConfirmPlayerTeleportReceiver>,
+    mut query: Query<&mut TeleportTracker>,
 ) {
-    for (event, eid) in reciever.0.try_iter() {
+    for (_, eid) in receiver.0.try_iter() {
         let Ok(mut tracker) = query.get_mut(eid) else {
             continue;
         };

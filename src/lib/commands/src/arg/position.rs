@@ -34,14 +34,10 @@ impl CommandArgument for CommandPosition {
         let z_str = parts
             .next()
             .ok_or_else(|| parser_error("missing z coordinate"))?;
-        let x = if x_str.starts_with('~') {
-            let offset = if x_str.len() > 1 {
-                x_str[1..]
-                    .parse::<f64>()
-                    .map_err(|_| parser_error("invalid x coordinate"))?
-            } else {
-                0.0
-            };
+        let x = if let Some(x_str) = x_str.strip_prefix('~') {
+            let offset = x_str
+                .parse::<f64>()
+                .map_err(|_| parser_error("invalid x coordinate"))?;
             PositionType::Relative(offset)
         } else {
             let value = x_str
@@ -49,14 +45,10 @@ impl CommandArgument for CommandPosition {
                 .map_err(|_| parser_error("invalid x coordinate"))?;
             PositionType::Absolute(value)
         };
-        let y = if y_str.starts_with('~') {
-            let offset = if y_str.len() > 1 {
-                y_str[1..]
-                    .parse::<f64>()
-                    .map_err(|_| parser_error("invalid y coordinate"))?
-            } else {
-                0.0
-            };
+        let y = if let Some(y_str) = y_str.strip_prefix('~') {
+            let offset = y_str
+                .parse::<f64>()
+                .map_err(|_| parser_error("invalid y coordinate"))?;
             PositionType::Relative(offset)
         } else {
             let value = y_str
@@ -64,14 +56,10 @@ impl CommandArgument for CommandPosition {
                 .map_err(|_| parser_error("invalid y coordinate"))?;
             PositionType::Absolute(value)
         };
-        let z = if z_str.starts_with('~') {
-            let offset = if z_str.len() > 1 {
-                z_str[1..]
-                    .parse::<f64>()
-                    .map_err(|_| parser_error("invalid z coordinate"))?
-            } else {
-                0.0
-            };
+        let z = if let Some(z_str) = z_str.strip_prefix('~') {
+            let offset = z_str
+                .parse::<f64>()
+                .map_err(|_| parser_error("invalid z coordinate"))?;
             PositionType::Relative(offset)
         } else {
             let value = z_str

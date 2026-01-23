@@ -1,3 +1,4 @@
+#![expect(clippy::type_complexity)]
 use bevy_ecs::prelude::{MessageReader, Query};
 use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::identity::player_identity::PlayerIdentity;

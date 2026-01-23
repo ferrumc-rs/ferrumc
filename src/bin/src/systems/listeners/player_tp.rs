@@ -8,7 +8,6 @@ use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_messages::teleport_player::TeleportPlayer;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
-use ferrumc_net::packets::outgoing::synchronise_vehicle_position::SynchroniseVehiclePosition;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use tracing::error;
 
@@ -39,10 +38,12 @@ pub fn teleport_player(
         };
         for (entity, conn, mut pos, rot, mut tracker) in query.iter_mut() {
             if entity == message_entity {
+                // Block movement tracking until the player has been teleported
                 tracker.waiting_for_confirm = true;
                 pos.x = message.x;
                 pos.y = message.y;
                 pos.z = message.z;
+                // If it's the entity we are trying to teleport, send the sync player pos packet
                 if let Err(err) = conn.send_packet(SynchronizePlayerPositionPacket {
                     teleport_id: rand::random::<i32>().into(),
                     x: message.x,
@@ -59,6 +60,8 @@ pub fn teleport_player(
                     continue;
                 }
             } else {
+                // Otherwise send teleport entity packet. This ideally should be handled by the send
+                // entity updates system, but it seems to be a bit buggy
                 if let Err(err) = conn.send_packet(TeleportEntityPacket {
                     entity_id: id.short_uuid.into(),
                     x: message.x,
