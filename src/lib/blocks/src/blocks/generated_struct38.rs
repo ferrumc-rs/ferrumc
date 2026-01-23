@@ -18,28 +18,28 @@ impl TryFrom<u32> for GeneratedStruct38 {
                 facing: Direction::South,
             }),
             8193u32 => Ok(GeneratedStruct38 {
-                facing: Direction::West,
                 eye: true,
+                facing: Direction::West,
             }),
             8194u32 => Ok(GeneratedStruct38 {
-                eye: true,
                 facing: Direction::East,
+                eye: true,
             }),
             8195u32 => Ok(GeneratedStruct38 {
-                facing: Direction::North,
                 eye: false,
+                facing: Direction::North,
             }),
             8196u32 => Ok(GeneratedStruct38 {
                 facing: Direction::South,
                 eye: false,
             }),
             8197u32 => Ok(GeneratedStruct38 {
-                facing: Direction::West,
                 eye: false,
+                facing: Direction::West,
             }),
             8198u32 => Ok(GeneratedStruct38 {
-                facing: Direction::East,
                 eye: false,
+                facing: Direction::East,
             }),
             _ => Err(()),
         }
@@ -59,28 +59,28 @@ impl TryInto<u32> for GeneratedStruct38 {
                 facing: Direction::South,
             } => Ok(8192u32),
             GeneratedStruct38 {
-                facing: Direction::West,
                 eye: true,
+                facing: Direction::West,
             } => Ok(8193u32),
             GeneratedStruct38 {
-                eye: true,
                 facing: Direction::East,
+                eye: true,
             } => Ok(8194u32),
             GeneratedStruct38 {
-                facing: Direction::North,
                 eye: false,
+                facing: Direction::North,
             } => Ok(8195u32),
             GeneratedStruct38 {
                 facing: Direction::South,
                 eye: false,
             } => Ok(8196u32),
             GeneratedStruct38 {
-                facing: Direction::West,
                 eye: false,
+                facing: Direction::West,
             } => Ok(8197u32),
             GeneratedStruct38 {
-                facing: Direction::East,
                 eye: false,
+                facing: Direction::East,
             } => Ok(8198u32),
             _ => Err(()),
         }

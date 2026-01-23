@@ -22,28 +22,28 @@ impl TryFrom<u32> for GeneratedStruct65 {
                 ty: PistonType::Default,
             }),
             2112u32 => Ok(GeneratedStruct65 {
-                facing: Direction::East,
                 ty: PistonType::Sticky,
+                facing: Direction::East,
             }),
             2113u32 => Ok(GeneratedStruct65 {
-                facing: Direction::South,
                 ty: PistonType::Default,
+                facing: Direction::South,
             }),
             2114u32 => Ok(GeneratedStruct65 {
                 facing: Direction::South,
                 ty: PistonType::Sticky,
             }),
             2115u32 => Ok(GeneratedStruct65 {
-                ty: PistonType::Default,
                 facing: Direction::West,
+                ty: PistonType::Default,
             }),
             2116u32 => Ok(GeneratedStruct65 {
                 facing: Direction::West,
                 ty: PistonType::Sticky,
             }),
             2117u32 => Ok(GeneratedStruct65 {
-                ty: PistonType::Default,
                 facing: Direction::Up,
+                ty: PistonType::Default,
             }),
             2118u32 => Ok(GeneratedStruct65 {
                 facing: Direction::Up,
@@ -79,28 +79,28 @@ impl TryInto<u32> for GeneratedStruct65 {
                 ty: PistonType::Default,
             } => Ok(2111u32),
             GeneratedStruct65 {
-                facing: Direction::East,
                 ty: PistonType::Sticky,
+                facing: Direction::East,
             } => Ok(2112u32),
             GeneratedStruct65 {
-                facing: Direction::South,
                 ty: PistonType::Default,
+                facing: Direction::South,
             } => Ok(2113u32),
             GeneratedStruct65 {
                 facing: Direction::South,
                 ty: PistonType::Sticky,
             } => Ok(2114u32),
             GeneratedStruct65 {
-                ty: PistonType::Default,
                 facing: Direction::West,
+                ty: PistonType::Default,
             } => Ok(2115u32),
             GeneratedStruct65 {
                 facing: Direction::West,
                 ty: PistonType::Sticky,
             } => Ok(2116u32),
             GeneratedStruct65 {
-                ty: PistonType::Default,
                 facing: Direction::Up,
+                ty: PistonType::Default,
             } => Ok(2117u32),
             GeneratedStruct65 {
                 facing: Direction::Up,

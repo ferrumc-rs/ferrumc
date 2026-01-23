@@ -17,23 +17,23 @@ impl TryFrom<u32> for GeneratedStruct42 {
         match value {
             25855u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::North,
                 flower_amount: 1i32,
+                facing: Direction::North,
             }),
             25856u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                flower_amount: 2i32,
                 facing: Direction::North,
+                flower_amount: 2i32,
             }),
             25857u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                flower_amount: 3i32,
                 facing: Direction::North,
+                flower_amount: 3i32,
             }),
             25858u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::North,
                 flower_amount: 4i32,
+                facing: Direction::North,
             }),
             25859u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -42,8 +42,8 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25860u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::South,
                 flower_amount: 2i32,
+                facing: Direction::South,
             }),
             25861u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -62,13 +62,13 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25864u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::West,
                 flower_amount: 2i32,
+                facing: Direction::West,
             }),
             25865u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::West,
                 flower_amount: 3i32,
+                facing: Direction::West,
             }),
             25866u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -77,13 +77,13 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25867u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                flower_amount: 1i32,
                 facing: Direction::East,
+                flower_amount: 1i32,
             }),
             25868u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::East,
                 flower_amount: 2i32,
+                facing: Direction::East,
             }),
             25869u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -92,8 +92,8 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25870u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::East,
                 flower_amount: 4i32,
+                facing: Direction::East,
             }),
             25871u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
@@ -127,13 +127,13 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25877u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 3i32,
                 facing: Direction::South,
+                flower_amount: 3i32,
             }),
             25878u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 4i32,
                 facing: Direction::South,
+                flower_amount: 4i32,
             }),
             25879u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
@@ -142,8 +142,8 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25880u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                facing: Direction::West,
                 flower_amount: 2i32,
+                facing: Direction::West,
             }),
             25881u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
@@ -157,23 +157,23 @@ impl TryFrom<u32> for GeneratedStruct42 {
             }),
             25883u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 1i32,
                 facing: Direction::East,
+                flower_amount: 1i32,
             }),
             25884u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 2i32,
                 facing: Direction::East,
+                flower_amount: 2i32,
             }),
             25885u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 3i32,
                 facing: Direction::East,
+                flower_amount: 3i32,
             }),
             25886u32 => Ok(GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 4i32,
                 facing: Direction::East,
+                flower_amount: 4i32,
             }),
             _ => Err(()),
         }
@@ -186,23 +186,23 @@ impl TryInto<u32> for GeneratedStruct42 {
         match self {
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::North,
                 flower_amount: 1i32,
+                facing: Direction::North,
             } => Ok(25855u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                flower_amount: 2i32,
                 facing: Direction::North,
+                flower_amount: 2i32,
             } => Ok(25856u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                flower_amount: 3i32,
                 facing: Direction::North,
+                flower_amount: 3i32,
             } => Ok(25857u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::North,
                 flower_amount: 4i32,
+                facing: Direction::North,
             } => Ok(25858u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -211,8 +211,8 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25859u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::South,
                 flower_amount: 2i32,
+                facing: Direction::South,
             } => Ok(25860u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -231,13 +231,13 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25863u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::West,
                 flower_amount: 2i32,
+                facing: Direction::West,
             } => Ok(25864u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::West,
                 flower_amount: 3i32,
+                facing: Direction::West,
             } => Ok(25865u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -246,13 +246,13 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25866u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                flower_amount: 1i32,
                 facing: Direction::East,
+                flower_amount: 1i32,
             } => Ok(25867u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::East,
                 flower_amount: 2i32,
+                facing: Direction::East,
             } => Ok(25868u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
@@ -261,8 +261,8 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25869u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::PinkPetals,
-                facing: Direction::East,
                 flower_amount: 4i32,
+                facing: Direction::East,
             } => Ok(25870u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
@@ -296,13 +296,13 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25876u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 3i32,
                 facing: Direction::South,
+                flower_amount: 3i32,
             } => Ok(25877u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 4i32,
                 facing: Direction::South,
+                flower_amount: 4i32,
             } => Ok(25878u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
@@ -311,8 +311,8 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25879u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                facing: Direction::West,
                 flower_amount: 2i32,
+                facing: Direction::West,
             } => Ok(25880u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
@@ -326,23 +326,23 @@ impl TryInto<u32> for GeneratedStruct42 {
             } => Ok(25882u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 1i32,
                 facing: Direction::East,
+                flower_amount: 1i32,
             } => Ok(25883u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 2i32,
                 facing: Direction::East,
+                flower_amount: 2i32,
             } => Ok(25884u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 3i32,
                 facing: Direction::East,
+                flower_amount: 3i32,
             } => Ok(25885u32),
             GeneratedStruct42 {
                 block_type: GeneratedStruct42Type::Wildflowers,
-                flower_amount: 4i32,
                 facing: Direction::East,
+                flower_amount: 4i32,
             } => Ok(25886u32),
             _ => Err(()),
         }

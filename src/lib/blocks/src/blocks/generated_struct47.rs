@@ -11,39 +11,39 @@ impl TryFrom<u32> for GeneratedStruct47 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             19473u32 => Ok(GeneratedStruct47 {
-                has_book: true,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
+                has_book: true,
             }),
             19474u32 => Ok(GeneratedStruct47 {
-                facing: Direction::North,
                 has_book: true,
                 powered: false,
+                facing: Direction::North,
             }),
             19475u32 => Ok(GeneratedStruct47 {
-                facing: Direction::North,
                 has_book: false,
+                facing: Direction::North,
                 powered: true,
             }),
             19476u32 => Ok(GeneratedStruct47 {
-                has_book: false,
                 facing: Direction::North,
                 powered: false,
+                has_book: false,
             }),
             19477u32 => Ok(GeneratedStruct47 {
                 has_book: true,
-                facing: Direction::South,
                 powered: true,
+                facing: Direction::South,
             }),
             19478u32 => Ok(GeneratedStruct47 {
-                powered: false,
                 has_book: true,
+                powered: false,
                 facing: Direction::South,
             }),
             19479u32 => Ok(GeneratedStruct47 {
-                facing: Direction::South,
-                powered: true,
                 has_book: false,
+                powered: true,
+                facing: Direction::South,
             }),
             19480u32 => Ok(GeneratedStruct47 {
                 has_book: false,
@@ -52,17 +52,17 @@ impl TryFrom<u32> for GeneratedStruct47 {
             }),
             19481u32 => Ok(GeneratedStruct47 {
                 has_book: true,
-                facing: Direction::West,
                 powered: true,
+                facing: Direction::West,
             }),
             19482u32 => Ok(GeneratedStruct47 {
+                facing: Direction::West,
                 has_book: true,
                 powered: false,
-                facing: Direction::West,
             }),
             19483u32 => Ok(GeneratedStruct47 {
-                powered: true,
                 facing: Direction::West,
+                powered: true,
                 has_book: false,
             }),
             19484u32 => Ok(GeneratedStruct47 {
@@ -76,9 +76,9 @@ impl TryFrom<u32> for GeneratedStruct47 {
                 powered: true,
             }),
             19486u32 => Ok(GeneratedStruct47 {
-                powered: false,
                 facing: Direction::East,
                 has_book: true,
+                powered: false,
             }),
             19487u32 => Ok(GeneratedStruct47 {
                 facing: Direction::East,
@@ -87,8 +87,8 @@ impl TryFrom<u32> for GeneratedStruct47 {
             }),
             19488u32 => Ok(GeneratedStruct47 {
                 facing: Direction::East,
-                powered: false,
                 has_book: false,
+                powered: false,
             }),
             _ => Err(()),
         }
@@ -100,39 +100,39 @@ impl TryInto<u32> for GeneratedStruct47 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct47 {
-                has_book: true,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
+                has_book: true,
             } => Ok(19473u32),
             GeneratedStruct47 {
-                facing: Direction::North,
                 has_book: true,
                 powered: false,
+                facing: Direction::North,
             } => Ok(19474u32),
             GeneratedStruct47 {
-                facing: Direction::North,
                 has_book: false,
+                facing: Direction::North,
                 powered: true,
             } => Ok(19475u32),
             GeneratedStruct47 {
-                has_book: false,
                 facing: Direction::North,
                 powered: false,
+                has_book: false,
             } => Ok(19476u32),
             GeneratedStruct47 {
                 has_book: true,
-                facing: Direction::South,
                 powered: true,
+                facing: Direction::South,
             } => Ok(19477u32),
             GeneratedStruct47 {
-                powered: false,
                 has_book: true,
+                powered: false,
                 facing: Direction::South,
             } => Ok(19478u32),
             GeneratedStruct47 {
-                facing: Direction::South,
-                powered: true,
                 has_book: false,
+                powered: true,
+                facing: Direction::South,
             } => Ok(19479u32),
             GeneratedStruct47 {
                 has_book: false,
@@ -141,17 +141,17 @@ impl TryInto<u32> for GeneratedStruct47 {
             } => Ok(19480u32),
             GeneratedStruct47 {
                 has_book: true,
-                facing: Direction::West,
                 powered: true,
+                facing: Direction::West,
             } => Ok(19481u32),
             GeneratedStruct47 {
+                facing: Direction::West,
                 has_book: true,
                 powered: false,
-                facing: Direction::West,
             } => Ok(19482u32),
             GeneratedStruct47 {
-                powered: true,
                 facing: Direction::West,
+                powered: true,
                 has_book: false,
             } => Ok(19483u32),
             GeneratedStruct47 {
@@ -165,9 +165,9 @@ impl TryInto<u32> for GeneratedStruct47 {
                 powered: true,
             } => Ok(19485u32),
             GeneratedStruct47 {
-                powered: false,
                 facing: Direction::East,
                 has_book: true,
+                powered: false,
             } => Ok(19486u32),
             GeneratedStruct47 {
                 facing: Direction::East,
@@ -176,8 +176,8 @@ impl TryInto<u32> for GeneratedStruct47 {
             } => Ok(19487u32),
             GeneratedStruct47 {
                 facing: Direction::East,
-                powered: false,
                 has_book: false,
+                powered: false,
             } => Ok(19488u32),
             _ => Err(()),
         }

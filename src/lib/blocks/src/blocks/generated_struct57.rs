@@ -23,8 +23,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
         match value {
             9828u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             }),
             9829u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
@@ -33,28 +33,28 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9830u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: true,
                 facing: Direction::South,
+                powered: true,
             }),
             9831u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             }),
             9832u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                facing: Direction::West,
                 powered: true,
+                facing: Direction::West,
             }),
             9833u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: false,
                 facing: Direction::West,
+                powered: false,
             }),
             9834u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: true,
                 facing: Direction::East,
+                powered: true,
             }),
             9835u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
@@ -63,8 +63,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9868u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             }),
             9869u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
@@ -78,13 +78,13 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9871u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             }),
             9872u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                powered: true,
                 facing: Direction::West,
+                powered: true,
             }),
             9873u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
@@ -98,13 +98,13 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9875u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                facing: Direction::East,
                 powered: false,
+                facing: Direction::East,
             }),
             13573u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::North,
                 powered: true,
+                facing: Direction::North,
             }),
             13574u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
@@ -113,13 +113,13 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             13575u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::East,
                 powered: true,
+                facing: Direction::East,
             }),
             13576u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::East,
                 powered: false,
+                facing: Direction::East,
             }),
             13577u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
@@ -128,8 +128,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             13578u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             }),
             13579u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
@@ -163,8 +163,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9908u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
-                facing: Direction::North,
                 powered: true,
+                facing: Direction::North,
             }),
             9909u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
@@ -173,8 +173,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9910u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
-                powered: true,
                 facing: Direction::South,
+                powered: true,
             }),
             9911u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
@@ -228,8 +228,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9793u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PlayerWallHead,
-                powered: false,
                 facing: Direction::West,
+                powered: false,
             }),
             9794u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PlayerWallHead,
@@ -243,8 +243,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9668u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             }),
             9669u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
@@ -258,8 +258,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9671u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             }),
             9672u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
@@ -283,13 +283,13 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9708u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
-                facing: Direction::North,
                 powered: true,
+                facing: Direction::North,
             }),
             9709u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
-                facing: Direction::North,
                 powered: false,
+                facing: Direction::North,
             }),
             9710u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
@@ -298,8 +298,8 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9711u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
-                powered: false,
                 facing: Direction::South,
+                powered: false,
             }),
             9712u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
@@ -323,13 +323,13 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9748u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             }),
             9749u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                facing: Direction::North,
                 powered: false,
+                facing: Direction::North,
             }),
             9750u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
@@ -343,13 +343,13 @@ impl TryFrom<u32> for GeneratedStruct57 {
             }),
             9752u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                powered: true,
                 facing: Direction::West,
+                powered: true,
             }),
             9753u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                powered: false,
                 facing: Direction::West,
+                powered: false,
             }),
             9754u32 => Ok(GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
@@ -372,8 +372,8 @@ impl TryInto<u32> for GeneratedStruct57 {
         match self {
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             } => Ok(9828u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
@@ -382,28 +382,28 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9829u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: true,
                 facing: Direction::South,
+                powered: true,
             } => Ok(9830u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             } => Ok(9831u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                facing: Direction::West,
                 powered: true,
+                facing: Direction::West,
             } => Ok(9832u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: false,
                 facing: Direction::West,
+                powered: false,
             } => Ok(9833u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
-                powered: true,
                 facing: Direction::East,
+                powered: true,
             } => Ok(9834u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::CreeperWallHead,
@@ -412,8 +412,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9835u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             } => Ok(9868u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
@@ -427,13 +427,13 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9870u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             } => Ok(9871u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                powered: true,
                 facing: Direction::West,
+                powered: true,
             } => Ok(9872u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
@@ -447,13 +447,13 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9874u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::DragonWallHead,
-                facing: Direction::East,
                 powered: false,
+                facing: Direction::East,
             } => Ok(9875u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::North,
                 powered: true,
+                facing: Direction::North,
             } => Ok(13573u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
@@ -462,13 +462,13 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(13574u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::East,
                 powered: true,
+                facing: Direction::East,
             } => Ok(13575u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::East,
                 powered: false,
+                facing: Direction::East,
             } => Ok(13576u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
@@ -477,8 +477,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(13577u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             } => Ok(13578u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::Observer,
@@ -512,8 +512,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(13584u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
-                facing: Direction::North,
                 powered: true,
+                facing: Direction::North,
             } => Ok(9908u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
@@ -522,8 +522,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9909u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
-                powered: true,
                 facing: Direction::South,
+                powered: true,
             } => Ok(9910u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PiglinWallHead,
@@ -577,8 +577,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9792u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PlayerWallHead,
-                powered: false,
                 facing: Direction::West,
+                powered: false,
             } => Ok(9793u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::PlayerWallHead,
@@ -592,8 +592,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9795u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             } => Ok(9668u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
@@ -607,8 +607,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9670u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             } => Ok(9671u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::SkeletonWallSkull,
@@ -632,13 +632,13 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9675u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
-                facing: Direction::North,
                 powered: true,
+                facing: Direction::North,
             } => Ok(9708u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
-                facing: Direction::North,
                 powered: false,
+                facing: Direction::North,
             } => Ok(9709u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
@@ -647,8 +647,8 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9710u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
-                powered: false,
                 facing: Direction::South,
+                powered: false,
             } => Ok(9711u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::WitherSkeletonWallSkull,
@@ -672,13 +672,13 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9715u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                powered: true,
                 facing: Direction::North,
+                powered: true,
             } => Ok(9748u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                facing: Direction::North,
                 powered: false,
+                facing: Direction::North,
             } => Ok(9749u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
@@ -692,13 +692,13 @@ impl TryInto<u32> for GeneratedStruct57 {
             } => Ok(9751u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                powered: true,
                 facing: Direction::West,
+                powered: true,
             } => Ok(9752u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,
-                powered: false,
                 facing: Direction::West,
+                powered: false,
             } => Ok(9753u32),
             GeneratedStruct57 {
                 block_type: GeneratedStruct57Type::ZombieWallHead,

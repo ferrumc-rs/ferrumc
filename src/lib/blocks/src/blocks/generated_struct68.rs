@@ -17,13 +17,13 @@ impl TryFrom<u32> for GeneratedStruct68 {
         match value {
             19526u32 => Ok(GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::Lantern,
-                waterlogged: true,
                 hanging: true,
+                waterlogged: true,
             }),
             19527u32 => Ok(GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::Lantern,
-                waterlogged: false,
                 hanging: true,
+                waterlogged: false,
             }),
             19528u32 => Ok(GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::Lantern,
@@ -42,8 +42,8 @@ impl TryFrom<u32> for GeneratedStruct68 {
             }),
             19531u32 => Ok(GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::SoulLantern,
-                waterlogged: false,
                 hanging: true,
+                waterlogged: false,
             }),
             19532u32 => Ok(GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::SoulLantern,
@@ -52,8 +52,8 @@ impl TryFrom<u32> for GeneratedStruct68 {
             }),
             19533u32 => Ok(GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::SoulLantern,
-                hanging: false,
                 waterlogged: false,
+                hanging: false,
             }),
             _ => Err(()),
         }
@@ -66,13 +66,13 @@ impl TryInto<u32> for GeneratedStruct68 {
         match self {
             GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::Lantern,
-                waterlogged: true,
                 hanging: true,
+                waterlogged: true,
             } => Ok(19526u32),
             GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::Lantern,
-                waterlogged: false,
                 hanging: true,
+                waterlogged: false,
             } => Ok(19527u32),
             GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::Lantern,
@@ -91,8 +91,8 @@ impl TryInto<u32> for GeneratedStruct68 {
             } => Ok(19530u32),
             GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::SoulLantern,
-                waterlogged: false,
                 hanging: true,
+                waterlogged: false,
             } => Ok(19531u32),
             GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::SoulLantern,
@@ -101,8 +101,8 @@ impl TryInto<u32> for GeneratedStruct68 {
             } => Ok(19532u32),
             GeneratedStruct68 {
                 block_type: GeneratedStruct68Type::SoulLantern,
-                hanging: false,
                 waterlogged: false,
+                hanging: false,
             } => Ok(19533u32),
             _ => Err(()),
         }

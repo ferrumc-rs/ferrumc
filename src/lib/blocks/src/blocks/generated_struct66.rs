@@ -61,13 +61,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5731u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             5732u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             5733u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
@@ -76,13 +76,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5734u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             5735u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             5736u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
@@ -91,13 +91,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5737u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             4882u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             4883u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
@@ -116,8 +116,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4886u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             4887u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
@@ -126,8 +126,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4888u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             4889u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
@@ -146,8 +146,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22063u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             22064u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
@@ -161,8 +161,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22066u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             22067u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
@@ -171,33 +171,33 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22068u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             22069u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: true,
                 facing: Direction::Up,
+                waterlogged: true,
             }),
             22070u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                facing: Direction::Up,
                 waterlogged: false,
+                facing: Direction::Up,
             }),
             22071u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: true,
                 facing: Direction::Down,
+                waterlogged: true,
             }),
             22072u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: false,
                 facing: Direction::Down,
+                waterlogged: false,
             }),
             5794u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             5795u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
@@ -216,8 +216,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5798u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             5799u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
@@ -226,8 +226,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5800u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             5801u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
@@ -241,18 +241,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4931u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             4932u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             4933u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             4934u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
@@ -261,8 +261,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4935u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             4936u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
@@ -271,8 +271,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4937u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             25936u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
@@ -286,23 +286,23 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             25938u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             25939u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             25940u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             25941u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             25942u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
@@ -311,8 +311,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             25943u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             5722u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
@@ -326,13 +326,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5724u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             }),
             5725u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             5726u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
@@ -341,18 +341,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5727u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             5728u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             5729u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             4874u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
@@ -381,33 +381,33 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4879u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             4880u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             4881u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             }),
             13924u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             13925u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             13926u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             13927u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
@@ -436,48 +436,48 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13932u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             13933u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             13934u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             13935u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             }),
             13936u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             13937u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             13938u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             13939u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             }),
             5738u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             5739u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
@@ -486,13 +486,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5740u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             5741u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             }),
             5742u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
@@ -501,8 +501,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5743u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             5744u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
@@ -516,8 +516,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4890u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             4891u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
@@ -526,8 +526,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4892u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             4893u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
@@ -551,13 +551,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4897u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             5778u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             5779u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
@@ -571,33 +571,33 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5781u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             5782u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             5783u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             5784u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             5785u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             }),
             20363u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             20364u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
@@ -626,8 +626,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             20369u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             20370u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
@@ -636,8 +636,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5754u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             5755u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
@@ -646,8 +646,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5756u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             5757u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
@@ -666,8 +666,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5760u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             5761u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
@@ -676,8 +676,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4906u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             4907u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
@@ -686,28 +686,28 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4908u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             4909u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             4910u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             4911u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             4912u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             4913u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
@@ -716,8 +716,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13884u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             13885u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
@@ -731,8 +731,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13887u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             13888u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
@@ -741,18 +741,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13889u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             13890u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             13891u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             }),
             13892u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
@@ -761,8 +761,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13893u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             }),
             13894u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
@@ -771,13 +771,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13895u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             13896u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             13897u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
@@ -786,13 +786,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13898u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             13899u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             13900u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -806,8 +806,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13902u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             13903u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -816,8 +816,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13904u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             13905u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -826,8 +826,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13906u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             13907u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -846,8 +846,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13910u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             13911u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
@@ -861,18 +861,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13913u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             13914u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             13915u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             13876u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
@@ -881,8 +881,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13877u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             }),
             13878u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
@@ -901,8 +901,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13881u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             13882u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
@@ -926,18 +926,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             8299u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             }),
             8300u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             }),
             8301u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             8302u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
@@ -946,8 +946,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             8303u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             8304u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
@@ -966,18 +966,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13942u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             13943u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             13944u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             13945u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
@@ -986,8 +986,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13946u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             13947u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
@@ -1016,18 +1016,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13952u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             13953u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             13954u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             13955u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
@@ -1041,48 +1041,48 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5747u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             }),
             5748u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             5749u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             }),
             5750u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             5751u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             5752u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             5753u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             4898u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             4899u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             4900u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
@@ -1096,18 +1096,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4902u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             4903u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             4904u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             4905u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
@@ -1116,18 +1116,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4750u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             4751u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             }),
             4752u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             }),
             4753u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
@@ -1141,8 +1141,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4755u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             4756u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
@@ -1156,18 +1156,18 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22073u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             22074u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             }),
             22075u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             22076u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -1176,8 +1176,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22077u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             }),
             22078u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -1186,13 +1186,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22079u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             22080u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             22081u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -1201,8 +1201,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22082u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::Up,
                 waterlogged: false,
+                facing: Direction::Up,
             }),
             22083u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -1211,13 +1211,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22084u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                waterlogged: false,
                 facing: Direction::Down,
+                waterlogged: false,
             }),
             5770u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             5771u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
@@ -1231,8 +1231,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5773u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             5774u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
@@ -1246,13 +1246,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5776u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             5777u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             4922u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
@@ -1276,13 +1276,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4926u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             4927u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             4928u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
@@ -1316,13 +1316,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22089u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             22090u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             22091u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
@@ -1351,8 +1351,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22096u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
-                facing: Direction::Down,
                 waterlogged: false,
+                facing: Direction::Down,
             }),
             5706u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
@@ -1366,23 +1366,23 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5708u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             5709u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             }),
             5710u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             5711u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             5712u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
@@ -1391,8 +1391,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5713u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             4858u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -1401,8 +1401,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4859u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             4860u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -1411,8 +1411,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4861u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             4862u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -1421,8 +1421,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4863u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             4864u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -1431,13 +1431,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4865u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             5762u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             5763u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
@@ -1446,8 +1446,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5764u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             5765u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
@@ -1461,13 +1461,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5767u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             }),
             5768u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             5769u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
@@ -1486,23 +1486,23 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4916u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             4917u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             4918u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             4919u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             4920u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
@@ -1526,8 +1526,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22099u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             22100u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
@@ -1546,13 +1546,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22103u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             22104u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             22105u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
@@ -1561,8 +1561,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22106u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                facing: Direction::Up,
                 waterlogged: false,
+                facing: Direction::Up,
             }),
             22107u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
@@ -1571,13 +1571,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             22108u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: false,
                 facing: Direction::Down,
+                waterlogged: false,
             }),
             5714u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             }),
             5715u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
@@ -1591,8 +1591,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5717u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             }),
             5718u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
@@ -1601,8 +1601,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5719u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             5720u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
@@ -1616,8 +1616,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4866u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             4867u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
@@ -1626,8 +1626,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4868u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             }),
             4869u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
@@ -1636,8 +1636,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4870u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             4871u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
@@ -1651,23 +1651,23 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             4873u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             13916u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             13917u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             }),
             13918u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             13919u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
@@ -1681,33 +1681,33 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             13921u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             }),
             13922u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             13923u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             }),
             5786u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             }),
             5787u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             }),
             5788u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             }),
             5789u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
@@ -1716,8 +1716,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5790u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             }),
             5791u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
@@ -1726,8 +1726,8 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             5792u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             }),
             5793u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
@@ -1766,13 +1766,13 @@ impl TryFrom<u32> for GeneratedStruct66 {
             }),
             20377u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             }),
             20378u32 => Ok(GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallSign,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             }),
             _ => Err(()),
         }
@@ -1790,13 +1790,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5730u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(5731u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(5732u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
@@ -1805,13 +1805,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5733u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(5734u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(5735u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
@@ -1820,13 +1820,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5736u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(5737u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(4882u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
@@ -1845,8 +1845,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4885u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(4886u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
@@ -1855,8 +1855,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4887u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(4888u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AcaciaWallSign,
@@ -1875,8 +1875,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22062u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(22063u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
@@ -1890,8 +1890,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22065u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(22066u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
@@ -1900,33 +1900,33 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22067u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(22068u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: true,
                 facing: Direction::Up,
+                waterlogged: true,
             } => Ok(22069u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                facing: Direction::Up,
                 waterlogged: false,
+                facing: Direction::Up,
             } => Ok(22070u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: true,
                 facing: Direction::Down,
+                waterlogged: true,
             } => Ok(22071u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::AmethystCluster,
-                waterlogged: false,
                 facing: Direction::Down,
+                waterlogged: false,
             } => Ok(22072u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(5794u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
@@ -1945,8 +1945,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5797u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(5798u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
@@ -1955,8 +1955,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5799u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(5800u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallHangingSign,
@@ -1970,18 +1970,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4930u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(4931u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(4932u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(4933u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
@@ -1990,8 +1990,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4934u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(4935u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
@@ -2000,8 +2000,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4936u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BambooWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(4937u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
@@ -2015,23 +2015,23 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(25937u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(25938u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(25939u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(25940u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(25941u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
@@ -2040,8 +2040,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(25942u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BigDripleafStem,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(25943u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
@@ -2055,13 +2055,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5723u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             } => Ok(5724u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(5725u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
@@ -2070,18 +2070,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5726u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(5727u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(5728u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(5729u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
@@ -2110,33 +2110,33 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4878u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(4879u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(4880u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BirchWallSign,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             } => Ok(4881u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(13924u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(13925u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(13926u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BrainCoralWallFan,
@@ -2165,48 +2165,48 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13931u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(13932u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(13933u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(13934u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             } => Ok(13935u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(13936u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(13937u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(13938u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::BubbleCoralWallFan,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             } => Ok(13939u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(5738u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
@@ -2215,13 +2215,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5739u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(5740u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             } => Ok(5741u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
@@ -2230,8 +2230,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5742u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(5743u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallHangingSign,
@@ -2245,8 +2245,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5745u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(4890u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
@@ -2255,8 +2255,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4891u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(4892u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
@@ -2280,13 +2280,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4896u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CherryWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(4897u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(5778u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
@@ -2300,33 +2300,33 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5780u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(5781u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(5782u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(5783u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(5784u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallHangingSign,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             } => Ok(5785u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(20363u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
@@ -2355,8 +2355,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(20368u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(20369u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::CrimsonWallSign,
@@ -2365,8 +2365,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(20370u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(5754u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
@@ -2375,8 +2375,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5755u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(5756u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
@@ -2395,8 +2395,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5759u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(5760u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallHangingSign,
@@ -2405,8 +2405,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5761u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(4906u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
@@ -2415,28 +2415,28 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4907u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(4908u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(4909u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(4910u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(4911u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(4912u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DarkOakWallSign,
@@ -2445,8 +2445,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4913u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(13884u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
@@ -2460,8 +2460,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13886u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(13887u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
@@ -2470,18 +2470,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13888u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(13889u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(13890u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBrainCoralWallFan,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             } => Ok(13891u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
@@ -2490,8 +2490,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13892u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             } => Ok(13893u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
@@ -2500,13 +2500,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13894u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(13895u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(13896u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
@@ -2515,13 +2515,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13897u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(13898u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadBubbleCoralWallFan,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(13899u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -2535,8 +2535,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13901u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(13902u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -2545,8 +2545,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13903u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(13904u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -2555,8 +2555,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13905u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(13906u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadFireCoralWallFan,
@@ -2575,8 +2575,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13909u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(13910u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
@@ -2590,18 +2590,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13912u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(13913u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(13914u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadHornCoralWallFan,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(13915u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
@@ -2610,8 +2610,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13876u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             } => Ok(13877u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
@@ -2630,8 +2630,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13880u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(13881u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::DeadTubeCoralWallFan,
@@ -2655,18 +2655,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(8298u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             } => Ok(8299u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             } => Ok(8300u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(8301u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
@@ -2675,8 +2675,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(8302u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(8303u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::EnderChest,
@@ -2695,18 +2695,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13941u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(13942u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(13943u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(13944u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
@@ -2715,8 +2715,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13945u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(13946u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::FireCoralWallFan,
@@ -2745,18 +2745,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13951u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(13952u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(13953u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(13954u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::HornCoralWallFan,
@@ -2770,48 +2770,48 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5746u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             } => Ok(5747u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(5748u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             } => Ok(5749u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(5750u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(5751u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(5752u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(5753u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(4898u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(4899u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
@@ -2825,18 +2825,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4901u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(4902u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(4903u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(4904u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::JungleWallSign,
@@ -2845,18 +2845,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4905u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(4750u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             } => Ok(4751u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             } => Ok(4752u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
@@ -2870,8 +2870,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4754u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(4755u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::Ladder,
@@ -2885,18 +2885,18 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4757u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(22073u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             } => Ok(22074u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(22075u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -2905,8 +2905,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22076u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             } => Ok(22077u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -2915,13 +2915,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22078u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(22079u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(22080u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -2930,8 +2930,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22081u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                facing: Direction::Up,
                 waterlogged: false,
+                facing: Direction::Up,
             } => Ok(22082u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
@@ -2940,13 +2940,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22083u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::LargeAmethystBud,
-                waterlogged: false,
                 facing: Direction::Down,
+                waterlogged: false,
             } => Ok(22084u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(5770u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
@@ -2960,8 +2960,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5772u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(5773u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
@@ -2975,13 +2975,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5775u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(5776u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(5777u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
@@ -3005,13 +3005,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4925u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(4926u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(4927u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MangroveWallSign,
@@ -3045,13 +3045,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22088u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(22089u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(22090u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
@@ -3080,8 +3080,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22095u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::MediumAmethystBud,
-                facing: Direction::Down,
                 waterlogged: false,
+                facing: Direction::Down,
             } => Ok(22096u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
@@ -3095,23 +3095,23 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5707u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(5708u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: false,
                 facing: Direction::South,
+                waterlogged: false,
             } => Ok(5709u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(5710u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(5711u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
@@ -3120,8 +3120,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5712u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallHangingSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(5713u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -3130,8 +3130,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4858u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(4859u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -3140,8 +3140,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4860u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(4861u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -3150,8 +3150,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4862u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(4863u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
@@ -3160,13 +3160,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4864u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::OakWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(4865u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(5762u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
@@ -3175,8 +3175,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5763u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(5764u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
@@ -3190,13 +3190,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5766u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                facing: Direction::West,
                 waterlogged: false,
+                facing: Direction::West,
             } => Ok(5767u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(5768u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallHangingSign,
@@ -3215,23 +3215,23 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4915u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(4916u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(4917u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(4918u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(4919u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::PaleOakWallSign,
@@ -3255,8 +3255,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22098u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(22099u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
@@ -3275,13 +3275,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22102u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(22103u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(22104u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
@@ -3290,8 +3290,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22105u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                facing: Direction::Up,
                 waterlogged: false,
+                facing: Direction::Up,
             } => Ok(22106u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
@@ -3300,13 +3300,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(22107u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SmallAmethystBud,
-                waterlogged: false,
                 facing: Direction::Down,
+                waterlogged: false,
             } => Ok(22108u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
-                waterlogged: true,
                 facing: Direction::North,
+                waterlogged: true,
             } => Ok(5714u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
@@ -3320,8 +3320,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5716u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
-                facing: Direction::South,
                 waterlogged: false,
+                facing: Direction::South,
             } => Ok(5717u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
@@ -3330,8 +3330,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5718u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(5719u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallHangingSign,
@@ -3345,8 +3345,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5721u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(4866u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
@@ -3355,8 +3355,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4867u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             } => Ok(4868u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
@@ -3365,8 +3365,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4869u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(4870u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
@@ -3380,23 +3380,23 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(4872u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::SpruceWallSign,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(4873u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(13916u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::North,
                 waterlogged: false,
+                facing: Direction::North,
             } => Ok(13917u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(13918u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
@@ -3410,33 +3410,33 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(13920u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                waterlogged: false,
                 facing: Direction::West,
+                waterlogged: false,
             } => Ok(13921u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(13922u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::TubeCoralWallFan,
-                waterlogged: false,
                 facing: Direction::East,
+                waterlogged: false,
             } => Ok(13923u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                facing: Direction::North,
                 waterlogged: true,
+                facing: Direction::North,
             } => Ok(5786u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                waterlogged: false,
                 facing: Direction::North,
+                waterlogged: false,
             } => Ok(5787u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                waterlogged: true,
                 facing: Direction::South,
+                waterlogged: true,
             } => Ok(5788u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
@@ -3445,8 +3445,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5789u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                facing: Direction::West,
                 waterlogged: true,
+                facing: Direction::West,
             } => Ok(5790u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
@@ -3455,8 +3455,8 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(5791u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
-                facing: Direction::East,
                 waterlogged: true,
+                facing: Direction::East,
             } => Ok(5792u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallHangingSign,
@@ -3495,13 +3495,13 @@ impl TryInto<u32> for GeneratedStruct66 {
             } => Ok(20376u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallSign,
-                waterlogged: true,
                 facing: Direction::East,
+                waterlogged: true,
             } => Ok(20377u32),
             GeneratedStruct66 {
                 block_type: GeneratedStruct66Type::WarpedWallSign,
-                facing: Direction::East,
                 waterlogged: false,
+                facing: Direction::East,
             } => Ok(20378u32),
             _ => Err(()),
         }

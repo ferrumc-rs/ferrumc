@@ -11,14 +11,14 @@ impl TryFrom<u32> for GeneratedStruct58 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             25752u32 => Ok(GeneratedStruct58 {
+                powered: true,
                 waterlogged: true,
                 facing: Direction::North,
-                powered: true,
             }),
             25753u32 => Ok(GeneratedStruct58 {
+                waterlogged: false,
                 facing: Direction::North,
                 powered: true,
-                waterlogged: false,
             }),
             25754u32 => Ok(GeneratedStruct58 {
                 facing: Direction::North,
@@ -26,14 +26,14 @@ impl TryFrom<u32> for GeneratedStruct58 {
                 waterlogged: true,
             }),
             25755u32 => Ok(GeneratedStruct58 {
-                powered: false,
                 waterlogged: false,
                 facing: Direction::North,
+                powered: false,
             }),
             25756u32 => Ok(GeneratedStruct58 {
                 waterlogged: true,
-                facing: Direction::East,
                 powered: true,
+                facing: Direction::East,
             }),
             25757u32 => Ok(GeneratedStruct58 {
                 waterlogged: false,
@@ -41,74 +41,74 @@ impl TryFrom<u32> for GeneratedStruct58 {
                 powered: true,
             }),
             25758u32 => Ok(GeneratedStruct58 {
+                powered: false,
                 facing: Direction::East,
                 waterlogged: true,
-                powered: false,
             }),
             25759u32 => Ok(GeneratedStruct58 {
+                powered: false,
                 waterlogged: false,
                 facing: Direction::East,
-                powered: false,
             }),
             25760u32 => Ok(GeneratedStruct58 {
                 powered: true,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             }),
             25761u32 => Ok(GeneratedStruct58 {
-                facing: Direction::South,
-                waterlogged: false,
                 powered: true,
+                waterlogged: false,
+                facing: Direction::South,
             }),
             25762u32 => Ok(GeneratedStruct58 {
                 waterlogged: true,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             }),
             25763u32 => Ok(GeneratedStruct58 {
-                waterlogged: false,
-                powered: false,
                 facing: Direction::South,
+                powered: false,
+                waterlogged: false,
             }),
             25764u32 => Ok(GeneratedStruct58 {
                 powered: true,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             25765u32 => Ok(GeneratedStruct58 {
+                powered: true,
                 waterlogged: false,
                 facing: Direction::West,
-                powered: true,
             }),
             25766u32 => Ok(GeneratedStruct58 {
-                waterlogged: true,
                 powered: false,
                 facing: Direction::West,
+                waterlogged: true,
             }),
             25767u32 => Ok(GeneratedStruct58 {
+                powered: false,
                 waterlogged: false,
                 facing: Direction::West,
-                powered: false,
             }),
             25768u32 => Ok(GeneratedStruct58 {
                 powered: true,
-                waterlogged: true,
                 facing: Direction::Up,
+                waterlogged: true,
             }),
             25769u32 => Ok(GeneratedStruct58 {
+                powered: true,
                 facing: Direction::Up,
                 waterlogged: false,
-                powered: true,
             }),
             25770u32 => Ok(GeneratedStruct58 {
-                powered: false,
                 facing: Direction::Up,
                 waterlogged: true,
+                powered: false,
             }),
             25771u32 => Ok(GeneratedStruct58 {
+                facing: Direction::Up,
                 powered: false,
                 waterlogged: false,
-                facing: Direction::Up,
             }),
             25772u32 => Ok(GeneratedStruct58 {
                 facing: Direction::Down,
@@ -117,18 +117,18 @@ impl TryFrom<u32> for GeneratedStruct58 {
             }),
             25773u32 => Ok(GeneratedStruct58 {
                 facing: Direction::Down,
-                waterlogged: false,
                 powered: true,
+                waterlogged: false,
             }),
             25774u32 => Ok(GeneratedStruct58 {
                 waterlogged: true,
-                powered: false,
                 facing: Direction::Down,
+                powered: false,
             }),
             25775u32 => Ok(GeneratedStruct58 {
-                waterlogged: false,
                 facing: Direction::Down,
                 powered: false,
+                waterlogged: false,
             }),
             _ => Err(()),
         }
@@ -140,14 +140,14 @@ impl TryInto<u32> for GeneratedStruct58 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct58 {
+                powered: true,
                 waterlogged: true,
                 facing: Direction::North,
-                powered: true,
             } => Ok(25752u32),
             GeneratedStruct58 {
+                waterlogged: false,
                 facing: Direction::North,
                 powered: true,
-                waterlogged: false,
             } => Ok(25753u32),
             GeneratedStruct58 {
                 facing: Direction::North,
@@ -155,14 +155,14 @@ impl TryInto<u32> for GeneratedStruct58 {
                 waterlogged: true,
             } => Ok(25754u32),
             GeneratedStruct58 {
-                powered: false,
                 waterlogged: false,
                 facing: Direction::North,
+                powered: false,
             } => Ok(25755u32),
             GeneratedStruct58 {
                 waterlogged: true,
-                facing: Direction::East,
                 powered: true,
+                facing: Direction::East,
             } => Ok(25756u32),
             GeneratedStruct58 {
                 waterlogged: false,
@@ -170,74 +170,74 @@ impl TryInto<u32> for GeneratedStruct58 {
                 powered: true,
             } => Ok(25757u32),
             GeneratedStruct58 {
+                powered: false,
                 facing: Direction::East,
                 waterlogged: true,
-                powered: false,
             } => Ok(25758u32),
             GeneratedStruct58 {
+                powered: false,
                 waterlogged: false,
                 facing: Direction::East,
-                powered: false,
             } => Ok(25759u32),
             GeneratedStruct58 {
                 powered: true,
-                facing: Direction::South,
                 waterlogged: true,
+                facing: Direction::South,
             } => Ok(25760u32),
             GeneratedStruct58 {
-                facing: Direction::South,
-                waterlogged: false,
                 powered: true,
+                waterlogged: false,
+                facing: Direction::South,
             } => Ok(25761u32),
             GeneratedStruct58 {
                 waterlogged: true,
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
             } => Ok(25762u32),
             GeneratedStruct58 {
-                waterlogged: false,
-                powered: false,
                 facing: Direction::South,
+                powered: false,
+                waterlogged: false,
             } => Ok(25763u32),
             GeneratedStruct58 {
                 powered: true,
-                waterlogged: true,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(25764u32),
             GeneratedStruct58 {
+                powered: true,
                 waterlogged: false,
                 facing: Direction::West,
-                powered: true,
             } => Ok(25765u32),
             GeneratedStruct58 {
-                waterlogged: true,
                 powered: false,
                 facing: Direction::West,
+                waterlogged: true,
             } => Ok(25766u32),
             GeneratedStruct58 {
+                powered: false,
                 waterlogged: false,
                 facing: Direction::West,
-                powered: false,
             } => Ok(25767u32),
             GeneratedStruct58 {
                 powered: true,
-                waterlogged: true,
                 facing: Direction::Up,
+                waterlogged: true,
             } => Ok(25768u32),
             GeneratedStruct58 {
+                powered: true,
                 facing: Direction::Up,
                 waterlogged: false,
-                powered: true,
             } => Ok(25769u32),
             GeneratedStruct58 {
-                powered: false,
                 facing: Direction::Up,
                 waterlogged: true,
+                powered: false,
             } => Ok(25770u32),
             GeneratedStruct58 {
+                facing: Direction::Up,
                 powered: false,
                 waterlogged: false,
-                facing: Direction::Up,
             } => Ok(25771u32),
             GeneratedStruct58 {
                 facing: Direction::Down,
@@ -246,18 +246,18 @@ impl TryInto<u32> for GeneratedStruct58 {
             } => Ok(25772u32),
             GeneratedStruct58 {
                 facing: Direction::Down,
-                waterlogged: false,
                 powered: true,
+                waterlogged: false,
             } => Ok(25773u32),
             GeneratedStruct58 {
                 waterlogged: true,
-                powered: false,
                 facing: Direction::Down,
+                powered: false,
             } => Ok(25774u32),
             GeneratedStruct58 {
-                waterlogged: false,
                 facing: Direction::Down,
                 powered: false,
+                waterlogged: false,
             } => Ok(25775u32),
             _ => Err(()),
         }

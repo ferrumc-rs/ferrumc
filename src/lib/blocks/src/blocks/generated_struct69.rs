@@ -16,19 +16,19 @@ impl TryFrom<u32> for GeneratedStruct69 {
                 has_bottle_2: true,
             }),
             8175u32 => Ok(GeneratedStruct69 {
-                has_bottle_2: false,
                 has_bottle_0: true,
+                has_bottle_2: false,
                 has_bottle_1: true,
             }),
             8176u32 => Ok(GeneratedStruct69 {
-                has_bottle_2: true,
-                has_bottle_0: true,
                 has_bottle_1: false,
+                has_bottle_0: true,
+                has_bottle_2: true,
             }),
             8177u32 => Ok(GeneratedStruct69 {
-                has_bottle_0: true,
-                has_bottle_2: false,
                 has_bottle_1: false,
+                has_bottle_2: false,
+                has_bottle_0: true,
             }),
             8178u32 => Ok(GeneratedStruct69 {
                 has_bottle_0: false,
@@ -36,13 +36,13 @@ impl TryFrom<u32> for GeneratedStruct69 {
                 has_bottle_1: true,
             }),
             8179u32 => Ok(GeneratedStruct69 {
-                has_bottle_2: false,
                 has_bottle_0: false,
                 has_bottle_1: true,
+                has_bottle_2: false,
             }),
             8180u32 => Ok(GeneratedStruct69 {
-                has_bottle_0: false,
                 has_bottle_1: false,
+                has_bottle_0: false,
                 has_bottle_2: true,
             }),
             8181u32 => Ok(GeneratedStruct69 {
@@ -65,19 +65,19 @@ impl TryInto<u32> for GeneratedStruct69 {
                 has_bottle_2: true,
             } => Ok(8174u32),
             GeneratedStruct69 {
-                has_bottle_2: false,
                 has_bottle_0: true,
+                has_bottle_2: false,
                 has_bottle_1: true,
             } => Ok(8175u32),
             GeneratedStruct69 {
-                has_bottle_2: true,
-                has_bottle_0: true,
                 has_bottle_1: false,
+                has_bottle_0: true,
+                has_bottle_2: true,
             } => Ok(8176u32),
             GeneratedStruct69 {
-                has_bottle_0: true,
-                has_bottle_2: false,
                 has_bottle_1: false,
+                has_bottle_2: false,
+                has_bottle_0: true,
             } => Ok(8177u32),
             GeneratedStruct69 {
                 has_bottle_0: false,
@@ -85,13 +85,13 @@ impl TryInto<u32> for GeneratedStruct69 {
                 has_bottle_1: true,
             } => Ok(8178u32),
             GeneratedStruct69 {
-                has_bottle_2: false,
                 has_bottle_0: false,
                 has_bottle_1: true,
+                has_bottle_2: false,
             } => Ok(8179u32),
             GeneratedStruct69 {
-                has_bottle_0: false,
                 has_bottle_1: false,
+                has_bottle_0: false,
                 has_bottle_2: true,
             } => Ok(8180u32),
             GeneratedStruct69 {

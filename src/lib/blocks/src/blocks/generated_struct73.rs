@@ -10,16 +10,16 @@ impl TryFrom<u32> for GeneratedStruct73 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             10000u32 => Ok(GeneratedStruct73 {
-                power: 0i32,
                 inverted: true,
+                power: 0i32,
             }),
             10001u32 => Ok(GeneratedStruct73 {
                 power: 1i32,
                 inverted: true,
             }),
             10002u32 => Ok(GeneratedStruct73 {
-                power: 2i32,
                 inverted: true,
+                power: 2i32,
             }),
             10003u32 => Ok(GeneratedStruct73 {
                 inverted: true,
@@ -30,8 +30,8 @@ impl TryFrom<u32> for GeneratedStruct73 {
                 power: 4i32,
             }),
             10005u32 => Ok(GeneratedStruct73 {
-                power: 5i32,
                 inverted: true,
+                power: 5i32,
             }),
             10006u32 => Ok(GeneratedStruct73 {
                 inverted: true,
@@ -46,8 +46,8 @@ impl TryFrom<u32> for GeneratedStruct73 {
                 power: 8i32,
             }),
             10009u32 => Ok(GeneratedStruct73 {
-                inverted: true,
                 power: 9i32,
+                inverted: true,
             }),
             10010u32 => Ok(GeneratedStruct73 {
                 inverted: true,
@@ -58,24 +58,24 @@ impl TryFrom<u32> for GeneratedStruct73 {
                 power: 11i32,
             }),
             10012u32 => Ok(GeneratedStruct73 {
-                power: 12i32,
                 inverted: true,
+                power: 12i32,
             }),
             10013u32 => Ok(GeneratedStruct73 {
-                power: 13i32,
                 inverted: true,
+                power: 13i32,
             }),
             10014u32 => Ok(GeneratedStruct73 {
-                inverted: true,
                 power: 14i32,
+                inverted: true,
             }),
             10015u32 => Ok(GeneratedStruct73 {
                 inverted: true,
                 power: 15i32,
             }),
             10016u32 => Ok(GeneratedStruct73 {
-                inverted: false,
                 power: 0i32,
+                inverted: false,
             }),
             10017u32 => Ok(GeneratedStruct73 {
                 power: 1i32,
@@ -90,20 +90,20 @@ impl TryFrom<u32> for GeneratedStruct73 {
                 power: 3i32,
             }),
             10020u32 => Ok(GeneratedStruct73 {
-                power: 4i32,
                 inverted: false,
+                power: 4i32,
             }),
             10021u32 => Ok(GeneratedStruct73 {
                 inverted: false,
                 power: 5i32,
             }),
             10022u32 => Ok(GeneratedStruct73 {
-                inverted: false,
                 power: 6i32,
+                inverted: false,
             }),
             10023u32 => Ok(GeneratedStruct73 {
-                power: 7i32,
                 inverted: false,
+                power: 7i32,
             }),
             10024u32 => Ok(GeneratedStruct73 {
                 inverted: false,
@@ -118,12 +118,12 @@ impl TryFrom<u32> for GeneratedStruct73 {
                 power: 10i32,
             }),
             10027u32 => Ok(GeneratedStruct73 {
-                inverted: false,
                 power: 11i32,
+                inverted: false,
             }),
             10028u32 => Ok(GeneratedStruct73 {
-                power: 12i32,
                 inverted: false,
+                power: 12i32,
             }),
             10029u32 => Ok(GeneratedStruct73 {
                 power: 13i32,
@@ -147,16 +147,16 @@ impl TryInto<u32> for GeneratedStruct73 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct73 {
-                power: 0i32,
                 inverted: true,
+                power: 0i32,
             } => Ok(10000u32),
             GeneratedStruct73 {
                 power: 1i32,
                 inverted: true,
             } => Ok(10001u32),
             GeneratedStruct73 {
-                power: 2i32,
                 inverted: true,
+                power: 2i32,
             } => Ok(10002u32),
             GeneratedStruct73 {
                 inverted: true,
@@ -167,8 +167,8 @@ impl TryInto<u32> for GeneratedStruct73 {
                 power: 4i32,
             } => Ok(10004u32),
             GeneratedStruct73 {
-                power: 5i32,
                 inverted: true,
+                power: 5i32,
             } => Ok(10005u32),
             GeneratedStruct73 {
                 inverted: true,
@@ -183,8 +183,8 @@ impl TryInto<u32> for GeneratedStruct73 {
                 power: 8i32,
             } => Ok(10008u32),
             GeneratedStruct73 {
-                inverted: true,
                 power: 9i32,
+                inverted: true,
             } => Ok(10009u32),
             GeneratedStruct73 {
                 inverted: true,
@@ -195,24 +195,24 @@ impl TryInto<u32> for GeneratedStruct73 {
                 power: 11i32,
             } => Ok(10011u32),
             GeneratedStruct73 {
-                power: 12i32,
                 inverted: true,
+                power: 12i32,
             } => Ok(10012u32),
             GeneratedStruct73 {
-                power: 13i32,
                 inverted: true,
+                power: 13i32,
             } => Ok(10013u32),
             GeneratedStruct73 {
-                inverted: true,
                 power: 14i32,
+                inverted: true,
             } => Ok(10014u32),
             GeneratedStruct73 {
                 inverted: true,
                 power: 15i32,
             } => Ok(10015u32),
             GeneratedStruct73 {
-                inverted: false,
                 power: 0i32,
+                inverted: false,
             } => Ok(10016u32),
             GeneratedStruct73 {
                 power: 1i32,
@@ -227,20 +227,20 @@ impl TryInto<u32> for GeneratedStruct73 {
                 power: 3i32,
             } => Ok(10019u32),
             GeneratedStruct73 {
-                power: 4i32,
                 inverted: false,
+                power: 4i32,
             } => Ok(10020u32),
             GeneratedStruct73 {
                 inverted: false,
                 power: 5i32,
             } => Ok(10021u32),
             GeneratedStruct73 {
-                inverted: false,
                 power: 6i32,
+                inverted: false,
             } => Ok(10022u32),
             GeneratedStruct73 {
-                power: 7i32,
                 inverted: false,
+                power: 7i32,
             } => Ok(10023u32),
             GeneratedStruct73 {
                 inverted: false,
@@ -255,12 +255,12 @@ impl TryInto<u32> for GeneratedStruct73 {
                 power: 10i32,
             } => Ok(10026u32),
             GeneratedStruct73 {
-                inverted: false,
                 power: 11i32,
+                inverted: false,
             } => Ok(10027u32),
             GeneratedStruct73 {
-                power: 12i32,
                 inverted: false,
+                power: 12i32,
             } => Ok(10028u32),
             GeneratedStruct73 {
                 power: 13i32,

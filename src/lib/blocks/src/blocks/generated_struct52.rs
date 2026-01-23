@@ -11,24 +11,24 @@ impl TryFrom<u32> for GeneratedStruct52 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             9984u32 => Ok(GeneratedStruct52 {
-                facing: Direction::North,
                 mode: ComparatorMode::Compare,
                 powered: true,
+                facing: Direction::North,
             }),
             9985u32 => Ok(GeneratedStruct52 {
+                facing: Direction::North,
                 powered: false,
                 mode: ComparatorMode::Compare,
-                facing: Direction::North,
             }),
             9986u32 => Ok(GeneratedStruct52 {
-                facing: Direction::North,
                 mode: ComparatorMode::Subtract,
+                facing: Direction::North,
                 powered: true,
             }),
             9987u32 => Ok(GeneratedStruct52 {
                 mode: ComparatorMode::Subtract,
-                powered: false,
                 facing: Direction::North,
+                powered: false,
             }),
             9988u32 => Ok(GeneratedStruct52 {
                 powered: true,
@@ -36,14 +36,14 @@ impl TryFrom<u32> for GeneratedStruct52 {
                 facing: Direction::South,
             }),
             9989u32 => Ok(GeneratedStruct52 {
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
                 mode: ComparatorMode::Compare,
             }),
             9990u32 => Ok(GeneratedStruct52 {
-                powered: true,
-                mode: ComparatorMode::Subtract,
                 facing: Direction::South,
+                mode: ComparatorMode::Subtract,
+                powered: true,
             }),
             9991u32 => Ok(GeneratedStruct52 {
                 mode: ComparatorMode::Subtract,
@@ -52,33 +52,33 @@ impl TryFrom<u32> for GeneratedStruct52 {
             }),
             9992u32 => Ok(GeneratedStruct52 {
                 facing: Direction::West,
-                powered: true,
                 mode: ComparatorMode::Compare,
+                powered: true,
             }),
             9993u32 => Ok(GeneratedStruct52 {
                 facing: Direction::West,
-                mode: ComparatorMode::Compare,
                 powered: false,
+                mode: ComparatorMode::Compare,
             }),
             9994u32 => Ok(GeneratedStruct52 {
-                mode: ComparatorMode::Subtract,
                 facing: Direction::West,
                 powered: true,
+                mode: ComparatorMode::Subtract,
             }),
             9995u32 => Ok(GeneratedStruct52 {
-                facing: Direction::West,
                 mode: ComparatorMode::Subtract,
                 powered: false,
+                facing: Direction::West,
             }),
             9996u32 => Ok(GeneratedStruct52 {
+                mode: ComparatorMode::Compare,
                 powered: true,
                 facing: Direction::East,
-                mode: ComparatorMode::Compare,
             }),
             9997u32 => Ok(GeneratedStruct52 {
                 facing: Direction::East,
-                mode: ComparatorMode::Compare,
                 powered: false,
+                mode: ComparatorMode::Compare,
             }),
             9998u32 => Ok(GeneratedStruct52 {
                 powered: true,
@@ -100,24 +100,24 @@ impl TryInto<u32> for GeneratedStruct52 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct52 {
-                facing: Direction::North,
                 mode: ComparatorMode::Compare,
                 powered: true,
+                facing: Direction::North,
             } => Ok(9984u32),
             GeneratedStruct52 {
+                facing: Direction::North,
                 powered: false,
                 mode: ComparatorMode::Compare,
-                facing: Direction::North,
             } => Ok(9985u32),
             GeneratedStruct52 {
-                facing: Direction::North,
                 mode: ComparatorMode::Subtract,
+                facing: Direction::North,
                 powered: true,
             } => Ok(9986u32),
             GeneratedStruct52 {
                 mode: ComparatorMode::Subtract,
-                powered: false,
                 facing: Direction::North,
+                powered: false,
             } => Ok(9987u32),
             GeneratedStruct52 {
                 powered: true,
@@ -125,14 +125,14 @@ impl TryInto<u32> for GeneratedStruct52 {
                 facing: Direction::South,
             } => Ok(9988u32),
             GeneratedStruct52 {
-                facing: Direction::South,
                 powered: false,
+                facing: Direction::South,
                 mode: ComparatorMode::Compare,
             } => Ok(9989u32),
             GeneratedStruct52 {
-                powered: true,
-                mode: ComparatorMode::Subtract,
                 facing: Direction::South,
+                mode: ComparatorMode::Subtract,
+                powered: true,
             } => Ok(9990u32),
             GeneratedStruct52 {
                 mode: ComparatorMode::Subtract,
@@ -141,33 +141,33 @@ impl TryInto<u32> for GeneratedStruct52 {
             } => Ok(9991u32),
             GeneratedStruct52 {
                 facing: Direction::West,
-                powered: true,
                 mode: ComparatorMode::Compare,
+                powered: true,
             } => Ok(9992u32),
             GeneratedStruct52 {
                 facing: Direction::West,
-                mode: ComparatorMode::Compare,
                 powered: false,
+                mode: ComparatorMode::Compare,
             } => Ok(9993u32),
             GeneratedStruct52 {
-                mode: ComparatorMode::Subtract,
                 facing: Direction::West,
                 powered: true,
+                mode: ComparatorMode::Subtract,
             } => Ok(9994u32),
             GeneratedStruct52 {
-                facing: Direction::West,
                 mode: ComparatorMode::Subtract,
                 powered: false,
+                facing: Direction::West,
             } => Ok(9995u32),
             GeneratedStruct52 {
+                mode: ComparatorMode::Compare,
                 powered: true,
                 facing: Direction::East,
-                mode: ComparatorMode::Compare,
             } => Ok(9996u32),
             GeneratedStruct52 {
                 facing: Direction::East,
-                mode: ComparatorMode::Compare,
                 powered: false,
+                mode: ComparatorMode::Compare,
             } => Ok(9997u32),
             GeneratedStruct52 {
                 powered: true,

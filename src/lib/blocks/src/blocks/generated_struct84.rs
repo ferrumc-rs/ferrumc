@@ -18,8 +18,8 @@ impl TryFrom<u32> for GeneratedStruct84 {
                 pickles: 1i32,
             }),
             13958u32 => Ok(GeneratedStruct84 {
-                pickles: 2i32,
                 waterlogged: true,
+                pickles: 2i32,
             }),
             13959u32 => Ok(GeneratedStruct84 {
                 pickles: 2i32,
@@ -30,16 +30,16 @@ impl TryFrom<u32> for GeneratedStruct84 {
                 waterlogged: true,
             }),
             13961u32 => Ok(GeneratedStruct84 {
-                waterlogged: false,
                 pickles: 3i32,
+                waterlogged: false,
             }),
             13962u32 => Ok(GeneratedStruct84 {
                 pickles: 4i32,
                 waterlogged: true,
             }),
             13963u32 => Ok(GeneratedStruct84 {
-                pickles: 4i32,
                 waterlogged: false,
+                pickles: 4i32,
             }),
             _ => Err(()),
         }
@@ -59,8 +59,8 @@ impl TryInto<u32> for GeneratedStruct84 {
                 pickles: 1i32,
             } => Ok(13957u32),
             GeneratedStruct84 {
-                pickles: 2i32,
                 waterlogged: true,
+                pickles: 2i32,
             } => Ok(13958u32),
             GeneratedStruct84 {
                 pickles: 2i32,
@@ -71,16 +71,16 @@ impl TryInto<u32> for GeneratedStruct84 {
                 waterlogged: true,
             } => Ok(13960u32),
             GeneratedStruct84 {
-                waterlogged: false,
                 pickles: 3i32,
+                waterlogged: false,
             } => Ok(13961u32),
             GeneratedStruct84 {
                 pickles: 4i32,
                 waterlogged: true,
             } => Ok(13962u32),
             GeneratedStruct84 {
-                pickles: 4i32,
                 waterlogged: false,
+                pickles: 4i32,
             } => Ok(13963u32),
             _ => Err(()),
         }

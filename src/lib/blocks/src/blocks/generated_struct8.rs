@@ -11,74 +11,74 @@ impl TryFrom<u32> for GeneratedStruct8 {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             8305u32 => Ok(GeneratedStruct8 {
-                powered: true,
-                facing: Direction::North,
                 attached: true,
+                facing: Direction::North,
+                powered: true,
             }),
             8306u32 => Ok(GeneratedStruct8 {
                 attached: true,
-                powered: false,
                 facing: Direction::North,
+                powered: false,
             }),
             8307u32 => Ok(GeneratedStruct8 {
-                attached: true,
                 powered: true,
                 facing: Direction::South,
+                attached: true,
             }),
             8308u32 => Ok(GeneratedStruct8 {
-                attached: true,
                 facing: Direction::South,
                 powered: false,
+                attached: true,
             }),
             8309u32 => Ok(GeneratedStruct8 {
-                attached: true,
                 facing: Direction::West,
+                attached: true,
                 powered: true,
             }),
             8310u32 => Ok(GeneratedStruct8 {
+                powered: false,
                 attached: true,
                 facing: Direction::West,
-                powered: false,
             }),
             8311u32 => Ok(GeneratedStruct8 {
-                powered: true,
                 facing: Direction::East,
+                powered: true,
                 attached: true,
             }),
             8312u32 => Ok(GeneratedStruct8 {
-                facing: Direction::East,
                 powered: false,
                 attached: true,
+                facing: Direction::East,
             }),
             8313u32 => Ok(GeneratedStruct8 {
-                powered: true,
                 attached: false,
                 facing: Direction::North,
+                powered: true,
             }),
             8314u32 => Ok(GeneratedStruct8 {
+                powered: false,
                 facing: Direction::North,
                 attached: false,
-                powered: false,
             }),
             8315u32 => Ok(GeneratedStruct8 {
+                attached: false,
                 facing: Direction::South,
                 powered: true,
-                attached: false,
             }),
             8316u32 => Ok(GeneratedStruct8 {
+                attached: false,
                 facing: Direction::South,
                 powered: false,
-                attached: false,
             }),
             8317u32 => Ok(GeneratedStruct8 {
-                powered: true,
                 attached: false,
                 facing: Direction::West,
+                powered: true,
             }),
             8318u32 => Ok(GeneratedStruct8 {
+                facing: Direction::West,
                 attached: false,
                 powered: false,
-                facing: Direction::West,
             }),
             8319u32 => Ok(GeneratedStruct8 {
                 facing: Direction::East,
@@ -86,9 +86,9 @@ impl TryFrom<u32> for GeneratedStruct8 {
                 powered: true,
             }),
             8320u32 => Ok(GeneratedStruct8 {
+                attached: false,
                 facing: Direction::East,
                 powered: false,
-                attached: false,
             }),
             _ => Err(()),
         }
@@ -100,74 +100,74 @@ impl TryInto<u32> for GeneratedStruct8 {
         #[allow(unreachable_patterns)]
         match self {
             GeneratedStruct8 {
-                powered: true,
-                facing: Direction::North,
                 attached: true,
+                facing: Direction::North,
+                powered: true,
             } => Ok(8305u32),
             GeneratedStruct8 {
                 attached: true,
-                powered: false,
                 facing: Direction::North,
+                powered: false,
             } => Ok(8306u32),
             GeneratedStruct8 {
-                attached: true,
                 powered: true,
                 facing: Direction::South,
+                attached: true,
             } => Ok(8307u32),
             GeneratedStruct8 {
-                attached: true,
                 facing: Direction::South,
                 powered: false,
+                attached: true,
             } => Ok(8308u32),
             GeneratedStruct8 {
-                attached: true,
                 facing: Direction::West,
+                attached: true,
                 powered: true,
             } => Ok(8309u32),
             GeneratedStruct8 {
+                powered: false,
                 attached: true,
                 facing: Direction::West,
-                powered: false,
             } => Ok(8310u32),
             GeneratedStruct8 {
-                powered: true,
                 facing: Direction::East,
+                powered: true,
                 attached: true,
             } => Ok(8311u32),
             GeneratedStruct8 {
-                facing: Direction::East,
                 powered: false,
                 attached: true,
+                facing: Direction::East,
             } => Ok(8312u32),
             GeneratedStruct8 {
-                powered: true,
                 attached: false,
                 facing: Direction::North,
+                powered: true,
             } => Ok(8313u32),
             GeneratedStruct8 {
+                powered: false,
                 facing: Direction::North,
                 attached: false,
-                powered: false,
             } => Ok(8314u32),
             GeneratedStruct8 {
+                attached: false,
                 facing: Direction::South,
                 powered: true,
-                attached: false,
             } => Ok(8315u32),
             GeneratedStruct8 {
+                attached: false,
                 facing: Direction::South,
                 powered: false,
-                attached: false,
             } => Ok(8316u32),
             GeneratedStruct8 {
-                powered: true,
                 attached: false,
                 facing: Direction::West,
+                powered: true,
             } => Ok(8317u32),
             GeneratedStruct8 {
+                facing: Direction::West,
                 attached: false,
                 powered: false,
-                facing: Direction::West,
             } => Ok(8318u32),
             GeneratedStruct8 {
                 facing: Direction::East,
@@ -175,9 +175,9 @@ impl TryInto<u32> for GeneratedStruct8 {
                 powered: true,
             } => Ok(8319u32),
             GeneratedStruct8 {
+                attached: false,
                 facing: Direction::East,
                 powered: false,
-                attached: false,
             } => Ok(8320u32),
             _ => Err(()),
         }

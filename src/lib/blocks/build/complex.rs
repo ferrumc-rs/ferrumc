@@ -6,17 +6,17 @@ use quote::{format_ident, quote};
 use std::collections::HashMap;
 use std::fs;
 
-struct BlockStateConfiguration {
-    name: String,
-    properties: Vec<(String, String)>,
-    values: HashMap<u32, HashMap<String, String>>,
+struct BlockStateConfiguration<'a> {
+    name: &'a str,
+    properties: Vec<(&'a str, &'a str)>,
+    values: HashMap<u32, &'a HashMap<String, String>>,
 }
 
 pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u32, ComplexBlock)>) -> TokenStream {
     let mut missing_types = build_config.property_types
         .values()
         .flatten()
-        .filter(|str| !TYPES.iter().any(|(name, _)| name == &str.as_str()))
+        .filter(|str| !TYPES.iter().any(|(name, _)| *name == str.as_str()))
         .collect::<Vec<_>>();
 
     missing_types.sort();
@@ -26,43 +26,58 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
         panic!("Missing types for {:?}", missing_types);
     }
 
-    let mut configurations: HashMap<String, HashMap<u32, HashMap<String, String>>> = HashMap::new();
-
-    for (id, block) in block_states.into_iter() {
-        let entry = configurations.entry(block.name).or_insert_with(HashMap::new);
-
-        entry.insert(id, block.properties);
-    }
+    let configurations: HashMap<&str, HashMap<u32, &HashMap<String, String>>> = block_states
+        .iter()
+        .map(|(id, block)| {
+            (block.name.as_str(), (*id, &block.properties))
+        })
+        .fold(HashMap::new(), |mut acc, (k, v)| {
+            acc.entry(k).or_insert_with(HashMap::new).insert(v.0, v.1);
+            acc
+        });
 
     let blocks = configurations
         .into_iter()
         .map(|(name, properties)| {
-            let mut property_values = HashMap::new();
+            let property_values = properties
+                .iter()
+                .map(|(_, properties)| {
+                    properties
+                        .into_iter()
+                        .map(|(name, value)| {
+                            let name = name.as_str();
+                            let value = value.as_str();
+                            let possible_types: Vec<&str> = match build_config.property_types.get(name) {
+                                None => panic!("Property type for {name} not found!"),
+                                Some(SingleOrMultiple::Single(ty)) => vec![ty.as_str()],
+                                Some(SingleOrMultiple::Multiple(ty)) => ty.into_iter().map(String::as_str).collect(),
+                            };
 
-            for (_, properties) in properties.iter() {
-                for (name, value) in properties.iter() {
-                    let possible_types = match build_config.property_types.get(name) {
-                        None => panic!("Property type for {} not found!", name),
-                        Some(SingleOrMultiple::Single(ty)) => vec![ty.to_string()],
-                        Some(SingleOrMultiple::Multiple(types)) => types.clone(),
-                    };
+                            (name, (possible_types, value))
+                        })
+                })
+                .flatten()
+                .fold(HashMap::new(), |mut acc, (k, v)| {
+                    acc
+                        .entry(k)
+                        .or_insert_with(|| (v.0, Vec::new()))
+                        .1
+                        .push(v.1);
 
-                    let entry = property_values.entry(name.to_string()).or_insert_with(|| (possible_types, Vec::new()));
+                    acc
+                });
 
-                    entry.1.push(value.to_string());
-                }
-            }
+            let mut property_map: Vec<(&str, &str)> = property_values
+                .into_iter()
+                .map(|(name, (possible_types, values))| {
+                    let property_type = possible_types
+                        .into_iter()
+                        .find(|ty| values.iter().all(|value| (property_descriptor_of(ty).matches_values)(value)))
+                        .unwrap_or_else(|| panic!("Failed to find property type for values {values:?}"));
 
-            let mut property_map = Vec::new();
-
-            for (name, (possible_types, values)) in property_values {
-                let property_type = possible_types
-                    .into_iter()
-                    .find(|ty| values.iter().all(|value| (property_descriptor_of(ty.as_str()).matches_values)(value.as_str())))
-                    .unwrap_or_else(|| panic!("Failed to find property type for values {values:?}"));
-
-                property_map.push((name, property_type));
-            }
+                    (name, property_type)
+                })
+                .collect();
 
             property_map.sort();
 
@@ -76,89 +91,95 @@ pub fn generate_complex_blocks(build_config: &BuildConfig, block_states: Vec<(u3
 
     let mut configs = blocks
         .iter()
-        .map(|block| &block.properties)
+        .map(|block| block.properties.as_slice())
         .collect::<Vec<_>>();
 
     configs.sort();
     configs.dedup();
 
-    let mut structs = Vec::with_capacity(blocks.len());
+    let structs = configs
+        .into_iter()
+        .enumerate()
+        .map(|(i, config)| {
+            let blocks = blocks
+                .iter()
+                .filter(|block| &block.properties == config)
+                .collect::<Vec<_>>();
 
-    for config in configs {
-        let blocks = blocks
-            .iter()
-            .filter(|block| {
-                &block.properties == config
-            })
-            .collect::<Vec<_>>();
-
-        let field = config.iter().map(|(name, _)| {
-            if name == "type" {
-                format_ident!("ty")
-            } else {
-                format_ident!("{}", name)
-            }
-        }).collect::<Vec<_>>();
-        let types = config.iter().map(|(_, value)| format_ident!("{}", value)).collect::<Vec<_>>();
-
-        let struct_name = struct_name(build_config, structs.len(), config.as_slice());
-
-        match blocks.len() {
-            0 => continue,
-            1 => {
-                let trait_impl = generate_trait_impls(&struct_name, None, &blocks);
-
-                structs.push((struct_name.clone(), quote! {
-                    #[allow(dead_code)]
-                    pub struct #struct_name {
-                        #(
-                            pub #field: #types,
-                        )*
+            let fields = config
+                .iter()
+                .map(|(name, _)| {
+                    match *name {
+                        "type" => format_ident!("ty"),
+                        str => format_ident!("{str}"),
                     }
+                })
+                .collect::<Vec<_>>();
 
-                    #trait_impl
-                }));
-            },
-            _ => {
-                let mut variants = Vec::with_capacity(blocks.len());
-                for BlockStateConfiguration { name, .. } in &blocks {
-                    let variant = format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name.as_str()).to_pascal_case());
-                    variants.push(variant);
+            let types = config
+                .iter()
+                .map(|(_, value)| format_ident!("{value}"))
+                .collect::<Vec<_>>();
+
+            let struct_name = struct_name(build_config, i, config);
+
+            match blocks.len() {
+                0 => panic!("No blocks for {struct_name}"),
+                1 => {
+                    let trait_impl = generate_trait_impls(&struct_name, None, &blocks);
+
+                    (quote! {
+                        #[allow(dead_code)]
+                        pub struct #struct_name {
+                            #(
+                                pub #fields: #types,
+                            )*
+                        }
+
+                        #trait_impl
+                    }, struct_name)
+                },
+                _ => {
+                    let mut variants = blocks
+                        .iter()
+                        .map(|BlockStateConfiguration { name, .. }| {
+                            format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name).to_pascal_case())
+                        })
+                        .collect::<Vec<_>>();
+
+                    variants.sort();
+
+                    let enum_name = format_ident!("{}Type", struct_name);
+                    let trait_impl = generate_trait_impls(&struct_name, Some((&enum_name, &variants)), &blocks);
+
+                    (quote! {
+                        #[allow(dead_code)]
+                        pub enum #enum_name {
+                            #(
+                                #variants,
+                            )*
+                        }
+
+                        #[allow(dead_code)]
+                        pub struct #struct_name {
+                            pub block_type: #enum_name,
+                            #(
+                                pub #fields: #types,
+                            )*
+                        }
+
+                        #trait_impl
+                    }, struct_name)
                 }
-
-                variants.sort();
-
-                let enum_name = format_ident!("{}Type", struct_name);
-
-                let trait_impl = generate_trait_impls(&struct_name, Some((&enum_name, &variants)), &blocks);
-
-                structs.push((struct_name.clone(), quote! {
-                    #[allow(dead_code)]
-                    pub enum #enum_name {
-                        #(
-                            #variants,
-                        )*
-                    }
-
-                    #[allow(dead_code)]
-                    pub struct #struct_name {
-                        pub block_type: #enum_name,
-                        #(
-                            pub #field: #types,
-                        )*
-                    }
-
-                    #trait_impl
-                }));
             }
-        }
-    }
+        })
+        .collect::<Vec<_>>();
 
     let mut modules = TokenStream::new();
 
     fs::remove_dir_all("src/blocks").unwrap();
 
-    for (struct_name, tokens) in structs {
+    for (tokens, struct_name) in structs {
         let name = format_ident!("{}", struct_name.to_string().to_snake_case());
         let tokens = quote! {
             #[allow(unused_imports)]
@@ -198,7 +219,7 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
 
             values.iter()
                 .map(|BlockStateConfiguration { name, properties, values }| {
-                    let name_ident = format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name.as_str()).to_pascal_case());
+                    let name_ident = format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name).to_pascal_case());
 
                     match enum_variants.iter().find(|variant| *variant == &name_ident) {
                         Some(variant) => {
@@ -216,7 +237,7 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                                     }).collect::<Vec<_>>();
                                     let values = values.iter().map(|(name, value)| {
                                         let ty = &properties.iter().find(|(name1, _)| name == name1).unwrap().1;
-                                        (property_descriptor_of(ty.as_str()).ident_for)(value.as_str())
+                                        (property_descriptor_of(ty).ident_for)(value.as_str())
                                     }).collect::<Vec<_>>();
 
                                     (
@@ -251,7 +272,7 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
                     }).collect::<Vec<_>>();
                     let values = values.iter().map(|(name, value)| {
                         let ty = &properties.iter().find(|(name1, _)| name == name1).unwrap().1;
-                        (property_descriptor_of(ty.as_str()).ident_for)(value.as_str())
+                        (property_descriptor_of(ty).ident_for)(value.as_str())
                     }).collect::<Vec<_>>();
 
                     (
@@ -293,8 +314,8 @@ fn generate_trait_impls(struct_name: &Ident, enum_name: Option<(&Ident, &[Ident]
     }
 }
 
-fn struct_name(config: &BuildConfig, num_structs: usize, properties: &[(String, String)]) -> Ident {
-    let prop_str = properties.into_iter().map(|(name, _)| name).cloned().collect::<Vec<_>>();
+fn struct_name(config: &BuildConfig, num_structs: usize, properties: &[(&str, &str)]) -> Ident {
+    let prop_str = properties.iter().map(|(name, _)| *name).collect::<Vec<_>>();
     let prop_str = prop_str.join("+");
 
     match config.name_overrides.iter().find(|(key, _)| {

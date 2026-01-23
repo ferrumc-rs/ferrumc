@@ -14,8 +14,8 @@ impl TryFrom<u32> for GeneratedStruct36 {
                 facing: Direction::Down,
             }),
             10035u32 => Ok(GeneratedStruct36 {
-                facing: Direction::North,
                 enabled: true,
+                facing: Direction::North,
             }),
             10036u32 => Ok(GeneratedStruct36 {
                 enabled: true,
@@ -30,24 +30,24 @@ impl TryFrom<u32> for GeneratedStruct36 {
                 facing: Direction::East,
             }),
             10039u32 => Ok(GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::Down,
+                enabled: false,
             }),
             10040u32 => Ok(GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::North,
+                enabled: false,
             }),
             10041u32 => Ok(GeneratedStruct36 {
-                facing: Direction::South,
                 enabled: false,
+                facing: Direction::South,
             }),
             10042u32 => Ok(GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::West,
+                enabled: false,
             }),
             10043u32 => Ok(GeneratedStruct36 {
-                facing: Direction::East,
                 enabled: false,
+                facing: Direction::East,
             }),
             _ => Err(()),
         }
@@ -63,8 +63,8 @@ impl TryInto<u32> for GeneratedStruct36 {
                 facing: Direction::Down,
             } => Ok(10034u32),
             GeneratedStruct36 {
-                facing: Direction::North,
                 enabled: true,
+                facing: Direction::North,
             } => Ok(10035u32),
             GeneratedStruct36 {
                 enabled: true,
@@ -79,24 +79,24 @@ impl TryInto<u32> for GeneratedStruct36 {
                 facing: Direction::East,
             } => Ok(10038u32),
             GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::Down,
+                enabled: false,
             } => Ok(10039u32),
             GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::North,
+                enabled: false,
             } => Ok(10040u32),
             GeneratedStruct36 {
-                facing: Direction::South,
                 enabled: false,
+                facing: Direction::South,
             } => Ok(10041u32),
             GeneratedStruct36 {
-                enabled: false,
                 facing: Direction::West,
+                enabled: false,
             } => Ok(10042u32),
             GeneratedStruct36 {
-                facing: Direction::East,
                 enabled: false,
+                facing: Direction::East,
             } => Ok(10043u32),
             _ => Err(()),
         }

@@ -22,16 +22,16 @@ impl TryFrom<u32> for GeneratedStruct39 {
                 facing: Direction::West,
             }),
             19464u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Floor,
                 facing: Direction::East,
+                face: AttachFace::Floor,
             }),
             19465u32 => Ok(GeneratedStruct39 {
-                facing: Direction::North,
                 face: AttachFace::Wall,
+                facing: Direction::North,
             }),
             19466u32 => Ok(GeneratedStruct39 {
-                facing: Direction::South,
                 face: AttachFace::Wall,
+                facing: Direction::South,
             }),
             19467u32 => Ok(GeneratedStruct39 {
                 face: AttachFace::Wall,
@@ -42,20 +42,20 @@ impl TryFrom<u32> for GeneratedStruct39 {
                 facing: Direction::East,
             }),
             19469u32 => Ok(GeneratedStruct39 {
-                facing: Direction::North,
                 face: AttachFace::Ceiling,
+                facing: Direction::North,
             }),
             19470u32 => Ok(GeneratedStruct39 {
-                facing: Direction::South,
                 face: AttachFace::Ceiling,
+                facing: Direction::South,
             }),
             19471u32 => Ok(GeneratedStruct39 {
                 facing: Direction::West,
                 face: AttachFace::Ceiling,
             }),
             19472u32 => Ok(GeneratedStruct39 {
-                face: AttachFace::Ceiling,
                 facing: Direction::East,
+                face: AttachFace::Ceiling,
             }),
             _ => Err(()),
         }
@@ -79,16 +79,16 @@ impl TryInto<u32> for GeneratedStruct39 {
                 facing: Direction::West,
             } => Ok(19463u32),
             GeneratedStruct39 {
-                face: AttachFace::Floor,
                 facing: Direction::East,
+                face: AttachFace::Floor,
             } => Ok(19464u32),
             GeneratedStruct39 {
-                facing: Direction::North,
                 face: AttachFace::Wall,
+                facing: Direction::North,
             } => Ok(19465u32),
             GeneratedStruct39 {
-                facing: Direction::South,
                 face: AttachFace::Wall,
+                facing: Direction::South,
             } => Ok(19466u32),
             GeneratedStruct39 {
                 face: AttachFace::Wall,
@@ -99,20 +99,20 @@ impl TryInto<u32> for GeneratedStruct39 {
                 facing: Direction::East,
             } => Ok(19468u32),
             GeneratedStruct39 {
-                facing: Direction::North,
                 face: AttachFace::Ceiling,
+                facing: Direction::North,
             } => Ok(19469u32),
             GeneratedStruct39 {
-                facing: Direction::South,
                 face: AttachFace::Ceiling,
+                facing: Direction::South,
             } => Ok(19470u32),
             GeneratedStruct39 {
                 facing: Direction::West,
                 face: AttachFace::Ceiling,
             } => Ok(19471u32),
             GeneratedStruct39 {
-                face: AttachFace::Ceiling,
                 facing: Direction::East,
+                face: AttachFace::Ceiling,
             } => Ok(19472u32),
             _ => Err(()),
         }

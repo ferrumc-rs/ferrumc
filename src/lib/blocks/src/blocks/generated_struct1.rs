@@ -14,16 +14,16 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: true,
             }),
             25798u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 0i32,
+                berries: false,
             }),
             25799u32 => Ok(GeneratedStruct1 {
                 age: 1i32,
                 berries: true,
             }),
             25800u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 1i32,
+                berries: false,
             }),
             25801u32 => Ok(GeneratedStruct1 {
                 berries: true,
@@ -42,20 +42,20 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: false,
             }),
             25805u32 => Ok(GeneratedStruct1 {
-                age: 4i32,
                 berries: true,
+                age: 4i32,
             }),
             25806u32 => Ok(GeneratedStruct1 {
                 berries: false,
                 age: 4i32,
             }),
             25807u32 => Ok(GeneratedStruct1 {
-                age: 5i32,
                 berries: true,
+                age: 5i32,
             }),
             25808u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 5i32,
+                berries: false,
             }),
             25809u32 => Ok(GeneratedStruct1 {
                 age: 6i32,
@@ -66,12 +66,12 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: false,
             }),
             25811u32 => Ok(GeneratedStruct1 {
-                age: 7i32,
                 berries: true,
+                age: 7i32,
             }),
             25812u32 => Ok(GeneratedStruct1 {
-                age: 7i32,
                 berries: false,
+                age: 7i32,
             }),
             25813u32 => Ok(GeneratedStruct1 {
                 berries: true,
@@ -82,12 +82,12 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: false,
             }),
             25815u32 => Ok(GeneratedStruct1 {
-                berries: true,
                 age: 9i32,
+                berries: true,
             }),
             25816u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 9i32,
+                berries: false,
             }),
             25817u32 => Ok(GeneratedStruct1 {
                 berries: true,
@@ -102,12 +102,12 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 age: 11i32,
             }),
             25820u32 => Ok(GeneratedStruct1 {
-                age: 11i32,
                 berries: false,
+                age: 11i32,
             }),
             25821u32 => Ok(GeneratedStruct1 {
-                age: 12i32,
                 berries: true,
+                age: 12i32,
             }),
             25822u32 => Ok(GeneratedStruct1 {
                 age: 12i32,
@@ -126,8 +126,8 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 age: 14i32,
             }),
             25826u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 14i32,
+                berries: false,
             }),
             25827u32 => Ok(GeneratedStruct1 {
                 berries: true,
@@ -138,8 +138,8 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: false,
             }),
             25829u32 => Ok(GeneratedStruct1 {
-                age: 16i32,
                 berries: true,
+                age: 16i32,
             }),
             25830u32 => Ok(GeneratedStruct1 {
                 age: 16i32,
@@ -150,16 +150,16 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 age: 17i32,
             }),
             25832u32 => Ok(GeneratedStruct1 {
-                age: 17i32,
                 berries: false,
+                age: 17i32,
             }),
             25833u32 => Ok(GeneratedStruct1 {
                 berries: true,
                 age: 18i32,
             }),
             25834u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 18i32,
+                berries: false,
             }),
             25835u32 => Ok(GeneratedStruct1 {
                 age: 19i32,
@@ -174,20 +174,20 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: true,
             }),
             25838u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 20i32,
+                berries: false,
             }),
             25839u32 => Ok(GeneratedStruct1 {
-                age: 21i32,
                 berries: true,
+                age: 21i32,
             }),
             25840u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 21i32,
+                berries: false,
             }),
             25841u32 => Ok(GeneratedStruct1 {
-                age: 22i32,
                 berries: true,
+                age: 22i32,
             }),
             25842u32 => Ok(GeneratedStruct1 {
                 age: 22i32,
@@ -198,8 +198,8 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 berries: true,
             }),
             25844u32 => Ok(GeneratedStruct1 {
-                berries: false,
                 age: 23i32,
+                berries: false,
             }),
             25845u32 => Ok(GeneratedStruct1 {
                 berries: true,
@@ -210,8 +210,8 @@ impl TryFrom<u32> for GeneratedStruct1 {
                 age: 24i32,
             }),
             25847u32 => Ok(GeneratedStruct1 {
-                age: 25i32,
                 berries: true,
+                age: 25i32,
             }),
             25848u32 => Ok(GeneratedStruct1 {
                 berries: false,
@@ -231,16 +231,16 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: true,
             } => Ok(25797u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 0i32,
+                berries: false,
             } => Ok(25798u32),
             GeneratedStruct1 {
                 age: 1i32,
                 berries: true,
             } => Ok(25799u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 1i32,
+                berries: false,
             } => Ok(25800u32),
             GeneratedStruct1 {
                 berries: true,
@@ -259,20 +259,20 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: false,
             } => Ok(25804u32),
             GeneratedStruct1 {
-                age: 4i32,
                 berries: true,
+                age: 4i32,
             } => Ok(25805u32),
             GeneratedStruct1 {
                 berries: false,
                 age: 4i32,
             } => Ok(25806u32),
             GeneratedStruct1 {
-                age: 5i32,
                 berries: true,
+                age: 5i32,
             } => Ok(25807u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 5i32,
+                berries: false,
             } => Ok(25808u32),
             GeneratedStruct1 {
                 age: 6i32,
@@ -283,12 +283,12 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: false,
             } => Ok(25810u32),
             GeneratedStruct1 {
-                age: 7i32,
                 berries: true,
+                age: 7i32,
             } => Ok(25811u32),
             GeneratedStruct1 {
-                age: 7i32,
                 berries: false,
+                age: 7i32,
             } => Ok(25812u32),
             GeneratedStruct1 {
                 berries: true,
@@ -299,12 +299,12 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: false,
             } => Ok(25814u32),
             GeneratedStruct1 {
-                berries: true,
                 age: 9i32,
+                berries: true,
             } => Ok(25815u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 9i32,
+                berries: false,
             } => Ok(25816u32),
             GeneratedStruct1 {
                 berries: true,
@@ -319,12 +319,12 @@ impl TryInto<u32> for GeneratedStruct1 {
                 age: 11i32,
             } => Ok(25819u32),
             GeneratedStruct1 {
-                age: 11i32,
                 berries: false,
+                age: 11i32,
             } => Ok(25820u32),
             GeneratedStruct1 {
-                age: 12i32,
                 berries: true,
+                age: 12i32,
             } => Ok(25821u32),
             GeneratedStruct1 {
                 age: 12i32,
@@ -343,8 +343,8 @@ impl TryInto<u32> for GeneratedStruct1 {
                 age: 14i32,
             } => Ok(25825u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 14i32,
+                berries: false,
             } => Ok(25826u32),
             GeneratedStruct1 {
                 berries: true,
@@ -355,8 +355,8 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: false,
             } => Ok(25828u32),
             GeneratedStruct1 {
-                age: 16i32,
                 berries: true,
+                age: 16i32,
             } => Ok(25829u32),
             GeneratedStruct1 {
                 age: 16i32,
@@ -367,16 +367,16 @@ impl TryInto<u32> for GeneratedStruct1 {
                 age: 17i32,
             } => Ok(25831u32),
             GeneratedStruct1 {
-                age: 17i32,
                 berries: false,
+                age: 17i32,
             } => Ok(25832u32),
             GeneratedStruct1 {
                 berries: true,
                 age: 18i32,
             } => Ok(25833u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 18i32,
+                berries: false,
             } => Ok(25834u32),
             GeneratedStruct1 {
                 age: 19i32,
@@ -391,20 +391,20 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: true,
             } => Ok(25837u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 20i32,
+                berries: false,
             } => Ok(25838u32),
             GeneratedStruct1 {
-                age: 21i32,
                 berries: true,
+                age: 21i32,
             } => Ok(25839u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 21i32,
+                berries: false,
             } => Ok(25840u32),
             GeneratedStruct1 {
-                age: 22i32,
                 berries: true,
+                age: 22i32,
             } => Ok(25841u32),
             GeneratedStruct1 {
                 age: 22i32,
@@ -415,8 +415,8 @@ impl TryInto<u32> for GeneratedStruct1 {
                 berries: true,
             } => Ok(25843u32),
             GeneratedStruct1 {
-                berries: false,
                 age: 23i32,
+                berries: false,
             } => Ok(25844u32),
             GeneratedStruct1 {
                 berries: true,
@@ -427,8 +427,8 @@ impl TryInto<u32> for GeneratedStruct1 {
                 age: 24i32,
             } => Ok(25846u32),
             GeneratedStruct1 {
-                age: 25i32,
                 berries: true,
+                age: 25i32,
             } => Ok(25847u32),
             GeneratedStruct1 {
                 berries: false,

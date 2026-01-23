@@ -22,8 +22,8 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20426u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 1i32,
                 facing: Direction::North,
+                honey_level: 1i32,
             }),
             20427u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -37,8 +37,8 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20429u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::North,
                 honey_level: 4i32,
+                facing: Direction::North,
             }),
             20430u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -47,8 +47,8 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20431u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 0i32,
                 facing: Direction::South,
+                honey_level: 0i32,
             }),
             20432u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -62,18 +62,18 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20434u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::South,
                 honey_level: 3i32,
+                facing: Direction::South,
             }),
             20435u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::South,
                 honey_level: 4i32,
+                facing: Direction::South,
             }),
             20436u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::South,
                 honey_level: 5i32,
+                facing: Direction::South,
             }),
             20437u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -82,8 +82,8 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20438u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 1i32,
                 facing: Direction::West,
+                honey_level: 1i32,
             }),
             20439u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -102,8 +102,8 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20442u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 5i32,
                 facing: Direction::West,
+                honey_level: 5i32,
             }),
             20443u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -122,18 +122,18 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20446u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 3i32,
                 facing: Direction::East,
+                honey_level: 3i32,
             }),
             20447u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 4i32,
                 facing: Direction::East,
+                honey_level: 4i32,
             }),
             20448u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::East,
                 honey_level: 5i32,
+                facing: Direction::East,
             }),
             20449u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -142,13 +142,13 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20450u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::North,
                 honey_level: 1i32,
+                facing: Direction::North,
             }),
             20451u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 2i32,
                 facing: Direction::North,
+                honey_level: 2i32,
             }),
             20452u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -162,8 +162,8 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20454u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 5i32,
                 facing: Direction::North,
+                honey_level: 5i32,
             }),
             20455u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -187,23 +187,23 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20459u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::South,
                 honey_level: 4i32,
+                facing: Direction::South,
             }),
             20460u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 5i32,
                 facing: Direction::South,
+                honey_level: 5i32,
             }),
             20461u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::West,
                 honey_level: 0i32,
+                facing: Direction::West,
             }),
             20462u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::West,
                 honey_level: 1i32,
+                facing: Direction::West,
             }),
             20463u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -237,23 +237,23 @@ impl TryFrom<u32> for GeneratedStruct48 {
             }),
             20469u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 2i32,
                 facing: Direction::East,
+                honey_level: 2i32,
             }),
             20470u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 3i32,
                 facing: Direction::East,
+                honey_level: 3i32,
             }),
             20471u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::East,
                 honey_level: 4i32,
+                facing: Direction::East,
             }),
             20472u32 => Ok(GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::East,
                 honey_level: 5i32,
+                facing: Direction::East,
             }),
             _ => Err(()),
         }
@@ -271,8 +271,8 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20425u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 1i32,
                 facing: Direction::North,
+                honey_level: 1i32,
             } => Ok(20426u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -286,8 +286,8 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20428u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::North,
                 honey_level: 4i32,
+                facing: Direction::North,
             } => Ok(20429u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -296,8 +296,8 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20430u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 0i32,
                 facing: Direction::South,
+                honey_level: 0i32,
             } => Ok(20431u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -311,18 +311,18 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20433u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::South,
                 honey_level: 3i32,
+                facing: Direction::South,
             } => Ok(20434u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::South,
                 honey_level: 4i32,
+                facing: Direction::South,
             } => Ok(20435u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::South,
                 honey_level: 5i32,
+                facing: Direction::South,
             } => Ok(20436u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -331,8 +331,8 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20437u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 1i32,
                 facing: Direction::West,
+                honey_level: 1i32,
             } => Ok(20438u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -351,8 +351,8 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20441u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 5i32,
                 facing: Direction::West,
+                honey_level: 5i32,
             } => Ok(20442u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
@@ -371,18 +371,18 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20445u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 3i32,
                 facing: Direction::East,
+                honey_level: 3i32,
             } => Ok(20446u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                honey_level: 4i32,
                 facing: Direction::East,
+                honey_level: 4i32,
             } => Ok(20447u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::BeeNest,
-                facing: Direction::East,
                 honey_level: 5i32,
+                facing: Direction::East,
             } => Ok(20448u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -391,13 +391,13 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20449u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::North,
                 honey_level: 1i32,
+                facing: Direction::North,
             } => Ok(20450u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 2i32,
                 facing: Direction::North,
+                honey_level: 2i32,
             } => Ok(20451u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -411,8 +411,8 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20453u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 5i32,
                 facing: Direction::North,
+                honey_level: 5i32,
             } => Ok(20454u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -436,23 +436,23 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20458u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::South,
                 honey_level: 4i32,
+                facing: Direction::South,
             } => Ok(20459u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 5i32,
                 facing: Direction::South,
+                honey_level: 5i32,
             } => Ok(20460u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::West,
                 honey_level: 0i32,
+                facing: Direction::West,
             } => Ok(20461u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::West,
                 honey_level: 1i32,
+                facing: Direction::West,
             } => Ok(20462u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
@@ -486,23 +486,23 @@ impl TryInto<u32> for GeneratedStruct48 {
             } => Ok(20468u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 2i32,
                 facing: Direction::East,
+                honey_level: 2i32,
             } => Ok(20469u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                honey_level: 3i32,
                 facing: Direction::East,
+                honey_level: 3i32,
             } => Ok(20470u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::East,
                 honey_level: 4i32,
+                facing: Direction::East,
             } => Ok(20471u32),
             GeneratedStruct48 {
                 block_type: GeneratedStruct48Type::Beehive,
-                facing: Direction::East,
                 honey_level: 5i32,
+                facing: Direction::East,
             } => Ok(20472u32),
             _ => Err(()),
         }
