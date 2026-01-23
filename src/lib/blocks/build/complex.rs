@@ -1,10 +1,12 @@
 use crate::{BuildConfig, ComplexBlock, SingleOrMultiple};
 use ferrumc_block_properties::{PropertyDescriptor, TYPES};
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 use std::collections::HashMap;
+use heck::ToPascalCase;
 
 struct BlockStateConfiguration {
+    name: String,
     properties: HashMap<String, String>,
     values: HashMap<u32, HashMap<String, String>>,
 }
@@ -31,24 +33,71 @@ pub fn generate_complex_blocks(config: &BuildConfig, block_states: Vec<(u32, Com
         entry.insert(id, block.properties);
     }
 
-    for (_, properties) in configurations.iter() {
-        for (_, properties) in properties.iter() {
-            for (name, _) in properties.iter() {
-                match config.property_types.get(name) {
-                    None => {
-                        panic!("Property type for {} not found!", name)
-                    },
-                    Some(SingleOrMultiple::Single(property)) => {
-                        (property_descriptor_of(property.as_str()).print_name)()
-                    },
-                    _ => {}
+    let blocks = configurations
+        .into_iter()
+        .map(|(name, properties)| {
+            let mut property_values = HashMap::new();
+
+            for (_, properties) in properties.iter() {
+                for (name, value) in properties.iter() {
+                    let possible_types = match config.property_types.get(name) {
+                        None => panic!("Property type for {} not found!", name),
+                        Some(SingleOrMultiple::Single(ty)) => vec![ty.to_string()],
+                        Some(SingleOrMultiple::Multiple(types)) => types.clone(),
+                    };
+
+                    let entry = property_values.entry(name.to_string()).or_insert_with(|| (possible_types, Vec::new()));
+
+                    entry.1.push(value.to_string());
                 }
             }
-        }
+
+            let mut property_map = HashMap::new();
+
+            for (name, (possible_types, values)) in property_values {
+                let property_type = possible_types
+                    .into_iter()
+                    .find(|ty| values.iter().all(|value| (property_descriptor_of(ty.as_str()).matches_values)(value.as_str())))
+                    .unwrap_or_else(|| panic!("Failed to find property type for values {values:?}"));
+
+                property_map.insert(name, property_type);
+            }
+
+            BlockStateConfiguration {
+                name,
+                properties: property_map,
+                values: properties
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let mut structs = Vec::with_capacity(blocks.len());
+
+    for BlockStateConfiguration { name, properties, .. } in &blocks {
+        let struct_name = format_ident!("GeneratedBlock_{}", name.strip_prefix("minecraft:").unwrap_or(name.as_str()).to_pascal_case());
+
+        let field = properties.keys().into_iter().map(|name| {
+            if name == "type" {
+                format_ident!("ty")
+            } else {
+                format_ident!("{}", name)
+            }
+        }).collect::<Vec<_>>();
+        let types = properties.values().into_iter().map(|properties| format_ident!("{}", properties)).collect::<Vec<_>>();
+
+        structs.push(quote! {
+            #[allow(non_camel_case_types, dead_code)]
+            pub struct #struct_name {
+                #(
+                    #field: #types,
+                )*
+            }
+        });
     }
 
     quote! {
-        // TODO
+        use ferrumc_block_properties::*;
+        #(#structs)*
     }
 }
 

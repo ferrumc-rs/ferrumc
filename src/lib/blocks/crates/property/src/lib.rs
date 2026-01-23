@@ -11,10 +11,10 @@ pub use note_block_instrument::NoteBlockInstrument;
 #[cfg(feature = "block-struct-generation")]
 pub const TYPES: &[(&str, PropertyDescriptor)] = &[
     ("i32", PropertyDescriptor {
-        print_name: || println!("i32"),
+        matches_values: |str| str.parse::<i32>().is_ok(),
     }),
     ("bool", PropertyDescriptor {
-        print_name: || println!("bool"),
+        matches_values: |str| matches!(str, "true" | "false"),
     }),
     ("AttachFace", AttachFace::DESCRIPTOR),
     ("Axis", Axis::DESCRIPTOR),
@@ -49,7 +49,7 @@ pub const TYPES: &[(&str, PropertyDescriptor)] = &[
 
 #[cfg(feature = "block-struct-generation")]
 pub struct PropertyDescriptor {
-    pub print_name: fn(),
+    pub matches_values: fn(&str) -> bool,
 }
 
 /// Marker trait for types that can be used as block state property values
@@ -73,11 +73,11 @@ macro_rules! enum_property {
         #[cfg(feature = "block-struct-generation")]
         impl $name {
             pub const DESCRIPTOR: $crate::PropertyDescriptor = $crate::PropertyDescriptor {
-                print_name: Self::print_name,
+                matches_values: Self::matches_values,
             };
 
-            fn print_name() {
-                println!("{}", stringify!($name));
+            fn matches_values(str: &str) -> bool {
+                matches!(str, $($variant_str)|*)
             }
         }
 
