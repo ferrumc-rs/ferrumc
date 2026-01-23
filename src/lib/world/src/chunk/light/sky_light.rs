@@ -2,22 +2,16 @@ use crate::block_state_id::BlockStateId;
 use crate::chunk::light::engine::{LightEngineError, LightResult, PROPAGATION_DIRECTIONS};
 use crate::chunk::light::{
     engine::{LightEngine, LightNode},
-    storage::LightStorage,
-    LightSection, LightType,
+    LightType,
 };
 use crate::chunk::Chunk;
-use crate::pos::{BlockPos, ChunkBlockPos, ChunkPos, SectionBlockPos};
-use ahash::{HashSet, HashSetExt};
-use bevy_math::U8Vec3;
+use crate::pos::{BlockPos, ChunkBlockPos, ChunkPos};
 use std::collections::VecDeque;
-use tracing::debug;
 
 #[derive(Clone)]
 pub struct SkyLightEngine {
     inc: VecDeque<LightNode>,
     dec: VecDeque<LightNode>,
-
-    dirty_chunks: HashSet<ChunkPos>,
 
     min_world_y: i32,
     max_world_y: i32,
@@ -34,7 +28,6 @@ impl SkyLightEngine {
         Self {
             inc: VecDeque::with_capacity(4096),
             dec: VecDeque::with_capacity(4096),
-            dirty_chunks: HashSet::new(),
             min_world_y,
             max_world_y,
         }
@@ -61,6 +54,7 @@ impl SkyLightEngine {
 
         // Step 3: Horizontal propagation from all lit blocks.
         self.propagate_horizontal_skylight(chunk, chunk_pos)?;
+
         Ok(())
     }
 
@@ -116,6 +110,8 @@ impl SkyLightEngine {
                         ),
                     )?;
 
+                    // If y is above the heightmap, set skylight to 15
+                    // If not find opacity of block and set skylight accordingly
                     if y > height as i32 {
                         section
                             .light
@@ -415,9 +411,19 @@ impl SkyLightEngine {
         Ok(())
     }
 
-    fn get_skylight(&self, chunk: &Chunk, pos: &BlockPos) -> Option<u8> {
-        None
+    fn get_skylight(&self, chunk: &Chunk, pos: &ChunkBlockPos) -> Option<u8> {
+        chunk.get_section(*pos).map(|section| {
+            section
+                .light
+                .get_light(pos.section_block_pos(), LightType::Sky)
+        })
     }
 
-    fn set_skylight(&mut self, chunk: &mut Chunk, pos: BlockPos, value: u8) {}
+    fn set_skylight(&mut self, chunk: &mut Chunk, pos: &ChunkBlockPos, level: u8) {
+        if let Some(section) = chunk.get_section_mut(*pos) {
+            section
+                .light
+                .set_light(pos.section_block_pos(), level, LightType::Sky);
+        }
+    }
 }

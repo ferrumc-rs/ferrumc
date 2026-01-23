@@ -12,7 +12,7 @@ use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::time::Instant;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 /// Creates the initial server state with all required components.
 pub fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {

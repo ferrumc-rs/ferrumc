@@ -5,6 +5,7 @@ use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::ops::Not;
+use tracing::debug;
 
 const FULL_SECTION_LIGHT: &[u8] = &[u8::MAX; 2048];
 const NUM_SECTIONS: usize = 24;
