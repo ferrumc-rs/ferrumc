@@ -21,7 +21,6 @@ ferrumc-config = { workspace = true, features = ["dashboard"] }
 
 [build-dependencies]
 reqwest = { workspace = true, features = ["blocking"] }
-simd-json = { workspace = true }
 
 anyhow = "1.0"
-zip = "7.0"
+zip = { version = "7.2.0", default-features = false, features = ["deflate"] }

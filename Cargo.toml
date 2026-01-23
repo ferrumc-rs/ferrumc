@@ -127,7 +127,6 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-data = { path = "src/lib/data" }
 ferrumc-components = { path = "src/lib/components" }
-ferrumc-events = { path = "src/lib/events" }
 ferrumc-dashboard = { path = "src/lib/dashboard" }
 ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-entities = { path = "src/lib/entities" }
@@ -135,7 +134,7 @@ ferrumc-physics = { path = "src/lib/physics" }
 ferrumc-particles = { path = "src/lib/particles" }
 
 # Asynchronous
-tokio = { version = "1.48.0", features = [
+tokio = { version = "1.49.0", features = [
     "macros",
     "net",
     "rt",
@@ -215,8 +214,6 @@ dhat = "0.3.3"
 ctor = "0.6.3"
 
 # Compression/Decompression
-flate2 = { version = "1.1.5", features = ["zlib"], default-features = false }
-lzzzz = "2.0.0"
 yazi = "0.2.1"
 
 # Database
@@ -268,12 +265,17 @@ rustflags = ["-Zhint-mostly-unused"]
 
 [profile.dev.package.windows]
 rustflags = ["-Zhint-mostly-unused"]
+opt-level = 0
 
 [profile.dev.package.windows-sys]
 rustflags = ["-Zhint-mostly-unused"]
+opt-level = 0
 
 [profile.dev.package.tokio]
 rustflags = ["-Zhint-mostly-unused"]
 
 [profile.dev.package.glam]
+rustflags = ["-Zhint-mostly-unused"]
+
+[profile.dev.package.reqwest]
 rustflags = ["-Zhint-mostly-unused"]
