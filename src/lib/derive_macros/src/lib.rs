@@ -1,4 +1,4 @@
-#![feature(proc_macro_quote)]
+extern crate alloc;
 
 use block::matches;
 use proc_macro::TokenStream;
@@ -11,6 +11,7 @@ mod net;
 mod profiling;
 mod registries_packets;
 mod static_loading;
+mod misc;
 
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -141,4 +142,22 @@ pub fn block(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn match_block(input: TokenStream) -> TokenStream {
     matches::matches_block(input)
+}
+
+
+/// Derive macro to get the discriminant value of an enum as an i32.
+/// Usage:
+/// ```ignore
+/// #[derive(Discriminant)]
+/// enum MyEnum {
+///     VariantA,
+///     VariantB { field: u32 },
+///     VariantC(u8, u8),
+/// }
+/// let value = MyEnum::VariantB { field: 42 }.discriminant();
+/// assert_eq!(value, 1); // VariantB is the second variant, so its discriminant is 1.
+/// ```
+#[proc_macro_derive(Discriminant)]
+pub fn enum_discriminant(input: TokenStream) -> TokenStream {
+    misc::discriminant::enum_discriminant_derive(input)
 }

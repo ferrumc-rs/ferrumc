@@ -185,7 +185,7 @@ base64 = "0.22.1"
 
 bitcode = "0.6.9"
 bitcode_derive = "0.6.9"
-toml = "0.9.11+spec-1.1.0"
+toml = "0.9.11"
 craftflow-nbt = "2.1.0"
 figment = { version = "0.10.19", features = ["toml", "env"] }
 simd-json = "0.17.0"
@@ -203,13 +203,12 @@ bimap = "0.6.3"
 
 # Macros
 lazy_static = "1.5.0"
-quote = "1.0.42"
-syn = "2.0.112"
-proc-macro2 = "1.0.104"
+quote = "1.0.44"
+syn = { version = "2.0.114", features = ["extra-traits"] }
+proc-macro2 = "1.0.106"
 paste = "1.0.15"
 maplit = "1.0.2"
 macro_rules_attribute = "0.2.2"
-enum_discriminant = "1.0.1"
 
 # Magic
 dhat = "0.3.3"

@@ -8,7 +8,7 @@ ferrumc-world = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-inventories = { workspace = true }
-enum_discriminant = { workspace = true }
+ferrumc-macros = { workspace = true }
 tokio = { workspace = true }
 
 [lints]
