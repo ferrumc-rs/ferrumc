@@ -163,7 +163,7 @@ crossbeam-queue = "0.3.12"
 reqwest = { version = "0.13.1", features = ["json", "native-tls", "blocking", "http2"], default-features = false }
 
 # Error handling
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 anyhow = "1.0.100"
 
 # Cryptography
@@ -179,13 +179,13 @@ num-bigint = "0.4.6"
 
 # Encoding/Serialization
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.148"
+serde_json = "1.0.149"
 serde_derive = "1.0.228"
 base64 = "0.22.1"
 
 bitcode = "0.6.9"
 bitcode_derive = "0.6.9"
-toml = "0.9.8"
+toml = "0.9.11+spec-1.1.0"
 craftflow-nbt = "2.1.0"
 figment = { version = "0.10.19", features = ["toml", "env"] }
 simd-json = "0.17.0"
@@ -198,13 +198,13 @@ byteorder = "1.5.0"
 # Data types
 dashmap = "7.0.0-rc2"
 uuid = { version = "1.19.0", features = ["v4", "v3", "serde"] }
-indexmap = { version = "2.12.1", features = ["serde"] }
+indexmap = { version = "2.13.0", features = ["serde"] }
 bimap = "0.6.3"
 
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.42"
-syn = { version = "2.0.114", features = ["extra-traits"] }
+syn = "2.0.112"
 proc-macro2 = "1.0.104"
 paste = "1.0.15"
 maplit = "1.0.2"
@@ -222,9 +222,9 @@ yazi = "0.2.1"
 heed = "0.22.1-nested-rtxns-6"
 
 # CLI
-clap = { version = "4.5.53", features = ["derive", "env"] }
+clap = { version = "4.5.54", features = ["derive", "env"] }
 indicatif = "0.18.3"
-colored = "3.0.0"
+colored = "3.1.1"
 
 # Misc
 deepsize = "0.2.0"
@@ -244,7 +244,7 @@ heck = "0.5.0"
 
 # I/O
 memmap2 = "0.9.9"
-tempfile = "3.23.0"
+tempfile = "3.24.0"
 
 # Benchmarking
 criterion = { version = "0.7.0", features = ["html_reports"] }
@@ -253,7 +253,7 @@ phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
 
 # Web server
-axum = { version = "0.8.7", features = ["tokio", "ws"] }
+axum = { version = "0.8.8", features = ["tokio", "ws"] }
 
 # Stats
 sysinfo = { version = "0.37.2", default-features = false, features = ["system"] }
