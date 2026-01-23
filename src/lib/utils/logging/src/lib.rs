@@ -36,7 +36,6 @@ pub fn init_logging(trace_level: Level) {
                 .with_line_number(true)
                 .with_level(true)
                 .with_target(false)
-                .with_target(true)
         }
         #[cfg(not(debug_assertions))]
         {

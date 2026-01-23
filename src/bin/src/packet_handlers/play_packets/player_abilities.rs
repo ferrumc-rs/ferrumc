@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_net::connection::StreamWriter;
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 
 use ferrumc_net::PlayerAbilitiesReceiver;
 
@@ -42,7 +42,7 @@ pub fn handle(
         // --- Validation ---
         if abilities.may_fly {
             // Player is allowed to fly. Update the server's state.
-            debug!(
+            trace!(
                 "Player {} toggled flying to: {}",
                 trigger_eid.index(),
                 client_is_flying
