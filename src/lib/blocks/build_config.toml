@@ -1,7 +1,112 @@
+# Overrides the default generated struct names (unreadable) for the property map given with the given struct name
 [name_overrides]
 "snowy" = "SnowyBlock"
 "age" = "CropBlock"
 "type+waterlogged" = "SlabBlock"
 
+# Tells the generator to use a different struct for the block specified.
+# If the struct is defined above and the property map of the block and struct don't match, the generator will panic
 [block_overrides]
 "minecraft:redstone_ore" = "RedstoneOreBlock"
+
+# From Minecraft's net.minecraft.world.level.block.state.properties.BlockStateProperties class
+#
+# Maps property names to the type the generator should use in the generated structs.
+# If a property name isn't found in this list, the generator will panic. In this case, check to see what the type is and add it below.
+# If a name could be multiple types, use a list. The generator will try to decipher the type from the context.
+[property_types]
+"attached" = "bool"
+"berries" = "bool"
+"bloom" = "bool"
+"bottom" = "bool"
+"can_summon" = "bool"
+"conditional" = "bool"
+"disarmed" = "bool"
+"drag" = "bool"
+"enabled" = "bool"
+"extended" = "bool"
+"eye" = "bool"
+"falling" = "bool"
+"hanging" = "bool"
+"has_bottle_0" = "bool"
+"has_bottle_1" = "bool"
+"has_bottle_2" = "bool"
+"has_record" = "bool"
+"has_book" = "bool"
+"inverted" = "bool"
+"in_wall" = "bool"
+"lit" = "bool"
+"locked" = "bool"
+"natural" = "bool"
+"occupied" = "bool"
+"open" = "bool"
+"persistent" = "bool"
+"powered" = "bool"
+"short" = "bool"
+"shrieking" = "bool"
+"signal_fire" = "bool"
+"snowy" = "bool"
+"tip" = "bool"
+"triggered" = "bool"
+"unstable" = "bool"
+"waterlogged" = "bool"
+"horizontal_axis" = "Axis"
+"axis" = "Axis"
+"up" = "bool"
+"down" = "bool"
+"north" = ["bool", "WallSide", "RedstoneSide"]
+"east" = ["bool", "WallSide", "RedstoneSide"]
+"south" = ["bool", "WallSide", "RedstoneSide"]
+"west" = ["bool", "WallSide", "RedstoneSide"]
+"facing" = "Direction"
+"flower_amount" = "i32"
+"segment_amount" = "i32"
+"orientation" = "FrontAndTop"
+"face" = "AttachFace"
+"attachment" = "BellAttachType"
+"half" = ["DoubleBlockHalf", "Half"]
+"side_chain" = "SideChainPart"
+"shape" = ["RailShape", "StairsShape"]
+"age" = "i32"
+"bites" = "i32"
+"candles" = "i32"
+"delay" = "i32"
+"distance" = "i32"
+"eggs" = "i32"
+"hatch" = "i32"
+"layers" = "i32"
+"level" = "i32"
+"honey_level" = "i32"
+"moisture" = "i32"
+"note" = "i32"
+"pickles" = "i32"
+"power" = "i32"
+"stage" = "i32"
+"charges" = "i32"
+"hydration" = "i32"
+"rotation" = "i32"
+"part" = "BedPart"
+"type" = ["ChestType", "PistonType", "SlabType"]
+"mode" = ["ComparatorMode", "StructureMode", "TestBlockMode"]
+"hinge" = "DoorHingeSide"
+"instrument" = "NoteBlockInstrument"
+"leaves" = "BambooLeaves"
+"tilt" = "Tilt"
+"vertical_direction" = "Direction"
+"thickness" = "DripstoneThickness"
+"sculk_sensor_phase" = "SculkSensorPhase"
+"slot_0_occupied" = "bool"
+"slot_1_occupied" = "bool"
+"slot_2_occupied" = "bool"
+"slot_3_occupied" = "bool"
+"slot_4_occupied" = "bool"
+"slot_5_occupied" = "bool"
+"dusted" = "i32"
+"cracked" = "bool"
+"crafting" = "bool"
+"trial_spawner_state" = "TrialSpawnerState"
+"vault_state" = "VaultState"
+"creaking_heart_state" = "CreakingHeartState"
+"ominous" = "bool"
+"map" = "bool"
+"copper_golem_pose" = "CopperGolemPose"

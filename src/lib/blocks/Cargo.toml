@@ -9,8 +9,7 @@ ferrumc-world = { workspace = true }
 ferrumc-block-properties = { workspace = true }
 
 [build-dependencies]
-bevy_math = { workspace = true }
-ferrumc-block-properties = { path = "crates/property" }
+ferrumc-block-properties = { path = "crates/property", features = ["block-struct-generation"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 heck = "0.5"

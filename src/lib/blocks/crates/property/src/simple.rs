@@ -10,6 +10,13 @@ enum_property!(
 );
 
 enum_property!(
+    Axis,
+    X => "x",
+    Y => "y",
+    Z => "z",
+);
+
+enum_property!(
     BambooLeaves,
     None => "none",
     Small => "small",
@@ -51,6 +58,16 @@ enum_property!(
 );
 
 enum_property!(
+    Direction,
+    Down => "down",
+    Up => "up",
+    North => "north",
+    South => "south",
+    East => "east",
+    West => "west",
+);
+
+enum_property!(
     DoorHingeSide,
     Left => "left",
     Right => "right",
@@ -66,9 +83,33 @@ enum_property!(
 );
 
 enum_property!(
+    FrontAndTop,
+    DownEast => "down_east",
+    DownNorth => "down_north",
+    DownSouth => "down_south",
+    DownWest => "down_west",
+    UpEast => "up_east",
+    UpNorth => "up_north",
+    UpSouth => "up_south",
+    UpWest => "up_west",
+    WestUp => "west_up",
+    EastUp => "east_up",
+    NorthUp => "north_up",
+    SouthUp => "south_up",
+);
+
+enum_property!(
     Half,
     Top => "top",
     Bottom => "bottom",
+);
+
+enum_property!(
+    CopperGolemPose,
+    Standing => "standing",
+    Sitting => "sitting",
+    Running => "running",
+    Star => "star",
 );
 
 enum_property!(
@@ -151,6 +192,24 @@ enum_property!(
     Unstable => "unstable",
     Partial => "partial",
     Full => "full",
+);
+
+enum_property!(
+    TrialSpawnerState,
+    Inactive => "inactive",
+    WaitingForPlayers => "waiting_for_players",
+    Active => "active",
+    WaitingForRewardEjection => "waiting_for_reward_ejection",
+    EjectingReward => "ejecting_reward",
+    Cooldown => "cooldown",
+);
+
+enum_property!(
+    VaultState,
+    Inactive => "inactive",
+    Active => "active",
+    Unlocking => "unlocking",
+    Ejecting => "ejecting",
 );
 
 enum_property!(

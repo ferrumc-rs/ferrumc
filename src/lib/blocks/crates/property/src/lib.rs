@@ -8,6 +8,50 @@ pub use simple::*;
 pub use double_block_half::DoubleBlockHalf;
 pub use note_block_instrument::NoteBlockInstrument;
 
+#[cfg(feature = "block-struct-generation")]
+pub const TYPES: &[(&str, PropertyDescriptor)] = &[
+    ("i32", PropertyDescriptor {
+        print_name: || println!("i32"),
+    }),
+    ("bool", PropertyDescriptor {
+        print_name: || println!("bool"),
+    }),
+    ("AttachFace", AttachFace::DESCRIPTOR),
+    ("Axis", Axis::DESCRIPTOR),
+    ("BambooLeaves", BambooLeaves::DESCRIPTOR),
+    ("BedPart", BedPart::DESCRIPTOR),
+    ("BellAttachType", BellAttachType::DESCRIPTOR),
+    ("ChestType", ChestType::DESCRIPTOR),
+    ("ComparatorMode", ComparatorMode::DESCRIPTOR),
+    ("CreakingHeartState", CreakingHeartState::DESCRIPTOR),
+    ("Direction", Direction::DESCRIPTOR),
+    ("DoorHingeSide", DoorHingeSide::DESCRIPTOR),
+    ("DoubleBlockHalf", DoubleBlockHalf::DESCRIPTOR),
+    ("DripstoneThickness", DripstoneThickness::DESCRIPTOR),
+    ("FrontAndTop", FrontAndTop::DESCRIPTOR),
+    ("Half", Half::DESCRIPTOR),
+    ("NoteBlockInstrument", NoteBlockInstrument::DESCRIPTOR),
+    ("PistonType", PistonType::DESCRIPTOR),
+    ("CopperGolemPose", CopperGolemPose::DESCRIPTOR),
+    ("RailShape", RailShape::DESCRIPTOR),
+    ("RedstoneSide", RedstoneSide::DESCRIPTOR),
+    ("SculkSensorPhase", SculkSensorPhase::DESCRIPTOR),
+    ("SideChainPart", SideChainPart::DESCRIPTOR),
+    ("SlabType", SlabType::DESCRIPTOR),
+    ("StairsShape", StairsShape::DESCRIPTOR),
+    ("StructureMode", StructureMode::DESCRIPTOR),
+    ("TestBlockMode", TestBlockMode::DESCRIPTOR),
+    ("Tilt", Tilt::DESCRIPTOR),
+    ("TrialSpawnerState", TrialSpawnerState::DESCRIPTOR),
+    ("VaultState", VaultState::DESCRIPTOR),
+    ("WallSide", WallSide::DESCRIPTOR),
+];
+
+#[cfg(feature = "block-struct-generation")]
+pub struct PropertyDescriptor {
+    pub print_name: fn(),
+}
+
 /// Marker trait for types that can be used as block state property values
 pub trait BlockStateProperty: FromStr + ToString {
     fn values(&self) -> &[&str] {
@@ -24,6 +68,17 @@ macro_rules! enum_property {
     ($name:ident, $($variant:ident => $variant_str:expr),* $(,)?) => {
         pub enum $name {
             $($variant),*
+        }
+
+        #[cfg(feature = "block-struct-generation")]
+        impl $name {
+            pub const DESCRIPTOR: $crate::PropertyDescriptor = $crate::PropertyDescriptor {
+                print_name: Self::print_name,
+            };
+
+            fn print_name() {
+                println!("{}", stringify!($name));
+            }
         }
 
         impl std::str::FromStr for $name {

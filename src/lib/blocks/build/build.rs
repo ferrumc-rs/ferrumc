@@ -20,14 +20,23 @@ struct ComplexBlock {
 }
 
 #[derive(Deserialize)]
+#[serde(untagged)]
+enum SingleOrMultiple {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+#[derive(Deserialize)]
 struct BuildConfig {
     name_overrides: HashMap<String, String>,
     block_overrides: HashMap<String, String>,
+    property_types: HashMap<String, SingleOrMultiple>,
 }
 
 fn main() {
     println!("cargo:rerun-if-changed=../../../assets/data/blockstates.json");
     println!("cargo:rerun-if-changed=build_config.toml");
+    println!("cargo:rerun-if-changed=complex.rs");
 
     let config = fs::read_to_string("build_config.toml").unwrap();
     let config = toml::from_str::<BuildConfig>(&config).unwrap();
@@ -82,5 +91,17 @@ fn format_code(unformatted_code: &str) -> String {
             output.status,
             String::from_utf8_lossy(&output.stderr)
         );
+    }
+}
+
+impl<'a> IntoIterator for &'a SingleOrMultiple {
+    type Item = &'a String;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            SingleOrMultiple::Single(v) => vec![v].into_iter(),
+            SingleOrMultiple::Multiple(vals) => vals.iter().collect::<Vec<_>>().into_iter(),
+        }
     }
 }

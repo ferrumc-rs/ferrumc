@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy_math = { workspace = true }
+
+[features]
+default = []
+block-struct-generation = []
