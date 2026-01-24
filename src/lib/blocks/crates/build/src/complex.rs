@@ -30,7 +30,8 @@ pub fn fill_complex_block_mappings(
 ) -> Vec<TokenStream> {
     let (blocks, configs) = dedup_blocks(build_config, &block_states);
 
-    let final_configs = collect_configurations(build_config, &configs, &blocks);
+    let mut final_configs = collect_configurations(build_config, &configs, &blocks);
+    final_configs.sort_by(|a, b| a.name.cmp(&b.name));
 
     final_configs
         .into_iter()
@@ -62,7 +63,8 @@ pub fn generate_complex_blocks(
 ) -> (Vec<((TokenStream, TokenStream), Ident)>, TokenStream) {
     let (blocks, configs) = dedup_blocks(build_config, &block_states);
 
-    let finalized_configs = collect_configurations(build_config, &configs, &blocks);
+    let mut finalized_configs = collect_configurations(build_config, &configs, &blocks);
+    finalized_configs.sort_by(|a, b| a.name.cmp(&b.name));
 
     let ((structs, impls), names): ((Vec<TokenStream>, Vec<TokenStream>), Vec<Ident>) =
         finalized_configs
