@@ -18,8 +18,8 @@ mod vtable;
 pub use vtable::*;
 
 pub struct PlacementContext {
-    face: BlockFace,
-    cursor: DVec2,
+    pub face: BlockFace,
+    pub cursor: DVec2,
 }
 
 pub trait BlockBehavior: TryInto<u32, Error = ()> + TryFrom<u32, Error = ()> + Clone + Debug {

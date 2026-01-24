@@ -36,9 +36,8 @@ struct BuildConfig {
 }
 
 fn main() {
-    println!("cargo:rerun-if-changed=../../../assets/data/blockstates.json");
-    println!("cargo:rerun-if-changed=build_config.toml");
-    println!("cargo:rerun-if-changed=complex.rs");
+    println!("cargo::rerun-if-changed=../../../assets/data/blockstates.json");
+    println!("cargo::rerun-if-changed=build_config.toml");
 
     let config = fs::read_to_string("build_config.toml").unwrap();
     let config = toml::from_str::<BuildConfig>(&config).unwrap();
