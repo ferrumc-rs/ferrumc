@@ -2,15 +2,13 @@
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
-pub enum FurnaceBlockType {
-    BlastFurnace,
-    Furnace,
-    Smoker,
+pub enum StemBlockType {
+    AttachedMelonStem,
+    AttachedPumpkinStem,
 }
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
-pub struct FurnaceBlock {
-    pub block_type: FurnaceBlockType,
+pub struct StemBlock {
+    pub block_type: StemBlockType,
     pub facing: Direction,
-    pub lit: bool,
 }

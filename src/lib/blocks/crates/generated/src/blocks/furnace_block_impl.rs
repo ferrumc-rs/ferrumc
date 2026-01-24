@@ -86,46 +86,6 @@ impl TryFrom<u32> for FurnaceBlock {
                 facing: Direction::East,
                 lit: false,
             }),
-            5918u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::North,
-                lit: true,
-            }),
-            5919u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::North,
-                lit: false,
-            }),
-            5920u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::South,
-                lit: true,
-            }),
-            5921u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::South,
-                lit: false,
-            }),
-            5922u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::West,
-                lit: true,
-            }),
-            5923u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::West,
-                lit: false,
-            }),
-            5924u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::East,
-                lit: true,
-            }),
-            5925u32 => Ok(FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::East,
-                lit: false,
-            }),
             19443u32 => Ok(FurnaceBlock {
                 block_type: FurnaceBlockType::Smoker,
                 facing: Direction::North,
@@ -255,46 +215,6 @@ impl TryInto<u32> for FurnaceBlock {
                 facing: Direction::East,
                 lit: false,
             } => Ok(4365u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::North,
-                lit: true,
-            } => Ok(5918u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::North,
-                lit: false,
-            } => Ok(5919u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::South,
-                lit: true,
-            } => Ok(5920u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::South,
-                lit: false,
-            } => Ok(5921u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::West,
-                lit: true,
-            } => Ok(5922u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::West,
-                lit: false,
-            } => Ok(5923u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::East,
-                lit: true,
-            } => Ok(5924u32),
-            FurnaceBlock {
-                block_type: FurnaceBlockType::RedstoneWallTorch,
-                facing: Direction::East,
-                lit: false,
-            } => Ok(5925u32),
             FurnaceBlock {
                 block_type: FurnaceBlockType::Smoker,
                 facing: Direction::North,

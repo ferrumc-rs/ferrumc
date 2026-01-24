@@ -46,14 +46,6 @@ impl TryFrom<u32> for CandleCakeBlock {
                 block_type: CandleCakeBlockType::CyanCandleCake,
                 lit: false,
             }),
-            5914u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::DeepslateRedstoneOre,
-                lit: true,
-            }),
-            5915u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::DeepslateRedstoneOre,
-                lit: false,
-            }),
             22041u32 => Ok(CandleCakeBlock {
                 block_type: CandleCakeBlockType::GrayCandleCake,
                 lit: true,
@@ -134,30 +126,6 @@ impl TryFrom<u32> for CandleCakeBlock {
                 block_type: CandleCakeBlockType::RedCandleCake,
                 lit: false,
             }),
-            8201u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneLamp,
-                lit: true,
-            }),
-            8202u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneLamp,
-                lit: false,
-            }),
-            5912u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneOre,
-                lit: true,
-            }),
-            5913u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneOre,
-                lit: false,
-            }),
-            5916u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneTorch,
-                lit: true,
-            }),
-            5917u32 => Ok(CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneTorch,
-                lit: false,
-            }),
             22027u32 => Ok(CandleCakeBlock {
                 block_type: CandleCakeBlockType::WhiteCandleCake,
                 lit: true,
@@ -223,14 +191,6 @@ impl TryInto<u32> for CandleCakeBlock {
                 block_type: CandleCakeBlockType::CyanCandleCake,
                 lit: false,
             } => Ok(22046u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::DeepslateRedstoneOre,
-                lit: true,
-            } => Ok(5914u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::DeepslateRedstoneOre,
-                lit: false,
-            } => Ok(5915u32),
             CandleCakeBlock {
                 block_type: CandleCakeBlockType::GrayCandleCake,
                 lit: true,
@@ -311,30 +271,6 @@ impl TryInto<u32> for CandleCakeBlock {
                 block_type: CandleCakeBlockType::RedCandleCake,
                 lit: false,
             } => Ok(22056u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneLamp,
-                lit: true,
-            } => Ok(8201u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneLamp,
-                lit: false,
-            } => Ok(8202u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneOre,
-                lit: true,
-            } => Ok(5912u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneOre,
-                lit: false,
-            } => Ok(5913u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneTorch,
-                lit: true,
-            } => Ok(5916u32),
-            CandleCakeBlock {
-                block_type: CandleCakeBlockType::RedstoneTorch,
-                lit: false,
-            } => Ok(5917u32),
             CandleCakeBlock {
                 block_type: CandleCakeBlockType::WhiteCandleCake,
                 lit: true,

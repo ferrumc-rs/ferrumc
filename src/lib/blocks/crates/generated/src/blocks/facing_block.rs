@@ -4,8 +4,6 @@ use ferrumc_block_properties::*;
 #[derive(Clone, Debug)]
 pub enum FacingBlockType {
     Anvil,
-    AttachedMelonStem,
-    AttachedPumpkinStem,
     BlackGlazedTerracotta,
     BlackShulkerBox,
     BlackWallBanner,

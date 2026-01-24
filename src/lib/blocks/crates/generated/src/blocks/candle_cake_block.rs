@@ -8,7 +8,6 @@ pub enum CandleCakeBlockType {
     BrownCandleCake,
     CandleCake,
     CyanCandleCake,
-    DeepslateRedstoneOre,
     GrayCandleCake,
     GreenCandleCake,
     LightBlueCandleCake,
@@ -19,9 +18,6 @@ pub enum CandleCakeBlockType {
     PinkCandleCake,
     PurpleCandleCake,
     RedCandleCake,
-    RedstoneLamp,
-    RedstoneOre,
-    RedstoneTorch,
     WhiteCandleCake,
     YellowCandleCake,
 }

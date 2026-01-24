@@ -2,16 +2,13 @@
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
-pub enum GeneratedStruct75Type {
-    Composter,
-    Lava,
+pub enum LevelCauldronBlockType {
     PowderSnowCauldron,
-    Water,
     WaterCauldron,
 }
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
-pub struct GeneratedStruct75 {
-    pub block_type: GeneratedStruct75Type,
+pub struct LevelCauldronBlock {
+    pub block_type: LevelCauldronBlockType,
     pub level: i32,
 }

@@ -5,7 +5,6 @@ use ferrumc_block_properties::*;
 pub enum WeightedPressurePlateBlockType {
     HeavyWeightedPressurePlate,
     LightWeightedPressurePlate,
-    Target,
 }
 #[allow(dead_code)]
 #[derive(Clone, Debug)]

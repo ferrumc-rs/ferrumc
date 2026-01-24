@@ -2,15 +2,7 @@
 use ferrumc_block_properties::*;
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
-pub enum LargeMushroomBlockType {
-    BrownMushroomBlock,
-    MushroomStem,
-    RedMushroomBlock,
-}
-#[allow(dead_code)]
-#[derive(Clone, Debug)]
-pub struct LargeMushroomBlock {
-    pub block_type: LargeMushroomBlockType,
+pub struct ChorusPlantBlock {
     pub down: bool,
     pub east: bool,
     pub north: bool,

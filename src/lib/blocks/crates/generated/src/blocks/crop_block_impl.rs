@@ -142,22 +142,6 @@ impl TryFrom<u32> for CropBlock {
                 block_type: CropBlockType::ChorusFlower,
                 age: 5i32,
             }),
-            13562u32 => Ok(CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 0i32,
-            }),
-            13563u32 => Ok(CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 1i32,
-            }),
-            13564u32 => Ok(CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 2i32,
-            }),
-            13565u32 => Ok(CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 3i32,
-            }),
             13783u32 => Ok(CropBlock {
                 block_type: CropBlockType::Kelp,
                 age: 0i32,
@@ -847,22 +831,6 @@ impl TryInto<u32> for CropBlock {
                 block_type: CropBlockType::ChorusFlower,
                 age: 5i32,
             } => Ok(13432u32),
-            CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 0i32,
-            } => Ok(13562u32),
-            CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 1i32,
-            } => Ok(13563u32),
-            CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 2i32,
-            } => Ok(13564u32),
-            CropBlock {
-                block_type: CropBlockType::FrostedIce,
-                age: 3i32,
-            } => Ok(13565u32),
             CropBlock {
                 block_type: CropBlockType::Kelp,
                 age: 0i32,

@@ -10,7 +10,6 @@ pub enum ButtonBlockType {
     CrimsonButton,
     DarkOakButton,
     JungleButton,
-    Lever,
     MangroveButton,
     OakButton,
     PaleOakButton,

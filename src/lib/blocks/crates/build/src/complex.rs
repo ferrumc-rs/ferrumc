@@ -16,6 +16,13 @@ pub struct ComplexBlock {
     pub properties: HashMap<String, String>,
 }
 
+#[allow(clippy::type_complexity)]
+pub struct FinalizedConfiguration<'a> {
+    name: String,
+    properties: &'a [(&'a str, &'a str)],
+    associated_blocks: Vec<(&'a str, &'a HashMap<u32, &'a HashMap<String, String>>)>,
+}
+
 pub fn fill_complex_block_mappings(
     build_config: &BuildConfig,
     block_states: Vec<(u32, ComplexBlock)>,
@@ -23,19 +30,18 @@ pub fn fill_complex_block_mappings(
 ) -> Vec<TokenStream> {
     let (blocks, configs) = dedup_blocks(build_config, &block_states);
 
-    configs
-        .into_iter()
-        .enumerate()
-        .map(|(i, config)| {
-            let struct_name = struct_name(build_config, i, &config);
-            let vtable_name = format_ident!("VTABLE_{}", struct_name.to_string().to_shouty_snake_case());
+    let final_configs = collect_configurations(build_config, &configs, &blocks);
 
-            blocks
+    final_configs
+        .into_iter()
+        .map(|config| {
+            let struct_name = format_ident!("{}", config.name);
+            let vtable_name = format_ident!("VTABLE_{}", config.name.to_shouty_snake_case());
+
+            config.associated_blocks
                 .iter()
-                .filter(|block| block.properties == config)
-                .for_each(|block| {
-                    block
-                        .values
+                .for_each(|(_, values)| {
+                    values
                         .iter()
                         .for_each(|(id, _)| {
                             mappings[*id as usize] = quote! { crate::StateBehaviorTable::spin_off(&#vtable_name, #id) }
@@ -56,111 +62,123 @@ pub fn generate_complex_blocks(
 ) -> (Vec<((TokenStream, TokenStream), Ident)>, TokenStream) {
     let (blocks, configs) = dedup_blocks(build_config, &block_states);
 
-    let ((structs, impls), names): ((Vec<TokenStream>, Vec<TokenStream>), Vec<Ident>) = configs
-        .into_iter()
-        .enumerate()
-        .map(|(i, config)| {
-            let blocks = blocks
-                .iter()
-                .filter(|block| block.properties == config)
-                .collect::<Vec<_>>();
+    let finalized_configs = collect_configurations(build_config, &configs, &blocks);
 
-            let fields = config
-                .iter()
-                .map(|(name, _)| match *name {
-                    "type" => format_ident!("ty"),
-                    str => format_ident!("{str}"),
-                })
-                .collect::<Vec<_>>();
-
-            let types = config
-                .iter()
-                .map(|(_, value)| format_ident!("{value}"))
-                .collect::<Vec<_>>();
-
-            let struct_name = struct_name(build_config, i, &config);
-
-            match blocks.len() {
-                0 => panic!("No blocks for {struct_name}"),
-                1 => {
-                    let trait_impl = generate_trait_impls(&struct_name, None, &blocks);
-
-                    (
-                        (
-                            quote! {
-                                #[allow(unused_imports)]
-                                use ferrumc_block_properties::*;
-
-                                #[allow(dead_code)]
-                                #[derive(Clone, Debug)]
-                                pub struct #struct_name {
-                                    #(pub #fields: #types,)*
-                                }
-                            },
-                            quote! {
-                                #[allow(unused_imports)]
-                                use ferrumc_block_properties::*;
-                                use crate::#struct_name;
-
-                                #trait_impl
-                            },
-                        ),
-                        struct_name,
-                    )
-                }
-                _ => {
-                    let mut variants = blocks
+    let ((structs, impls), names): ((Vec<TokenStream>, Vec<TokenStream>), Vec<Ident>) =
+        finalized_configs
+            .into_iter()
+            .map(
+                |FinalizedConfiguration {
+                     name,
+                     properties: config,
+                     associated_blocks,
+                 }| {
+                    let fields = config
                         .iter()
-                        .map(|BlockStateConfiguration { name, .. }| {
-                            format_ident!(
-                                "{}",
-                                name.strip_prefix("minecraft:")
-                                    .unwrap_or(name)
-                                    .to_pascal_case()
-                            )
+                        .map(|(name, _)| match *name {
+                            "type" => format_ident!("ty"),
+                            str => format_ident!("{str}"),
                         })
                         .collect::<Vec<_>>();
 
-                    variants.sort();
+                    let types = config
+                        .iter()
+                        .map(|(_, value)| format_ident!("{value}"))
+                        .collect::<Vec<_>>();
 
-                    let enum_name = format_ident!("{}Type", struct_name);
-                    let trait_impl =
-                        generate_trait_impls(&struct_name, Some((&enum_name, &variants)), &blocks);
+                    let struct_name = format_ident!("{name}");
 
-                    (
-                        (
-                            quote! {
-                                #[allow(unused_imports)]
-                                use ferrumc_block_properties::*;
+                    match associated_blocks.len() {
+                        0 => panic!("No blocks for {struct_name}"),
+                        1 => {
+                            let trait_impl = generate_trait_impls(
+                                &struct_name,
+                                None,
+                                config,
+                                &associated_blocks,
+                            );
 
-                                #[allow(dead_code)]
-                                #[derive(Clone, Debug)]
-                                pub enum #enum_name {
-                                    #(#variants,)*
-                                }
+                            (
+                                (
+                                    quote! {
+                                        #[allow(unused_imports)]
+                                        use ferrumc_block_properties::*;
 
-                                #[allow(dead_code)]
-                                #[derive(Clone, Debug)]
-                                pub struct #struct_name {
-                                    pub block_type: #enum_name,
-                                    #(pub #fields: #types),*
-                                }
-                            },
-                            quote! {
-                                #[allow(unused_imports)]
-                                use ferrumc_block_properties::*;
-                                use crate::#struct_name;
-                                use crate::#enum_name;
+                                        #[allow(dead_code)]
+                                        #[derive(Clone, Debug)]
+                                        pub struct #struct_name {
+                                            #(pub #fields: #types,)*
+                                        }
+                                    },
+                                    quote! {
+                                        #[allow(unused_imports)]
+                                        use ferrumc_block_properties::*;
+                                        use crate::#struct_name;
 
-                                #trait_impl
-                            },
-                        ),
-                        struct_name,
-                    )
-                }
-            }
-        })
-        .unzip();
+                                        #trait_impl
+                                    },
+                                ),
+                                struct_name,
+                            )
+                        }
+                        _ => {
+                            let mut variants = associated_blocks
+                                .iter()
+                                .map(|(name, _)| {
+                                    format_ident!(
+                                        "{}",
+                                        name.strip_prefix("minecraft:")
+                                            .unwrap_or(name)
+                                            .to_pascal_case()
+                                    )
+                                })
+                                .collect::<Vec<_>>();
+
+                            variants.sort();
+
+                            let enum_name = format_ident!("{}Type", struct_name);
+                            let trait_impl = generate_trait_impls(
+                                &struct_name,
+                                Some((&enum_name, &variants)),
+                                config,
+                                &associated_blocks,
+                            );
+
+                            (
+                                (
+                                    quote! {
+                                        #[allow(unused_imports)]
+                                        use ferrumc_block_properties::*;
+
+                                        #[allow(dead_code)]
+                                        #[derive(Clone, Debug)]
+                                        pub enum #enum_name {
+                                            #(#variants,)*
+                                        }
+
+                                        #[allow(dead_code)]
+                                        #[derive(Clone, Debug)]
+                                        pub struct #struct_name {
+                                            pub block_type: #enum_name,
+                                            #(pub #fields: #types),*
+                                        }
+                                    },
+                                    quote! {
+                                        #[allow(unused_imports)]
+                                        use ferrumc_block_properties::*;
+                                        use crate::#struct_name;
+                                        use crate::#enum_name;
+
+                                        #trait_impl
+                                    },
+                                ),
+                                struct_name,
+                            )
+                        }
+                    }
+                },
+            )
+            .unzip();
 
     let mod_names = names
         .iter()
@@ -195,43 +213,45 @@ fn property_descriptor_of(key: &str) -> &PropertyDescriptor {
         .unwrap_or_else(|| panic!("Property type for {key} not found!"))
 }
 
+fn get_field_values(
+    values: &[(&String, &String)],
+    properties: &[(&str, &str)],
+) -> (Vec<Ident>, Vec<TokenStream>) {
+    values
+        .iter()
+        .map(|(field, value)| {
+            (
+                match field.as_str() {
+                    "type" => format_ident!("ty"),
+                    field => format_ident!("{field}"),
+                },
+                {
+                    let ty = &properties
+                        .iter()
+                        .find(|(name1, _)| name1 == field)
+                        .unwrap()
+                        .1;
+                    (property_descriptor_of(ty).ident_for)(value)
+                },
+            )
+        })
+        .unzip()
+}
+
+#[allow(clippy::type_complexity)]
 fn generate_trait_impls(
     struct_name: &Ident,
     enum_name: Option<(&Ident, &[Ident])>,
-    values: &[&BlockStateConfiguration],
+    properties: &[(&str, &str)],
+    values: &[(&str, &HashMap<u32, &HashMap<String, String>>)],
 ) -> TokenStream {
-    fn get_field_values(
-        values: &[(&String, &String)],
-        properties: &[(&str, &str)],
-    ) -> (Vec<Ident>, Vec<TokenStream>) {
-        values
-            .iter()
-            .map(|(field, value)| {
-                (
-                    match field.as_str() {
-                        "type" => format_ident!("ty"),
-                        field => format_ident!("{field}"),
-                    },
-                    {
-                        let ty = &properties
-                            .iter()
-                            .find(|(name1, _)| name1 == field)
-                            .unwrap()
-                            .1;
-                        (property_descriptor_of(ty).ident_for)(value)
-                    },
-                )
-            })
-            .unzip()
-    }
-
     let (from_match_arms, into_match_arms): (Vec<TokenStream>, Vec<TokenStream>) = match enum_name {
         Some((enum_name, enum_variants)) => {
             let mut values = values.iter().collect::<Vec<_>>();
-            values.sort_by_key(|BlockStateConfiguration { name, .. }| name);
+            values.sort_by_key(|(name, _)| name);
 
             values.iter()
-                .flat_map(|BlockStateConfiguration { name, properties, values }| {
+                .flat_map(|(name, values)| {
                     let name_ident = format_ident!("{}", name.strip_prefix("minecraft:").unwrap_or(name).to_pascal_case());
 
                     match enum_variants.iter().find(|variant| *variant == &name_ident) {
@@ -272,9 +292,7 @@ fn generate_trait_impls(
                 .unzip()
         }
         None => {
-            let BlockStateConfiguration {
-                properties, values, ..
-            } = values[0];
+            let (_, values) = &values[0];
 
             let mut values = values.iter().collect::<Vec<_>>();
             values.sort_by_key(|(id, _)| *id);
@@ -331,7 +349,7 @@ fn generate_trait_impls(
     }
 }
 
-fn struct_name(config: &BuildConfig, num_structs: usize, properties: &[(&str, &str)]) -> Ident {
+fn struct_name(config: &BuildConfig, num_structs: usize, properties: &[(&str, &str)]) -> String {
     let prop_str = properties.iter().map(|(name, _)| *name).collect::<Vec<_>>();
     let prop_str = prop_str.join("+");
 
@@ -345,20 +363,20 @@ fn struct_name(config: &BuildConfig, num_structs: usize, properties: &[(&str, &s
 
         new_key == prop_str
     }) {
-        None => format_ident!("GeneratedStruct{}", num_structs),
-        Some((_, struct_name)) => format_ident!("{struct_name}"),
+        None => format!("GeneratedStruct{}", num_structs),
+        Some((_, struct_name)) => struct_name.clone(),
     }
 }
 
 #[allow(clippy::type_complexity)]
 fn dedup_blocks<'a>(
-    config: &'a BuildConfig,
+    build_config: &'a BuildConfig,
     block_states: &'a [(u32, ComplexBlock)],
 ) -> (
     Vec<BlockStateConfiguration<'a>>,
     Vec<Vec<(&'a str, &'a str)>>,
 ) {
-    let mut missing_types = config
+    let mut missing_types = build_config
         .property_types
         .values()
         .flatten()
@@ -389,7 +407,8 @@ fn dedup_blocks<'a>(
                     properties.iter().map(|(name, value)| {
                         let name = name.as_str();
                         let value = value.as_str();
-                        let possible_types: Vec<&str> = match config.property_types.get(name) {
+                        let possible_types: Vec<&str> = match build_config.property_types.get(name)
+                        {
                             None => panic!("Property type for {name} not found!"),
                             Some(SingleOrMultiple::Single(ty)) => vec![ty.as_str()],
                             Some(SingleOrMultiple::Multiple(ty)) => {
@@ -446,4 +465,56 @@ fn dedup_blocks<'a>(
     configs.dedup();
 
     (blocks, configs)
+}
+
+fn collect_configurations<'a>(
+    build_config: &'a BuildConfig,
+    configs: &'a [Vec<(&'a str, &'a str)>],
+    blocks: &'a [BlockStateConfiguration<'a>],
+) -> Vec<FinalizedConfiguration<'a>> {
+    let mut num_structs = 0;
+
+    configs
+        .iter()
+        .flat_map(|config| {
+            let associated_blocks = blocks
+                .iter()
+                .filter(|block| &block.properties == config)
+                .collect::<Vec<_>>();
+
+            let mut configs = vec![FinalizedConfiguration {
+                name: struct_name(build_config, num_structs, config),
+                properties: config,
+                associated_blocks: Vec::with_capacity(associated_blocks.len()),
+            }];
+
+            for block in associated_blocks {
+                if let Some(name) = build_config.block_overrides.get(block.name) {
+                    match configs
+                        .iter_mut()
+                        .find(|config| config.name == name.as_str())
+                    {
+                        Some(config) => config.associated_blocks.push((block.name, &block.values)),
+                        None => configs.push(FinalizedConfiguration {
+                            name: name.clone(),
+                            properties: config.as_slice(),
+                            associated_blocks: vec![(block.name, &block.values)],
+                        }),
+                    }
+                } else {
+                    configs[0]
+                        .associated_blocks
+                        .push((block.name, &block.values));
+                }
+            }
+
+            if configs[0].associated_blocks.is_empty() {
+                configs.remove(0);
+            }
+
+            num_structs += 1;
+
+            configs
+        })
+        .collect()
 }

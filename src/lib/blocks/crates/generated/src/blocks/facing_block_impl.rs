@@ -22,38 +22,6 @@ impl TryFrom<u32> for FacingBlock {
                 block_type: FacingBlockType::Anvil,
                 facing: Direction::East,
             }),
-            7060u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::North,
-            }),
-            7061u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::South,
-            }),
-            7062u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::West,
-            }),
-            7063u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::East,
-            }),
-            7056u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::North,
-            }),
-            7057u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::South,
-            }),
-            7058u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::West,
-            }),
-            7059u32 => Ok(FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::East,
-            }),
             13747u32 => Ok(FacingBlock {
                 block_type: FacingBlockType::BlackGlazedTerracotta,
                 facing: Direction::North,
@@ -1151,38 +1119,6 @@ impl TryInto<u32> for FacingBlock {
                 block_type: FacingBlockType::Anvil,
                 facing: Direction::East,
             } => Ok(9919u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::North,
-            } => Ok(7060u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::South,
-            } => Ok(7061u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::West,
-            } => Ok(7062u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedMelonStem,
-                facing: Direction::East,
-            } => Ok(7063u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::North,
-            } => Ok(7056u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::South,
-            } => Ok(7057u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::West,
-            } => Ok(7058u32),
-            FacingBlock {
-                block_type: FacingBlockType::AttachedPumpkinStem,
-                facing: Direction::East,
-            } => Ok(7059u32),
             FacingBlock {
                 block_type: FacingBlockType::BlackGlazedTerracotta,
                 facing: Direction::North,

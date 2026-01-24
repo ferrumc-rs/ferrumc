@@ -7,7 +7,6 @@ pub enum CropBlockType {
     Cactus,
     Carrots,
     ChorusFlower,
-    FrostedIce,
     Kelp,
     MelonStem,
     NetherWart,

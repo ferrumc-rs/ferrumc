@@ -5,7 +5,6 @@ use ferrumc_block_properties::*;
 pub enum WallSkullBlockType {
     CreeperWallHead,
     DragonWallHead,
-    Observer,
     PiglinWallHead,
     PlayerWallHead,
     SkeletonWallSkull,

@@ -86,66 +86,6 @@ impl TryFrom<u32> for WallSkullBlock {
                 facing: Direction::East,
                 powered: false,
             }),
-            13573u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::North,
-                powered: true,
-            }),
-            13574u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::North,
-                powered: false,
-            }),
-            13575u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::East,
-                powered: true,
-            }),
-            13576u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::East,
-                powered: false,
-            }),
-            13577u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::South,
-                powered: true,
-            }),
-            13578u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::South,
-                powered: false,
-            }),
-            13579u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::West,
-                powered: true,
-            }),
-            13580u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::West,
-                powered: false,
-            }),
-            13581u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Up,
-                powered: true,
-            }),
-            13582u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Up,
-                powered: false,
-            }),
-            13583u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Down,
-                powered: true,
-            }),
-            13584u32 => Ok(WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Down,
-                powered: false,
-            }),
             9908u32 => Ok(WallSkullBlock {
                 block_type: WallSkullBlockType::PiglinWallHead,
                 facing: Direction::North,
@@ -435,66 +375,6 @@ impl TryInto<u32> for WallSkullBlock {
                 facing: Direction::East,
                 powered: false,
             } => Ok(9875u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::North,
-                powered: true,
-            } => Ok(13573u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::North,
-                powered: false,
-            } => Ok(13574u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::East,
-                powered: true,
-            } => Ok(13575u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::East,
-                powered: false,
-            } => Ok(13576u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::South,
-                powered: true,
-            } => Ok(13577u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::South,
-                powered: false,
-            } => Ok(13578u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::West,
-                powered: true,
-            } => Ok(13579u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::West,
-                powered: false,
-            } => Ok(13580u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Up,
-                powered: true,
-            } => Ok(13581u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Up,
-                powered: false,
-            } => Ok(13582u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Down,
-                powered: true,
-            } => Ok(13583u32),
-            WallSkullBlock {
-                block_type: WallSkullBlockType::Observer,
-                facing: Direction::Down,
-                powered: false,
-            } => Ok(13584u32),
             WallSkullBlock {
                 block_type: WallSkullBlockType::PiglinWallHead,
                 facing: Direction::North,
