@@ -15,7 +15,7 @@ use tracing::{error, info};
 
 /// Creates the initial server state with all required components.
 pub fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
-    const SEED: u64 = 0;
+    const SEED: u64 = 380;
     Ok(ServerState {
         world: World::new(&get_global_config().database.db_path),
         terrain_generator: WorldGenerator::new(SEED),

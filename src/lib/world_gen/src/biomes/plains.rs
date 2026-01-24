@@ -5,7 +5,6 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos};
-use std::hash::Hasher;
 
 fn build_heightmap_interpolated(pos: ChunkPos, noise: &NoiseGenerator) -> [i32; 16 * 16] {
     const STEP_XZ: i32 = 4;

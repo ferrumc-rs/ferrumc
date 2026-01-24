@@ -5,6 +5,9 @@ mod interp;
 
 use crate::errors::WorldGenError;
 use crate::interp::smoothstep;
+use ferrumc_macros::match_block;
+use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::pos::ChunkBlockPos;
 use ferrumc_world::{chunk::Chunk, pos::ChunkPos};
 use noise::{Fbm, MultiFractal, NoiseFn, Perlin, RidgedMulti};
 
@@ -123,5 +126,35 @@ impl WorldGenerator {
         let mut chunk = biome.generate_chunk(pos, &self.noise_generator)?;
         caves::generate_caves(&mut chunk, pos, &self.noise_generator);
         Ok(chunk)
+    }
+}
+
+#[test]
+#[ignore]
+fn find_good_seed() {
+    let mut the_good_seed = 0u64;
+    println!("Searching for good seed...");
+    'seed: for seed in 0..10000000u64 {
+        let gener = WorldGenerator::new(seed);
+        let chunk = gener.generate_chunk(ChunkPos::new(1, 1)).unwrap();
+        // Check if the section below me is solid on top
+        println!("Testing seed {}", seed);
+        'y: for y in (64..128).rev() {
+            let block = chunk.get_block(ChunkBlockPos::new(0, y, 0));
+            if match_block!("air", block) {
+                continue 'y;
+            } else if match_block!("water", block) {
+                println!("got water at y={}, rejecting", y);
+                continue 'seed;
+            } else {
+                the_good_seed = seed;
+                break 'seed;
+            }
+        }
+    }
+    if the_good_seed != 0 {
+        println!("Found good seed: {}", the_good_seed);
+    } else {
+        println!("No good seed found");
     }
 }

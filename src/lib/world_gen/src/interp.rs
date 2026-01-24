@@ -69,8 +69,8 @@ pub fn dither_field(seed: u64, x: i32, z: i32, cell_size: i32) -> f64 {
     let cx1 = cx0 + 1;
     let cz1 = cz0 + 1;
 
-    let fx = (x.rem_euclid(cell_size) as f64) / (cell_size as f64);
-    let fz = (z.rem_euclid(cell_size) as f64) / (cell_size as f64);
+    let fx = f64::from(x.rem_euclid(cell_size)) / f64::from(cell_size);
+    let fz = f64::from(z.rem_euclid(cell_size)) / f64::from(cell_size);
 
     let tx = smoothstep01(fx);
     let tz = smoothstep01(fz);
