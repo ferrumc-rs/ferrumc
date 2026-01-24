@@ -56,6 +56,7 @@ pub(crate) fn generate_caves(
             let tz = smoothstep(f64::from(z % STEP_XZ) / f64::from(STEP_XZ));
 
             for y in Y_MIN..Y_MAX {
+                
                 let yy = y - Y_MIN;
                 let base_iy = (yy / STEP_Y) as usize;
                 let ty = smoothstep(f64::from(yy % STEP_Y) / f64::from(STEP_Y));
@@ -81,20 +82,15 @@ pub(crate) fn generate_caves(
                     trilerp(c000, c100, c010, c110, c001, c101, c011, c111, tx, ty, tz);
 
                 // Carving logic
-                let current_block = chunk.get_block(ChunkBlockPos::new(x as u8, y as i16, z as u8));
-                if match_block!("air", current_block)
-                    || match_block!("cave_air", current_block)
-                    || match_block!("water", current_block)
-                {
-                    continue;
-                }
-
                 if cave_noise > 0.6 {
-                    if match_block!("water", current_block)
+                    let current_block = chunk.get_block(ChunkBlockPos::new(x as u8, y as i16, z as u8));
+                    if match_block!("air", current_block)
+                        || match_block!("cave_air", current_block)
+                        || match_block!("water", current_block)
                         || match_block!(
-                            "water",
-                            chunk.get_block(ChunkBlockPos::new(x as u8, (y + 1) as i16, z as u8))
-                        )
+                        "water",
+                        chunk.get_block(ChunkBlockPos::new(x as u8, (y + 1) as i16, z as u8))
+                    )
                     {
                         continue;
                     }

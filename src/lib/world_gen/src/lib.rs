@@ -4,8 +4,9 @@ pub mod errors;
 mod interp;
 
 use crate::errors::WorldGenError;
+use crate::interp::smoothstep;
 use ferrumc_world::{chunk::Chunk, pos::ChunkPos};
-use noise::{Clamp, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti};
+use noise::{Fbm, MultiFractal, NoiseFn, Perlin, RidgedMulti};
 
 /// Trait for generating a biome
 ///
@@ -17,26 +18,44 @@ pub(crate) trait BiomeGenerator {
     -> Result<Chunk, WorldGenError>;
 }
 
-pub(crate) struct NoiseGenerator {
-    pub(crate) terrain_layers: Vec<Clamp<f64, OpenSimplex, 2>>,
-    pub(crate) caves_layer: RidgedMulti<OpenSimplex>,
-}
+// pub(crate) struct NoiseGenerator {
+//     pub(crate) terrain_layers: Vec<Clamp<f64, Fbm<Perlin>, 2>>,
+//     pub(crate) caves_layer: RidgedMulti<OpenSimplex>,
+// }
 
 pub struct WorldGenerator {
     _seed: u64,
     noise_generator: NoiseGenerator,
 }
+pub(crate) struct NoiseGenerator {
+    // broad “land shape”
+    base: Fbm<Perlin>,
+    // spiky mountains
+    peaks: RidgedMulti<Perlin>,
+    // where mountains should appear
+    mountain_mask: Fbm<Perlin>,
+
+    pub(crate) caves_layer: RidgedMulti<noise::OpenSimplex>,
+}
 
 impl NoiseGenerator {
     pub fn new(seed: u64) -> Self {
-        let mut terrain_layers = Vec::new();
-        for i in 0..4 {
-            let open_simplex = OpenSimplex::new((seed + i) as u32);
-            let clamp = Clamp::new(open_simplex).set_bounds(-1.0, 1.0);
-            terrain_layers.push(clamp);
-        }
+        let base = Fbm::<Perlin>::new(seed as u32)
+            .set_octaves(4)
+            .set_frequency(0.002); // big smooth hills
+
+        let peaks = RidgedMulti::<Perlin>::new((seed as u32).wrapping_add(1))
+            .set_octaves(4)
+            .set_frequency(0.01); // spiky detail (tune)
+
+        let mountain_mask = Fbm::<Perlin>::new((seed as u32).wrapping_add(2))
+            .set_octaves(2)
+            .set_frequency(0.0006); // very broad regions
+
         Self {
-            terrain_layers,
+            base,
+            peaks,
+            mountain_mask,
             caves_layer: RidgedMulti::new((seed + 100) as u32)
                 .set_frequency(0.01)
                 .set_lacunarity(2.5)
@@ -47,12 +66,36 @@ impl NoiseGenerator {
     }
 
     pub fn get_noise(&self, x: f64, z: f64) -> f64 {
-        let mut noise = 0.0;
-        for (c, layer) in self.terrain_layers.iter().enumerate() {
-            let scale = 64.0_f64.powi(c as i32 + 1);
-            noise += layer.get([x / scale, z / scale]);
-        }
-        noise / (self.terrain_layers.len() as f64 / 2.0)
+        // 0..1 helpers
+        let to01 = |n: f64| (n * 0.5 + 0.5).clamp(0.0, 1.0);
+
+        // Smooth base terrain (valleys + gentle hills)
+        let base = self.base.get([x, z]);
+        let base01 = to01(base);
+
+        // Spiky mountains (ridged)
+        let peaks = self.peaks.get([x, z]);
+        let peaks01 = to01(peaks);
+
+        // Mountain placement mask (big regions)
+        let mask = self.mountain_mask.get([x, z]);
+        let mask01 = to01(mask);
+
+        // Make mask “binary-ish”: lowlands stay lowlands, mountains cluster
+        // (tweak these two numbers to control how much of the world is mountainous)
+        let mask_shaped = smoothstep(((mask01 - 0.45) / (0.75 - 0.45)).clamp(0.0, 1.0));
+
+        // Compose:
+        // - keep valleys flatter by compressing base a bit
+        // - add peaks only where mask says so
+        let valleys = base01.powf(1.3); // <— flatter lowlands
+        let mountain_add = peaks01.powf(2.2) * 0.25; // <— spikiness + height
+
+        // Final 0..1-ish height signal
+        let h01 = valleys + mountain_add * mask_shaped;
+
+        // back to [-1,1] style if you want (optional), but your pipeline uses h*64+64
+        (h01.clamp(0.0, 1.0) * 2.0) - 1.0
     }
 
     pub fn get_cave_noise(&self, x: f64, y: f64, z: f64) -> f64 {
