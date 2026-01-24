@@ -288,7 +288,11 @@ fn break_block(
 
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
-    block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: pos, old_id, new_id });
+    block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
+        position: pos,
+        old_id,
+        new_id,
+    });
 
     // Broadcast the block break to all players
     let block_update_packet = BlockUpdate {

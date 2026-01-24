@@ -54,7 +54,11 @@ pub fn handle(
                     chunk.set_block(pos.chunk_block_pos(), new_id);
 
                     // Send block broken event for un-grounding system
-                    block_break_events.write(BlockBrokenEvent { position: pos, old_id, new_id });
+                    block_break_events.write(BlockBrokenEvent {
+                        position: pos,
+                        old_id,
+                        new_id,
+                    });
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {

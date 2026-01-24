@@ -8,13 +8,12 @@ use crate::block_state_id::BlockStateId;
 use crate::chunk::heightmap::Heightmaps;
 use crate::chunk::section::{ChunkSection, AIR};
 use crate::errors::WorldError;
-use crate::pos::{BlockPos, ChunkBlockPos, ChunkHeight, ChunkPos};
+use crate::pos::{BlockPos, ChunkBlockPos, ChunkHeight};
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::block;
-use tracing::debug;
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct Chunk {

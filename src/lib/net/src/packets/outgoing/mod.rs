@@ -1,5 +1,4 @@
 pub mod chunk_and_light_data;
-pub mod update_light;
 pub mod chunk_batch_finish;
 pub mod chunk_batch_start;
 pub mod client_bound_known_packs;
@@ -19,6 +18,7 @@ pub mod set_render_distance;
 pub mod status_response;
 pub mod synchronize_player_position;
 pub mod system_message;
+pub mod update_light;
 
 pub mod remove_entities;
 pub mod spawn_entity;

@@ -1,7 +1,7 @@
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_world::chunk::Chunk;
 use ferrumc_world::chunk::light::network::NetworkLightData;
+use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::ChunkPos;
 
 #[derive(NetEncode)]

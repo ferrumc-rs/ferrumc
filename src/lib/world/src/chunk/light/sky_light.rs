@@ -8,7 +8,6 @@ use crate::chunk::Chunk;
 use crate::pos::{BlockPos, ChunkBlockPos, ChunkPos};
 use std::collections::VecDeque;
 use tracing::debug;
-use crate::chunk::section::ChunkSection;
 
 #[derive(Clone)]
 pub struct SkyLightEngine {
@@ -290,7 +289,11 @@ impl SkyLightEngine {
         new_block: BlockStateId,
     ) -> LightResult<()> {
         let opacity_changed = Self::opacity(old_block) != Self::opacity(new_block);
-        debug!("New {}, Old {}", Self::opacity(new_block), Self::opacity(old_block));
+        debug!(
+            "New {}, Old {}",
+            Self::opacity(new_block),
+            Self::opacity(old_block)
+        );
 
         if !opacity_changed {
             return Ok(());

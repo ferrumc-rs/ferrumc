@@ -1,8 +1,7 @@
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 
-use crate::chunk::light::engine::LightEngine;
-use crate::pos::{ChunkBlockPos, SectionBlockPos};
+use crate::pos::SectionBlockPos;
 
 pub mod block_light;
 pub mod engine;

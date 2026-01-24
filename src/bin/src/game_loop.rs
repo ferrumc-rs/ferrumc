@@ -12,6 +12,7 @@ use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
 use crate::systems::emit_player_joined::emit_player_joined;
 use crate::systems::lan_pinger::LanPinger;
+use crate::systems::light::register_light_listeners;
 use crate::systems::listeners::register_gameplay_listeners;
 use crate::systems::mobs::register_mob_systems;
 use crate::systems::new_connections::accept_new_connections;
@@ -37,7 +38,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
-use crate::systems::light::register_light_listeners;
 
 /// Main entry point for the server game loop.
 ///
