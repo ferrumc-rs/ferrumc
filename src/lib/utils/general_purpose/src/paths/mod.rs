@@ -1,4 +1,4 @@
-use std::env::current_dir;
+use std::env::current_exe;
 use std::path::PathBuf;
 
 #[derive(thiserror::Error, Debug)]
@@ -10,23 +10,32 @@ pub enum RootPathError {
 }
 
 pub fn get_root_path() -> PathBuf {
-    //! Returns the current working directory.
+    //! Returns the root path of the executable.
+    //! e.g.
+    //! - If the executable is located at "D:/server/ferrumc.exe",
+    //!   this function will return "D:/server".
     //!
     //!
-    //! # Panics
-    //! - If the current working directory cannot be found.
+    //! # Errors
+    //! - If the current executable location cannot be found. (RootPathError::IoError)
+    //! - If the parent directory of the executable cannot be found. (RootPathError::NoParent)
     //!
     //! # Examples
     //! ```rust
     //! use ferrumc_general_purpose::paths::get_root_path;
     //!
-    //! // Returns a PathBuf
+    //! // Returns a Result<PathBuf, RootPathError>
     //! let root_path = get_root_path();
     //!
     //! let favicon_path = root_path.join("icon.png");
     //! ```
     //!
-    current_dir().expect("Failed to get the current working directory")
+    let exe_location = current_exe().expect("Failed to get the current executable location.");
+    let exe_dir = exe_location
+        .parent()
+        .ok_or(RootPathError::NoParent)
+        .expect("Failed to get the parent directory of the executable.");
+    exe_dir.to_path_buf()
 }
 
 pub trait BetterPathExt {
