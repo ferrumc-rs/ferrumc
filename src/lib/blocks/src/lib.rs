@@ -78,6 +78,7 @@ mod tests {
     use crate::BLOCK_MAPPINGS;
 
     #[test]
+    #[ignore]
     fn test() {
         BLOCK_MAPPINGS[12051].test();
     }

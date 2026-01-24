@@ -237,7 +237,7 @@ fn generate_trait_impls(
                     match enum_variants.iter().find(|variant| *variant == &name_ident) {
                         Some(variant) => {
                             let mut values = values.iter().collect::<Vec<_>>();
-                            values.sort_by(|(id_a, _), (id_b, _)| id_a.cmp(id_b));
+                            values.sort_by_key(|(id, _)| *id);
 
                             let mut out = Vec::with_capacity(values.len());
 
