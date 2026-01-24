@@ -25,7 +25,6 @@ fn build_heightmap_interpolated(pos: ChunkPos, noise: &NoiseGenerator) -> [i32; 
             let world_x = pos.x() * 16 + lx;
             let world_z = pos.z() * 16 + lz;
 
-            // same function you use now, just fewer calls
             grid[idx(ix, iz)] = noise.get_noise(f64::from(world_x), f64::from(world_z));
         }
     }
@@ -88,7 +87,7 @@ impl BiomeGenerator for PlainsBiome {
         // Build heightmap
         let heights = build_heightmap_interpolated(pos, noise);
 
-        // Find minimum height to fill full stone sections fast
+        // Find minimum height to fill full stone sections
         let mut y_min = i32::MAX;
         for &h in heights.iter() {
             y_min = y_min.min(h);
@@ -111,8 +110,8 @@ impl BiomeGenerator for PlainsBiome {
                     let global_x = pos.x() * 16 + chunk_x;
                     let global_z = pos.z() * 16 + chunk_z;
 
-                    let d = dither_field(noise.seed, global_x, global_z, 16); // 0..1
-                    let wobble = ((d * 2.0) - 1.0) * 2.0; // [-4,+4] blocks
+                    let d = dither_field(noise.seed, global_x, global_z, 16);
+                    let wobble = ((d * 2.0) - 1.0) * 2.0;
 
                     for dy in 0..fill {
                         let y = above_filled_sections + dy;

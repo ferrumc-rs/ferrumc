@@ -1,4 +1,3 @@
-// worldgen/interp.rs
 #[inline(always)]
 pub fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a + (b - a) * t
@@ -44,13 +43,7 @@ pub fn trilerp(
 }
 
 #[inline(always)]
-fn smoothstep01(t: f64) -> f64 {
-    t * t * (3.0 - 2.0 * t)
-}
-
-#[inline(always)]
-fn hash2d_01(seed: u64, x: i32, z: i32) -> f64 {
-    // very fast mix -> [0,1)
+fn quick_hash(seed: u64, x: i32, z: i32) -> f64 {
     let mut v = seed
         ^ (x as u64).wrapping_mul(0x9E3779B185EBCA87)
         ^ (z as u64).wrapping_mul(0xC2B2AE3D27D4EB4F);
@@ -60,8 +53,6 @@ fn hash2d_01(seed: u64, x: i32, z: i32) -> f64 {
     (v as f64) / (u64::MAX as f64)
 }
 
-/// Coherent “value-noise-ish” field from x/z only.
-/// cell_size controls patch size in blocks: 16/32 = big regions, 8 = smaller mottling.
 #[inline(always)]
 pub fn dither_field(seed: u64, x: i32, z: i32, cell_size: i32) -> f64 {
     let cx0 = x.div_euclid(cell_size);
@@ -72,15 +63,15 @@ pub fn dither_field(seed: u64, x: i32, z: i32, cell_size: i32) -> f64 {
     let fx = f64::from(x.rem_euclid(cell_size)) / f64::from(cell_size);
     let fz = f64::from(z.rem_euclid(cell_size)) / f64::from(cell_size);
 
-    let tx = smoothstep01(fx);
-    let tz = smoothstep01(fz);
+    let tx = smoothstep(fx);
+    let tz = smoothstep(fz);
 
-    let v00 = hash2d_01(seed, cx0, cz0);
-    let v10 = hash2d_01(seed, cx1, cz0);
-    let v01 = hash2d_01(seed, cx0, cz1);
-    let v11 = hash2d_01(seed, cx1, cz1);
+    let v00 = quick_hash(seed, cx0, cz0);
+    let v10 = quick_hash(seed, cx1, cz0);
+    let v01 = quick_hash(seed, cx0, cz1);
+    let v11 = quick_hash(seed, cx1, cz1);
 
     let a = lerp(v00, v10, tx);
     let b = lerp(v01, v11, tx);
-    lerp(a, b, tz) // 0..1
+    lerp(a, b, tz)
 }

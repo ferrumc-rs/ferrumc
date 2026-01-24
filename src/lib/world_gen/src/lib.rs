@@ -5,9 +5,6 @@ mod interp;
 
 use crate::errors::WorldGenError;
 use crate::interp::smoothstep;
-use ferrumc_macros::match_block;
-use ferrumc_world::block_state_id::BlockStateId;
-use ferrumc_world::pos::ChunkBlockPos;
 use ferrumc_world::{chunk::Chunk, pos::ChunkPos};
 use noise::{Fbm, MultiFractal, NoiseFn, Perlin, RidgedMulti};
 
@@ -20,11 +17,6 @@ pub(crate) trait BiomeGenerator {
     fn generate_chunk(&self, pos: ChunkPos, noise: &NoiseGenerator)
     -> Result<Chunk, WorldGenError>;
 }
-
-// pub(crate) struct NoiseGenerator {
-//     pub(crate) terrain_layers: Vec<Clamp<f64, Fbm<Perlin>, 2>>,
-//     pub(crate) caves_layer: RidgedMulti<OpenSimplex>,
-// }
 
 pub struct WorldGenerator {
     _seed: u64,
@@ -71,7 +63,6 @@ impl NoiseGenerator {
     }
 
     pub fn get_noise(&self, x: f64, z: f64) -> f64 {
-        // 0..1 helpers
         let to01 = |n: f64| (n * 0.5 + 0.5).clamp(0.0, 1.0);
 
         // Smooth base terrain (valleys + gentle hills)
@@ -87,7 +78,6 @@ impl NoiseGenerator {
         let mask01 = to01(mask);
 
         // Make mask “binary-ish”: lowlands stay lowlands, mountains cluster
-        // (tweak these two numbers to control how much of the world is mountainous)
         let mask_shaped = smoothstep(((mask01 - 0.45) / (0.75 - 0.45)).clamp(0.0, 1.0));
 
         // Compose:
@@ -99,7 +89,6 @@ impl NoiseGenerator {
         // Final 0..1-ish height signal
         let h01 = valleys + mountain_add * mask_shaped;
 
-        // back to [-1,1] style if you want (optional), but your pipeline uses h*64+64
         (h01.clamp(0.0, 1.0) * 2.0) - 1.0
     }
 
@@ -132,6 +121,9 @@ impl WorldGenerator {
 #[test]
 #[ignore]
 fn find_good_seed() {
+    use ferrumc_macros::match_block;
+    use ferrumc_world::block_state_id::BlockStateId;
+    use ferrumc_world::pos::ChunkBlockPos;
     let mut the_good_seed = 0u64;
     println!("Searching for good seed...");
     'seed: for seed in 0..10000000u64 {
