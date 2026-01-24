@@ -18,6 +18,7 @@ dir-size = { workspace = true }
 # ferrumc local crates
 ferrumc-state = { workspace = true }
 ferrumc-config = { workspace = true, features = ["dashboard"] }
+ferrumc-general-purpose = { workspace = true }
 
 [build-dependencies]
 reqwest = { workspace = true, features = ["blocking"] }
