@@ -1,5 +1,5 @@
 use crate::errors::WorldGenError;
-use crate::interp::{bilerp, smoothstep};
+use crate::interp::{bilerp, dither_field, smoothstep};
 use crate::{BiomeGenerator, NoiseGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
@@ -112,15 +112,12 @@ impl BiomeGenerator for PlainsBiome {
                     let global_x = pos.x() * 16 + chunk_x;
                     let global_z = pos.z() * 16 + chunk_z;
 
+                    let d = dither_field(noise.seed, global_x, global_z, 16); // 0..1
+                    let wobble = ((d * 2.0) - 1.0) * 2.0; // [-4,+4] blocks
+
                     for dy in 0..fill {
                         let y = above_filled_sections + dy;
-                        let mut hasher = wyhash::WyHash::with_seed(noise.seed);
-                        hasher.write_i32(global_x);
-                        hasher.write_i32(global_z);
-                        let hash = hasher.finish();
-                        // Convert to 0..1
-                        let r = (hash as f64) / (u64::MAX as f64);
-                        let dithered_y = y + ((r * 4.0) - 2.0) as i32;
+                        let dithered_y = y + wobble.round() as i32;
                         if dithered_y <= 64 {
                             chunk.set_block(
                                 BlockPos::of(global_x, y, global_z).chunk_block_pos(),
