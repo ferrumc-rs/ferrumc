@@ -14,7 +14,8 @@ use ferrumc_entities::components::EntityMetadata;
 use ferrumc_entities::markers::entity_types::{
     Allay, Armadillo, Axolotl, Bat, Bee, Camel, Cat, Chicken, Cod, Cow, Dolphin, Donkey, Fox, Frog,
     GlowSquid, Goat, Horse, Llama, Mooshroom, Mule, Ocelot, Panda, Parrot, Pig, PolarBear,
-    Pufferfish, Rabbit, Salmon, Sheep, Sniffer, Squid, Strider, Tadpole, TropicalFish, Turtle, Wolf,
+    Pufferfish, Rabbit, Salmon, Sheep, Sniffer, Squid, Strider, Tadpole, TropicalFish, Turtle,
+    Wolf,
 };
 use ferrumc_entities::markers::{HasCollisions, HasGravity, HasWaterDrag};
 use ferrumc_messages::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
@@ -444,7 +445,11 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
             EntityType::Pufferfish => {
                 // Fish - no water drag, no gravity
                 let pufferfish_entity = commands
-                    .spawn((PufferfishBundle::new(event.position), Pufferfish, HasCollisions))
+                    .spawn((
+                        PufferfishBundle::new(event.position),
+                        Pufferfish,
+                        HasCollisions,
+                    ))
                     .id();
 
                 commands.queue(move |world: &mut World| {
@@ -588,7 +593,11 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
             EntityType::GlowSquid => {
                 // Water creature - no water drag
                 let glow_squid_entity = commands
-                    .spawn((GlowSquidBundle::new(event.position), GlowSquid, HasCollisions))
+                    .spawn((
+                        GlowSquidBundle::new(event.position),
+                        GlowSquid,
+                        HasCollisions,
+                    ))
                     .id();
 
                 commands.queue(move |world: &mut World| {

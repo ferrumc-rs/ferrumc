@@ -69,7 +69,10 @@ mod tests {
     #[test]
     fn test_rabbit_bundle_with_rotation() {
         let position = Position::new(10.0, 70.0, 20.0);
-        let rotation = Rotation { yaw: 90.0, pitch: 0.0 };
+        let rotation = Rotation {
+            yaw: 90.0,
+            pitch: 0.0,
+        };
         let rabbit = RabbitBundle::with_rotation(position, rotation);
         assert_eq!(rabbit.rotation.yaw, 90.0);
     }

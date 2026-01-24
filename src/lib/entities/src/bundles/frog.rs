@@ -69,7 +69,10 @@ mod tests {
     #[test]
     fn test_frog_bundle_with_rotation() {
         let position = Position::new(10.0, 70.0, 20.0);
-        let rotation = Rotation { yaw: 90.0, pitch: 0.0 };
+        let rotation = Rotation {
+            yaw: 90.0,
+            pitch: 0.0,
+        };
         let frog = FrogBundle::with_rotation(position, rotation);
         assert_eq!(frog.rotation.yaw, 90.0);
     }

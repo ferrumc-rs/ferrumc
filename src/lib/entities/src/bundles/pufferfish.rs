@@ -70,7 +70,10 @@ mod tests {
     #[test]
     fn test_pufferfish_bundle_with_rotation() {
         let position = Position::new(10.0, 70.0, 20.0);
-        let rotation = Rotation { yaw: 90.0, pitch: 0.0 };
+        let rotation = Rotation {
+            yaw: 90.0,
+            pitch: 0.0,
+        };
         let pufferfish = PufferfishBundle::with_rotation(position, rotation);
         assert_eq!(pufferfish.rotation.yaw, 90.0);
     }
