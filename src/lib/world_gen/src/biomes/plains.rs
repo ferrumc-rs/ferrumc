@@ -5,6 +5,7 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos};
+use std::hash::Hasher;
 
 fn build_heightmap_interpolated(pos: ChunkPos, noise: &NoiseGenerator) -> [i32; 16 * 16] {
     const STEP_XZ: i32 = 4;
@@ -113,10 +114,22 @@ impl BiomeGenerator for PlainsBiome {
 
                     for dy in 0..fill {
                         let y = above_filled_sections + dy;
-                        if y <= 64 {
+                        let mut hasher = wyhash::WyHash::with_seed(noise.seed);
+                        hasher.write_i32(global_x);
+                        hasher.write_i32(global_z);
+                        let hash = hasher.finish();
+                        // Convert to 0..1
+                        let r = (hash as f64) / (u64::MAX as f64);
+                        let dithered_y = y + ((r * 4.0) - 2.0) as i32;
+                        if dithered_y <= 64 {
                             chunk.set_block(
                                 BlockPos::of(global_x, y, global_z).chunk_block_pos(),
                                 block!("sand"),
+                            );
+                        } else if dithered_y >= 80 {
+                            chunk.set_block(
+                                BlockPos::of(global_x, y, global_z).chunk_block_pos(),
+                                stone,
                             );
                         } else {
                             chunk.set_block(

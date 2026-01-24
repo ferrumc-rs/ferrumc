@@ -34,6 +34,7 @@ pub(crate) struct NoiseGenerator {
     peaks: RidgedMulti<Perlin>,
     // where mountains should appear
     mountain_mask: Fbm<Perlin>,
+    pub seed: u64,
 
     pub(crate) caves_layer: RidgedMulti<noise::OpenSimplex>,
 }
@@ -62,6 +63,7 @@ impl NoiseGenerator {
                 .set_octaves(5)
                 .set_persistence(0.8)
                 .set_attenuation(0.3),
+            seed,
         }
     }
 
