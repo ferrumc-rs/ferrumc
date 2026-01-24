@@ -1,14 +1,12 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use ferrumc_blocks::mappings::BLOCK_MAPPINGS;
-
-
+use ferrumc_blocks::BLOCK_MAPPINGS;
 
 fn benches(c: &mut Criterion) {
     fn raw_func_dispatch_ctrl() {}
 
     c.bench_function("Call execution", |b| {
         b.iter(|| {
-            BLOCK_MAPPINGS[12052].test()
+            BLOCK_MAPPINGS[51].test()
         });
     });
 

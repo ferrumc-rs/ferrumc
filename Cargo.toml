@@ -46,6 +46,8 @@ members = [
     "src/lib/particles",
     "src/lib/blocks",
     "src/lib/blocks/crates/property",
+    "src/lib/blocks/crates/generated",
+    "src/lib/blocks/crates/build",
 ]
 
 [workspace.package]

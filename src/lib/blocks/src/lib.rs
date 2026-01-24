@@ -1,6 +1,5 @@
 #![feature(min_specialization)]
 
-use crate::blocks::SlabBlock;
 use bevy_math::DVec2;
 use ferrumc_block_properties::SlabType;
 use ferrumc_core::block::BlockFace;
@@ -9,13 +8,13 @@ use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::World;
 use std::fmt::Debug;
+use ferrumc_blocks_generated::SlabBlock;
 
-pub mod simple_blocks;
-pub mod blocks;
-pub mod mappings;
 mod vtable;
 
 pub use vtable::*;
+
+pub const BLOCK_MAPPINGS: &[StateBehaviorTable] = include!(concat!(env!("OUT_DIR"), "/mappings.rs"));
 
 pub struct PlacementContext {
     pub face: BlockFace,
@@ -67,7 +66,7 @@ impl BlockBehavior for SlabBlock {
 
 #[cfg(test)]
 mod tests {
-    use crate::mappings::BLOCK_MAPPINGS;
+    use crate::BLOCK_MAPPINGS;
 
     #[test]
     fn test() {

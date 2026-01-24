@@ -20,7 +20,7 @@ use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
-use bevy_math::{DVec2, DVec3};
+use bevy_math::DVec2;
 use ferrumc_blocks::PlacementContext;
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
@@ -101,7 +101,7 @@ pub fn handle(
                     }
                     let offset_pos = pos + event.face.translation_vec().into();
 
-                    let placement_block_id = ferrumc_blocks::mappings::BLOCK_MAPPINGS[mapped_block_state_id.raw() as usize]
+                    let placement_block_id = ferrumc_blocks::BLOCK_MAPPINGS[mapped_block_state_id.raw() as usize]
                         .get_placement_state(
                             PlacementContext {
                                 face: event.face,

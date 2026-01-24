@@ -2,25 +2,18 @@
 name = "ferrumc-blocks"
 edition.workspace = true
 version = "0.0.1"
-build = "build/build.rs"
 
 [dependencies]
 ferrumc-world = { workspace = true }
 ferrumc-block-properties = { workspace = true }
+ferrumc-blocks-generated = { path = "crates/generated" }
 ferrumc-core = { workspace = true }
 ferrumc-macros = { workspace = true }
 bevy_math = { workspace = true }
 
 [build-dependencies]
-ferrumc-block-properties = { path = "crates/property", features = ["block-struct-generation"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
-heck = "0.5"
-proc-macro2 = "1.0"
-quote = "1.0"
-syn = { version = "2.0", features = ["extra-traits"] }
-rayon = "1.11.0"
-toml = "0.9.8"
+ferrumc-blocks-build = { path = "crates/build" }
+quote = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
