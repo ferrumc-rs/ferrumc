@@ -48,10 +48,13 @@ pub fn handle(
                         "overworld",
                     )
                     .expect("Failed to load or generate chunk");
-                    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+                    let chunk_block_pos = pos.chunk_block_pos();
+                    let old_id = chunk.get_block(chunk_block_pos);
+                    let new_id = BlockStateId::default();
+                    chunk.set_block(pos.chunk_block_pos(), new_id);
 
                     // Send block broken event for un-grounding system
-                    block_break_events.write(BlockBrokenEvent { position: pos });
+                    block_break_events.write(BlockBrokenEvent { position: pos, old_id, new_id });
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {
@@ -61,7 +64,7 @@ pub fn handle(
 
                         let block_update_packet = BlockUpdate {
                             location: event.location.clone(),
-                            block_state_id: VarInt::from(BlockStateId::default()),
+                            block_state_id: VarInt::from(new_id),
                         };
                         conn.send_packet_ref(&block_update_packet)
                             .map_err(BinaryError::Net)?;

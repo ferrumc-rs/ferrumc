@@ -37,6 +37,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
+use crate::systems::light::register_light_listeners;
 
 /// Main entry point for the server game loop.
 ///
@@ -263,6 +264,7 @@ fn build_timed_scheduler() -> Scheduler {
         register_gameplay_listeners(s); // Event listeners for gameplay events
         register_physics(s); // Physics systems (movement, collision, etc.)
         register_mob_systems(s); // Mob AI and behavior
+        register_light_listeners(s); // Lighting
     };
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
     timed.register(

@@ -7,6 +7,8 @@ use crate::chunk::light::{
 use crate::chunk::Chunk;
 use crate::pos::{BlockPos, ChunkBlockPos, ChunkPos};
 use std::collections::VecDeque;
+use tracing::debug;
+use crate::chunk::section::ChunkSection;
 
 #[derive(Clone)]
 pub struct SkyLightEngine {
@@ -288,6 +290,7 @@ impl SkyLightEngine {
         new_block: BlockStateId,
     ) -> LightResult<()> {
         let opacity_changed = Self::opacity(old_block) != Self::opacity(new_block);
+        debug!("New {}, Old {}", Self::opacity(new_block), Self::opacity(old_block));
 
         if !opacity_changed {
             return Ok(());
@@ -315,10 +318,10 @@ impl SkyLightEngine {
             // Block changed below the chunk's heightmap
             if Self::opacity(new_block) == 15 {
                 // Remove skylight
-                self.add_skylight_at(chunk, chunk_pos, pos)?;
+                self.remove_skylight_at(chunk, chunk_pos, pos)?;
             } else if Self::opacity(old_block) == 15 {
                 // Add skylight
-                self.remove_skylight_at(chunk, chunk_pos, pos)?;
+                self.add_skylight_at(chunk, chunk_pos, pos)?;
             }
         }
 
@@ -388,7 +391,7 @@ impl SkyLightEngine {
 
         while let Some(node) = self.dec.pop_front() {
             for propagation_pos in PROPAGATION_DIRECTIONS {
-                let neighbor_pos = pos.offset(propagation_pos);
+                let neighbor_pos = node.pos.offset(propagation_pos);
                 if neighbor_pos.pos.y < self.min_world_y || neighbor_pos.pos.y > self.max_world_y {
                     continue;
                 }
@@ -399,7 +402,7 @@ impl SkyLightEngine {
                     self.dec
                         .push_back(LightNode::new(neighbor_pos, neighbor_light));
                 } else if neighbor_light >= node.level {
-                    // Independent light source, re-propagate
+                    // Independent light source, re-propagates
                     self.inc
                         .push_back(LightNode::new(neighbor_pos, neighbor_light));
                 }
