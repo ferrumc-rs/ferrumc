@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
-mod simple;
 mod double_block_half;
 mod note_block_instrument;
+mod simple;
 
-pub use simple::*;
 pub use double_block_half::DoubleBlockHalf;
 pub use note_block_instrument::NoteBlockInstrument;
+pub use simple::*;
 
 #[cfg(feature = "block-struct-generation")]
 lazy_static::lazy_static! {

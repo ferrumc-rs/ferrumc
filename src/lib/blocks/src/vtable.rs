@@ -1,6 +1,6 @@
+use crate::{BlockBehavior, PlacementContext};
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::World;
-use crate::{BlockBehavior, PlacementContext};
 
 pub struct StateBehaviorTable {
     block: &'static BlockBehaviorTable,
@@ -13,7 +13,12 @@ impl StateBehaviorTable {
     }
 
     #[inline(always)]
-    pub fn get_placement_state(&self, context: PlacementContext, world: &World, pos: BlockPos) -> u32 {
+    pub fn get_placement_state(
+        &self,
+        context: PlacementContext,
+        world: &World,
+        pos: BlockPos,
+    ) -> u32 {
         (self.block.get_placement_state)(self.id, context, world, pos)
     }
 
@@ -24,15 +29,9 @@ impl StateBehaviorTable {
 }
 
 pub struct BlockBehaviorTable {
-    get_placement_state: fn(
-        id: u32,
-        context: PlacementContext,
-        world: &World,
-        pos: BlockPos,
-    ) -> u32,
-    test: fn(
-        id: u32,
-    ),
+    get_placement_state:
+        fn(id: u32, context: PlacementContext, world: &World, pos: BlockPos) -> u32,
+    test: fn(id: u32),
 }
 
 impl BlockBehaviorTable {
@@ -47,10 +46,16 @@ impl BlockBehaviorTable {
     fn convert_id<T: BlockBehavior>(id: u32, func: impl FnOnce(&mut T)) -> u32 {
         let mut data = T::try_from(id).unwrap_or_else(|_| panic!("Unknown block state id: {id}"));
         func(&mut data);
-        data.try_into().unwrap_or_else(|_| panic!("Unknown block state"))
+        data.try_into()
+            .unwrap_or_else(|_| panic!("Unknown block state"))
     }
 
-    fn placement_state_for<T: BlockBehavior>(id: u32, context: PlacementContext, world: &World, pos: BlockPos) -> u32 {
+    fn placement_state_for<T: BlockBehavior>(
+        id: u32,
+        context: PlacementContext,
+        world: &World,
+        pos: BlockPos,
+    ) -> u32 {
         Self::convert_id::<T>(id, |data| data.get_placement_state(context, world, pos))
     }
 

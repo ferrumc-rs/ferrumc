@@ -1,5 +1,4 @@
 /// All of these enums come directly from the enums found in the `net.minecraft.world.level.block.state.properties` package.
-
 use crate::enum_property;
 
 enum_property!(

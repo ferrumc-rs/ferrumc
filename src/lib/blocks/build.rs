@@ -1,11 +1,11 @@
-use std::fs;
-use std::path::Path;
-use quote::__private::TokenStream;
-use quote::quote;
 use ferrumc_blocks_build::complex::fill_complex_block_mappings;
 use ferrumc_blocks_build::config::{get_block_states, get_build_config};
 use ferrumc_blocks_build::separate_blocks;
 use ferrumc_blocks_build::simple::fill_simple_block_mappings;
+use quote::__private::TokenStream;
+use quote::quote;
+use std::fs;
+use std::path::Path;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");

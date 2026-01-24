@@ -1,5 +1,5 @@
-use bevy_math::IVec3;
 use crate::enum_property;
+use bevy_math::IVec3;
 
 enum_property!(
     DoubleBlockHalf,

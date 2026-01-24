@@ -1,9 +1,9 @@
-use std::io::Read;
 use bevy_math::IVec3;
-use tokio::io::AsyncRead;
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Read;
+use tokio::io::AsyncRead;
 
 #[derive(Debug, Clone)]
 pub enum BlockFace {
@@ -56,7 +56,10 @@ impl NetDecode for BlockFace {
         }
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let VarInt(data) = VarInt::decode_async(reader, opts).await?;
 
         match data {

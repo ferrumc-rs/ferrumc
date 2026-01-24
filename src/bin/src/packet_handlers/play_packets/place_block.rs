@@ -11,6 +11,8 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
+use bevy_math::DVec2;
+use ferrumc_blocks::PlacementContext;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::mq;
 use ferrumc_inventories::hotbar::Hotbar;
@@ -20,8 +22,6 @@ use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
-use bevy_math::DVec2;
-use ferrumc_blocks::PlacementContext;
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -77,9 +77,9 @@ pub fn handle(
                             TextComponentBuilder::new(
                                 "Build limit is 319! Cannot place block here.".to_string(),
                             )
-                                .color(Color::Named(NamedColor::Red))
-                                .bold()
-                                .build(),
+                            .color(Color::Named(NamedColor::Red))
+                            .bold()
+                            .build(),
                             true,
                             entity,
                         );
@@ -90,9 +90,9 @@ pub fn handle(
                             TextComponentBuilder::new(
                                 "Cannot place block below Y=-64.".to_string(),
                             )
-                                .color(Color::Named(NamedColor::Red))
-                                .bold()
-                                .build(),
+                            .color(Color::Named(NamedColor::Red))
+                            .bold()
+                            .build(),
                             true,
                             entity,
                         );
@@ -101,14 +101,15 @@ pub fn handle(
                     }
                     let offset_pos = pos + event.face.translation_vec().into();
 
-                    let placement_block_id = ferrumc_blocks::BLOCK_MAPPINGS[mapped_block_state_id.raw() as usize]
+                    let placement_block_id = ferrumc_blocks::BLOCK_MAPPINGS
+                        [mapped_block_state_id.raw() as usize]
                         .get_placement_state(
                             PlacementContext {
                                 face: event.face,
                                 cursor: DVec2::new(event.cursor_x as _, event.cursor_y as _),
                             },
                             &state.0.world,
-                            offset_pos.clone(),
+                            offset_pos,
                         );
 
                     debug!(
@@ -152,7 +153,10 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    chunk.set_block(offset_pos.chunk_block_pos(), BlockStateId::new(placement_block_id));
+                    chunk.set_block(
+                        offset_pos.chunk_block_pos(),
+                        BlockStateId::new(placement_block_id),
+                    );
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };

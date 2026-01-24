@@ -2,9 +2,13 @@ use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-pub fn fill_simple_block_mappings(simple_blocks: Vec<(u32, String)>, mappings: &mut [TokenStream]) -> TokenStream {
+pub fn fill_simple_block_mappings(
+    simple_blocks: Vec<(u32, String)>,
+    mappings: &mut [TokenStream],
+) -> TokenStream {
     for (id, _) in simple_blocks {
-        mappings[id as usize] = quote! { crate::StateBehaviorTable::spin_off(&VTABLE_SIMPLE_BLOCK, #id) };
+        mappings[id as usize] =
+            quote! { crate::StateBehaviorTable::spin_off(&VTABLE_SIMPLE_BLOCK, #id) };
     }
 
     quote! {
@@ -12,7 +16,9 @@ pub fn fill_simple_block_mappings(simple_blocks: Vec<(u32, String)>, mappings: &
     }
 }
 
-pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>) -> (TokenStream, TokenStream) {
+pub fn generate_simple_block_enum(
+    mut simple_blocks: Vec<(u32, String)>,
+) -> (TokenStream, TokenStream) {
     simple_blocks.sort_by_key(|(id, _)| *id);
 
     let mut map_entries = Vec::new();
@@ -59,6 +65,6 @@ pub fn generate_simple_block_enum(mut simple_blocks: Vec<(u32, String)>) -> (Tok
                     Ok(SIMPLE_BLOCK_STATE_MAP[self as usize])
                 }
             }
-        }
+        },
     )
 }

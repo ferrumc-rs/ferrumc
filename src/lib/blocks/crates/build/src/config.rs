@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use serde::Deserialize;
 use crate::BlockState;
+use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Deserialize)]
 #[serde(untagged)]
@@ -26,8 +26,7 @@ pub fn get_build_config() -> BuildConfig {
 pub fn get_block_states() -> HashMap<u32, BlockState> {
     let out: HashMap<String, BlockState> = serde_json::from_str(BLOCK_STATES).unwrap();
 
-    out
-        .into_iter()
+    out.into_iter()
         .map(|(k, v)| (k.parse::<u32>().unwrap(), v))
         .collect()
 }

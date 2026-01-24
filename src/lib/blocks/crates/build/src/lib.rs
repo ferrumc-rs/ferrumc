@@ -1,11 +1,11 @@
+use crate::complex::ComplexBlock;
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::io::Write;
-use serde::Deserialize;
-use crate::complex::ComplexBlock;
 
+pub mod complex;
 pub mod config;
 pub mod simple;
-pub mod complex;
 
 #[derive(Deserialize, Debug)]
 pub struct BlockState {
@@ -13,13 +13,22 @@ pub struct BlockState {
     properties: Option<HashMap<String, String>>,
 }
 
-pub fn separate_blocks(input: HashMap<u32, BlockState>) -> (Vec<(u32, String)>, Vec<(u32, ComplexBlock)>) {
+#[allow(clippy::type_complexity)]
+pub fn separate_blocks(
+    input: HashMap<u32, BlockState>,
+) -> (Vec<(u32, String)>, Vec<(u32, ComplexBlock)>) {
     let mut simple_blocks = Vec::new();
     let mut complex_blocks = Vec::new();
 
     for (id, state) in input.into_iter() {
         match state.properties {
-            Some(properties) => complex_blocks.push((id, ComplexBlock { name: state.name, properties })),
+            Some(properties) => complex_blocks.push((
+                id,
+                ComplexBlock {
+                    name: state.name,
+                    properties,
+                },
+            )),
             None => simple_blocks.push((id, state.name)),
         }
     }

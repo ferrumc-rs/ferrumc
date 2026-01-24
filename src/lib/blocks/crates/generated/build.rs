@@ -2,8 +2,8 @@ use ferrumc_blocks_build::complex::generate_complex_blocks;
 use ferrumc_blocks_build::config::{get_block_states, get_build_config};
 use ferrumc_blocks_build::simple::generate_simple_block_enum;
 use ferrumc_blocks_build::{format_code, separate_blocks};
-use std::fs;
 use heck::ToSnakeCase;
+use std::fs;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
@@ -15,7 +15,6 @@ fn main() {
 
     let (simple_enum, enum_impl) = generate_simple_block_enum(simple_blocks);
     let (block_structs, block_mod) = generate_complex_blocks(&build_config, complex_blocks);
-
 
     if fs::exists("src/blocks").unwrap_or(false) {
         fs::remove_dir_all("src/blocks").unwrap();
@@ -38,7 +37,15 @@ fn main() {
         .for_each(|((structure, struct_impl), name)| {
             let mod_name = name.to_string().to_snake_case();
 
-            fs::write(format!("src/blocks/{}.rs", mod_name), format_code(&structure.to_string())).unwrap();
-            fs::write(format!("src/blocks/{}_impl.rs", mod_name), format_code(&struct_impl.to_string())).unwrap();
+            fs::write(
+                format!("src/blocks/{}.rs", mod_name),
+                format_code(&structure.to_string()),
+            )
+            .unwrap();
+            fs::write(
+                format!("src/blocks/{}_impl.rs", mod_name),
+                format_code(&struct_impl.to_string()),
+            )
+            .unwrap();
         });
 }
