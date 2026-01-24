@@ -1,6 +1,7 @@
 mod biomes;
 mod caves;
 pub mod errors;
+mod interp;
 
 use crate::errors::WorldGenError;
 use ferrumc_world::{chunk::Chunk, pos::ChunkPos};

@@ -1,9 +1,65 @@
 use crate::errors::WorldGenError;
+use crate::interp::{bilerp, smoothstep};
 use crate::{BiomeGenerator, NoiseGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
-use ferrumc_world::pos::{BlockPos, ChunkColumnPos, ChunkHeight, ChunkPos};
+use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos};
+
+fn build_heightmap_interpolated(pos: ChunkPos, noise: &NoiseGenerator) -> [i32; 16 * 16] {
+    const STEP_XZ: i32 = 4;
+
+    let gx = (16 / STEP_XZ + 1) as usize; // 5
+    let gz = (16 / STEP_XZ + 1) as usize; // 5
+
+    let idx = |ix: usize, iz: usize| -> usize { iz * gx + ix };
+
+    // sample coarse grid
+    let mut grid = vec![0.0f64; gx * gz];
+
+    for ix in 0..gx {
+        for iz in 0..gz {
+            let lx = (ix as i32) * STEP_XZ;
+            let lz = (iz as i32) * STEP_XZ;
+
+            let world_x = pos.x() * 16 + lx;
+            let world_z = pos.z() * 16 + lz;
+
+            // same function you use now, just fewer calls
+            grid[idx(ix, iz)] = noise.get_noise(f64::from(world_x), f64::from(world_z));
+        }
+    }
+
+    // interpolate to full 16x16 heightmap
+    let mut out = [0i32; 16 * 16];
+
+    for x in 0..16i32 {
+        for z in 0..16i32 {
+            let base_ix = (x / STEP_XZ) as usize;
+            let base_iz = (z / STEP_XZ) as usize;
+
+            let tx = smoothstep(f64::from(x % STEP_XZ) / f64::from(STEP_XZ));
+            let tz = smoothstep(f64::from(z % STEP_XZ) / f64::from(STEP_XZ));
+
+            let ix0 = base_ix;
+            let ix1 = (base_ix + 1).min(gx - 1);
+            let iz0 = base_iz;
+            let iz1 = (base_iz + 1).min(gz - 1);
+
+            let c00 = grid[idx(ix0, iz0)];
+            let c10 = grid[idx(ix1, iz0)];
+            let c01 = grid[idx(ix0, iz1)];
+            let c11 = grid[idx(ix1, iz1)];
+
+            let h = bilerp(c00, c10, c01, c11, tx, tz);
+
+            let height = (h * 64.0) as i32 + 64;
+            out[(z as usize) * 16 + (x as usize)] = height;
+        }
+    }
+
+    out
+}
 
 pub(crate) struct PlainsBiome;
 
@@ -22,51 +78,52 @@ impl BiomeGenerator for PlainsBiome {
         noise: &NoiseGenerator,
     ) -> Result<Chunk, WorldGenError> {
         let mut chunk = Chunk::new_empty_with_height(ChunkHeight::new(-64, 384));
-        let mut heights = vec![];
-        let stone = block!("stone"); // just to test the macro
+        let stone = block!("stone");
 
         // Fill with water first
         for section_y in -4..4 {
             chunk.fill_section(section_y as i8, block!("water", {level: 0}));
         }
 
-        // Then generate some heights
-        for chunk_x in 0..16 {
-            for chunk_z in 0..16 {
-                let curr_pos = pos.column_pos(ChunkColumnPos::new(chunk_x, chunk_z));
-                let global_x = curr_pos.x();
-                let global_z = curr_pos.z();
-                let height = noise.get_noise(f64::from(global_x), f64::from(global_z));
-                let height = (height * 64.0) as i32 + 64;
-                heights.push((global_x, global_z, height));
-            }
+        // Build heightmap
+        let heights = build_heightmap_interpolated(pos, noise);
+
+        // Find minimum height to fill full stone sections fast
+        let mut y_min = i32::MAX;
+        for &h in heights.iter() {
+            y_min = y_min.min(h);
         }
 
-        // Fill in the sections that consist of only stone first with the set_section method since
-        // it's faster than set_block
-        let y_min = heights.iter().min_by(|a, b| a.2.cmp(&b.2)).unwrap().2;
-        let highest_full_section = y_min / 16;
+        let highest_full_section = y_min.div_euclid(16);
         for section_y in -4..highest_full_section {
             chunk.fill_section(section_y as i8, stone);
         }
 
         let above_filled_sections = (highest_full_section * 16) - 1;
-        for (global_x, global_z, height) in heights {
-            if height > above_filled_sections {
-                let height = height - above_filled_sections;
-                for y in 0..height {
-                    if y + above_filled_sections <= 64 {
-                        chunk.set_block(
-                            BlockPos::of(global_x, y + above_filled_sections, global_z)
-                                .chunk_block_pos(),
-                            block!("sand"),
-                        );
-                    } else {
-                        chunk.set_block(
-                            BlockPos::of(global_x, y + above_filled_sections, global_z)
-                                .chunk_block_pos(),
-                            block!("grass_block", {snowy: false}),
-                        );
+
+        // Now fill columns above filled stone
+        for chunk_x in 0..16i32 {
+            for chunk_z in 0..16i32 {
+                let height = heights[(chunk_z as usize) * 16 + (chunk_x as usize)];
+
+                if height > above_filled_sections {
+                    let fill = height - above_filled_sections;
+                    let global_x = pos.x() * 16 + chunk_x;
+                    let global_z = pos.z() * 16 + chunk_z;
+
+                    for dy in 0..fill {
+                        let y = above_filled_sections + dy;
+                        if y <= 64 {
+                            chunk.set_block(
+                                BlockPos::of(global_x, y, global_z).chunk_block_pos(),
+                                block!("sand"),
+                            );
+                        } else {
+                            chunk.set_block(
+                                BlockPos::of(global_x, y, global_z).chunk_block_pos(),
+                                block!("grass_block", {snowy: false}),
+                            );
+                        }
                     }
                 }
             }
