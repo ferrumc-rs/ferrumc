@@ -1,9 +1,6 @@
 use crate::block_state_id::BlockStateId;
 use crate::chunk::light::engine::{LightEngineError, LightResult, PROPAGATION_DIRECTIONS};
-use crate::chunk::light::{
-    engine::{LightEngine, LightNode},
-    LightType,
-};
+use crate::chunk::light::{engine::{LightEngine, LightNode}, LightSection, LightType};
 use crate::chunk::Chunk;
 use crate::pos::{BlockPos, ChunkBlockPos, ChunkPos};
 use std::collections::VecDeque;
@@ -63,7 +60,6 @@ impl SkyLightEngine {
         let mut y = self.max_world_y - 1;
 
         while y >= self.min_world_y {
-            // Tbh i dont think this gunna work, the numbers dont connect in my head but its fine.
             let block_id = chunk.get_block(ChunkBlockPos::new(x, y as i16, z));
             let opacity = Self::opacity(block_id);
 
@@ -86,7 +82,7 @@ impl SkyLightEngine {
         }
     }
 
-    // Propagates skylight down a single section (vertical)
+    // Propagates skylight down a single column (vertical)
     fn propagate_skylight_column(
         &mut self,
         chunk: &mut Chunk,
@@ -94,13 +90,19 @@ impl SkyLightEngine {
         x: u8,
         z: u8,
     ) -> LightResult<()> {
+        // This code does not work with different sections, will fix
+        // grab the heightmap of the chunk.
         match chunk.heightmaps.as_ref() {
             Some(heightmap) => {
+                // grab the height of the heightmap at x, z (where the propagation occurs)
                 let height = heightmap.world_surface.get_height(x, z);
                 let mut current_light = 15u8;
 
                 // Start from the top go down.
                 for y in (self.min_world_y..self.max_world_y).rev() {
+                    // grabs the chunk's relative position (x, y, z)
+                    // y = current loop iteration
+                    // Which also grabs the section where the current relative position is.
                     let chunk_block_pos = ChunkBlockPos::new(x, y as i16, z);
                     let section_block_pos = chunk_block_pos.section_block_pos();
                     let section = chunk.get_section_mut(chunk_block_pos).ok_or(
@@ -118,10 +120,15 @@ impl SkyLightEngine {
                             .light
                             .set_light(section_block_pos, 15, LightType::Sky);
                     } else {
-                        // At or below ground level.
+                        // At or below ground level (heightmap).
+                        // Which pretty much means, as of right now
+                        // if any block that isn't air is 15 opacity.
+                        // Which gradients downward until light level 0
                         let block = section.get_block(section_block_pos);
                         let opacity = Self::opacity(block);
 
+                        // If opacity is 0 (air)
+                        // else if opacity is 15 (any other block)
                         if opacity == 0 {
                             // Fully transparent blocks
                             if current_light == 15 {
@@ -150,7 +157,7 @@ impl SkyLightEngine {
                             section
                                 .light
                                 .set_light(section_block_pos, 0, LightType::Sky);
-                            current_light = 0;
+                            current_light = 14; // just for testing purposes
                         } else {
                             current_light = current_light.saturating_sub(opacity);
                             section.light.set_light(
@@ -186,6 +193,7 @@ impl SkyLightEngine {
         chunk: &mut Chunk,
         chunk_pos: &ChunkPos,
     ) -> LightResult<()> {
+        // grab all the nodes from vertical propagation
         while let Some(node) = self.inc.pop_front() {
             let pos = node.pos;
             let light_level = node.level;
@@ -220,7 +228,7 @@ impl SkyLightEngine {
             }
 
             // Propagate all neighbors.
-            // Tbh i give up on "decent" code at this point.
+            // This code does not work with different sections, will fix
             for propagation_pos in PROPAGATION_DIRECTIONS {
                 let neighbor_pos = pos.offset(propagation_pos);
 
@@ -308,7 +316,7 @@ impl SkyLightEngine {
                 .world_surface
                 .get_height(chunk_block_pos.x(), chunk_block_pos.z()) as i32
         {
-            // Recalculate entire column
+            // Recalculate entire column (only x, z) where the block was placed. NOT whole chunk.
             self.update_heightmap_column(chunk, chunk_block_pos.x(), chunk_block_pos.z())?;
             self.propagate_skylight_column(
                 chunk,

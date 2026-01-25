@@ -1,13 +1,10 @@
-use crate::chunk::light::LightSection;
 use crate::chunk::Chunk;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::ops::Not;
 
 const FULL_SECTION_LIGHT: &[u8] = &[u8::MAX; 2048];
-const NUM_SECTIONS: usize = 24;
 
 #[derive(NetEncode)]
 pub struct LightDataArray<'chunk> {
@@ -27,41 +24,46 @@ pub struct NetworkLightData<'chunk> {
 
 impl<'chunk> From<&'chunk Chunk> for NetworkLightData<'chunk> {
     fn from(chunk: &'chunk Chunk) -> Self {
-        let mut sky_light_mask = BitSet::new(NUM_SECTIONS + 2);
-        let mut block_light_mask = BitSet::new(NUM_SECTIONS + 2);
+        let height = chunk.height;
+        let total_sections = (height.height as usize) / 16;
 
-        let mut sky_light_arrays = Vec::with_capacity(NUM_SECTIONS);
-        let mut block_light_arrays = Vec::with_capacity(NUM_SECTIONS);
+        let mask_size = total_sections + 2;
+
+        let mut sky_light_mask = BitSet::new(mask_size);
+        let mut block_light_mask = BitSet::new(mask_size);
+        let mut empty_sky_light_mask = BitSet::new(mask_size);
+        let mut empty_block_light_mask = BitSet::new(mask_size);
+
+        let mut sky_light_arrays = Vec::with_capacity(total_sections);
+        let mut block_light_arrays = Vec::with_capacity(total_sections);
 
         for (i, section) in chunk.sections.iter().enumerate() {
-            sky_light_mask.set(i, section.light.contains_sky_light());
-            block_light_mask.set(i, section.light.contains_block_light());
+            let bit_index = i + 1;
 
-            if section.light.contains_sky_light() {
+            // Skylight
+            let sky_light = &section.light.sky_light;
+            if sky_light.is_empty() {
+                empty_sky_light_mask.set(bit_index, true);
+            } else {
+                sky_light_mask.set(bit_index, true);
                 sky_light_arrays.push(LightDataArray {
                     length: VarInt(2048),
-                    data: match &section.light.sky_light {
-                        LightSection::Empty => unreachable!(),
-                        LightSection::Full => FULL_SECTION_LIGHT,
-                        LightSection::Mixed { light_data } => light_data,
-                    },
-                })
+                    data: &*sky_light.light_data,
+                });
             }
 
-            if section.light.contains_block_light() {
+            // Block Light
+            let block_light = &section.light.block_light;
+            if block_light.is_empty() {
+                empty_block_light_mask.set(bit_index, true);
+            } else {
+                block_light_mask.set(bit_index, true);
                 block_light_arrays.push(LightDataArray {
                     length: VarInt(2048),
-                    data: match &section.light.block_light {
-                        LightSection::Empty => unreachable!(),
-                        LightSection::Full => FULL_SECTION_LIGHT,
-                        LightSection::Mixed { light_data } => light_data,
-                    },
-                })
+                    data: &*block_light.light_data,
+                });
             }
         }
-
-        let empty_sky_light_mask = sky_light_mask.clone().not();
-        let empty_block_light_mask = block_light_mask.clone().not();
 
         Self {
             sky_light_mask,

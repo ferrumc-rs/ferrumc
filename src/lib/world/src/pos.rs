@@ -357,6 +357,12 @@ pub struct SectionBlockPos {
 }
 
 impl SectionBlockPos {
+    pub(crate) const fn new(x: u8, y: u8, z: u8) -> Self {
+        Self {
+            pos: U8Vec3::new(x, y, z),
+        }
+    }
+
     /// Packed representation (big endian): 0x0yzx
     /// So the max value is 0xfff or 4095
     pub fn pack(&self) -> u16 {

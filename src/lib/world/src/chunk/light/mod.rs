@@ -18,59 +18,40 @@ pub enum LightType {
     Block,
 }
 
-#[derive(Default, Clone, DeepSizeOf, Encode, Decode)]
-pub enum LightSection {
-    #[default]
-    Empty,
-    Full,
-    Mixed {
-        light_data: Box<[u8]>,
-    },
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
+pub struct LightSection {
+    light_data: Box<[u8]>,
 }
 
-#[derive(Clone, DeepSizeOf, Encode, Decode)]
+impl Default for LightSection {
+    fn default() -> Self {
+        Self::new(Box::new([0u8; 2048]))
+    }
+}
+
+impl LightSection {
+    pub fn new(light_data: Box<[u8]>) -> Self {
+        assert_eq!(light_data.len(), 2048);
+        Self { light_data }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.light_data.iter().all(|b| *b == 0)
+    }
+}
+
+#[derive(Default, Clone, DeepSizeOf, Encode, Decode)]
 pub struct SectionLightData {
     pub sky_light: LightSection,
-    block_light: LightSection,
-}
-
-impl Default for SectionLightData {
-    fn default() -> Self {
-        Self {
-            sky_light: LightSection::Mixed {
-                light_data: Box::new([0; 2048]),
-            },
-            block_light: LightSection::default(),
-        }
-    }
+    pub block_light: LightSection,
 }
 
 impl From<Vec<i8>> for LightSection {
     fn from(data: Vec<i8>) -> Self {
         if data.len() != 2048 {
-            Self::Empty
+            panic!("Light section size mismatch (must be 2048)");
         } else {
-            let mut all_on = true;
-            let mut all_off = true;
-
-            for b in data.iter() {
-                if *b != i8::MAX {
-                    all_on = false
-                };
-                if *b != i8::MIN {
-                    all_off = false
-                };
-            }
-
-            if all_on {
-                Self::Full
-            } else if all_off {
-                Self::Empty
-            } else {
-                Self::Mixed {
-                    light_data: data.into_iter().map(|v| v as u8).collect(),
-                }
-            }
+            Self::new(data.into_iter().map(|v| v as u8).collect())
         }
     }
 }
@@ -89,21 +70,19 @@ impl SectionLightData {
 
     pub fn get_light(&self, pos: SectionBlockPos, light_type: LightType) -> u8 {
         match light_type {
-            LightType::Sky => match &self.sky_light {
-                LightSection::Empty => 0u8,
-                LightSection::Full => 15u8,
-                LightSection::Mixed { light_data } => {
-                    let index = Self::index(pos.x, pos.y, pos.z);
-                    let byte_index = index / 2;
-                    let byte = light_data[byte_index];
+            LightType::Sky => {
+                let light_data = &self.sky_light.light_data;
 
-                    if index % 2 == 0 {
-                        byte & 0x0F
-                    } else {
-                        (byte >> 4) & 0x0F
-                    }
+                let index = Self::index(pos.x, pos.y, pos.z);
+                let byte_index = index / 2;
+                let byte = light_data[byte_index];
+
+                if index % 2 == 0 {
+                    byte & 0x0F
+                } else {
+                    (byte >> 4) & 0x0F
                 }
-            },
+            }
             LightType::Block => 0u8,
         }
     }
@@ -111,53 +90,19 @@ impl SectionLightData {
     pub fn set_light(&mut self, pos: SectionBlockPos, level: u8, light_type: LightType) {
         match light_type {
             LightType::Sky => {
-                match &mut self.sky_light {
-                    LightSection::Mixed { light_data } => {
-                        let index = Self::index(pos.x, pos.y, pos.z);
-                        let byte_index = index / 2;
-                        let level = level & 0x0F;
+                let light_data = &mut self.sky_light.light_data;
 
-                        // DEBUG: Log first few sets
-                        static COUNTER: std::sync::atomic::AtomicUsize =
-                            std::sync::atomic::AtomicUsize::new(0);
-                        if COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed) < 10 {
-                            println!(
-                                "Setting sky light at ({},{},{}) to {} (index={}, byte_index={})",
-                                pos.x, pos.y, pos.z, level, index, byte_index
-                            );
-                        }
+                let index = Self::index(pos.x, pos.y, pos.z);
+                let byte_index = index / 2;
+                let level = level & 0x0F;
 
-                        if index % 2 == 0 {
-                            light_data[byte_index] = (light_data[byte_index] & 0xF0) | level;
-                        } else {
-                            light_data[byte_index] = (light_data[byte_index] & 0x0F) | (level << 4);
-                        }
-                    }
-                    _ => {}
+                if index % 2 == 0 {
+                    light_data[byte_index] = (light_data[byte_index] & 0xF0) | level;
+                } else {
+                    light_data[byte_index] = (light_data[byte_index] & 0x0F) | (level << 4);
                 }
             }
             LightType::Block => {}
-        }
-    }
-
-    #[inline]
-    pub fn contains_sky_light(&self) -> bool {
-        self.sky_light.contains_light()
-    }
-
-    #[inline]
-    pub fn contains_block_light(&self) -> bool {
-        self.block_light.contains_light()
-    }
-}
-
-impl LightSection {
-    #[inline]
-    pub fn contains_light(&self) -> bool {
-        match self {
-            LightSection::Empty => false,
-            LightSection::Full => true,
-            LightSection::Mixed { .. } => true,
         }
     }
 }

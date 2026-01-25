@@ -23,6 +23,7 @@ pub fn handle(
             let mut chunk = world.load_chunk_mut(chunk_pos, "overworld").unwrap();
             {
                 let mut lighting = world.light_engine.lock().unwrap();
+                debug!("Old: {:?}, New: {:?}", event.old_id, event.new_id);
                 if let Err(e) = lighting.sky.on_block_changed(&mut chunk, &chunk_pos, placed_pos, event.old_id, event.new_id) {
                     debug!("Failed to change block: {}", e);
                 }

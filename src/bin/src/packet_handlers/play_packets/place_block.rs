@@ -169,12 +169,6 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    writer.write(BlockPlaceEvent {
-                        position: offset_pos,
-                        old_id: block_clicked,
-                        new_id: *mapped_block_state_id,
-                    });
-
                     let offset_chunk = offset_pos.chunk();
                     let (offset_chunk_x, offset_chunk_z) = (offset_chunk.x(), offset_chunk.z());
                     let render_distance = get_global_config().chunk_render_distance as i32;
@@ -191,6 +185,12 @@ pub fn handle(
                             }
                         }
                     }
+
+                    writer.write(BlockPlaceEvent {
+                        position: offset_pos,
+                        old_id: block_clicked,
+                        new_id: *mapped_block_state_id,
+                    });
                 }
             }
             1 => {
