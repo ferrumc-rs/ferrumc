@@ -76,7 +76,7 @@ impl World {
                 Err(e) => {
                     error!(
                         "Failed to load region file {}: {}",
-                        region_entry.path().display(),
+                        region_entry.path().display().to_string(),
                         e
                     );
                     continue;

@@ -28,7 +28,7 @@ pub fn teleport_player(
         pos.x = message.x;
         pos.y = message.y;
         pos.z = message.z;
-        if let Err(err) = conn.send_packet(SynchronizePlayerPositionPacket {
+        let position_packet = conn.send_packet(SynchronizePlayerPositionPacket {
             teleport_id: rand::random::<i32>().into(),
             x: message.x,
             y: message.y,
@@ -39,7 +39,8 @@ pub fn teleport_player(
             yaw: rot.yaw,
             pitch: rot.pitch,
             flags: 0,
-        }) {
+        });
+        if let Err(err) = position_packet {
             error!("Failed to send teleport packet: {}", err);
             continue;
         }

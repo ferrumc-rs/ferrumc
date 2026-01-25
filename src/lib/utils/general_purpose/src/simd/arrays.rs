@@ -37,38 +37,40 @@ fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
-    debug_assert_eq!(
-        input.len() % 4,
-        0,
-        "Input length must be a multiple of 4 for u32 conversion"
-    );
+    unsafe {
+        debug_assert_eq!(
+            input.len() % 4,
+            0,
+            "Input length must be a multiple of 4 for u32 conversion"
+        );
 
-    let mut output: Vec<u32> = Vec::new();
-    output.reserve_exact(input.len() / 4);
+        let mut output: Vec<u32> = Vec::new();
+        output.reserve_exact(input.len() / 4);
 
-    let shuffle_mask = _mm256_setr_epi8(
-        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20, 27,
-        26, 25, 24, 31, 30, 29, 28,
-    );
-    let mut input = input.chunks_exact(32);
-    for (i, chunk) in input.by_ref().enumerate() {
-        let out = output.as_mut_ptr().cast::<__m256i>().add(i);
-        let data = _mm256_loadu_si256(chunk.as_ptr().cast());
-        let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 8);
+        let shuffle_mask = _mm256_setr_epi8(
+            3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20,
+            27, 26, 25, 24, 31, 30, 29, 28,
+        );
+        let mut input = input.chunks_exact(32);
+        for (i, chunk) in input.by_ref().enumerate() {
+            let out = output.as_mut_ptr().cast::<__m256i>().add(i);
+            let data = _mm256_loadu_si256(chunk.as_ptr().cast());
+            let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
+            _mm256_storeu_si256(out, shuffled);
+            output.set_len((i + 1) * 8);
+        }
+
+        let input = input.remainder();
+        let input = input.chunks_exact(8);
+
+        for chunk in input {
+            let bytes: [u8; 4] = chunk.try_into().unwrap();
+            let val = u32::from_be_bytes(bytes);
+            output.push(val);
+        }
+
+        output
     }
-
-    let input = input.remainder();
-    let input = input.chunks_exact(8);
-
-    for chunk in input {
-        let bytes: [u8; 4] = chunk.try_into().unwrap();
-        let val = u32::from_be_bytes(bytes);
-        output.push(val);
-    }
-
-    output
 }
 
 pub fn u8_slice_to_i32_be(input: &[u8]) -> Vec<i32> {
@@ -101,40 +103,42 @@ fn u8_slice_to_u64_be_normal(input: &[u8]) -> Vec<u64> {
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
-    debug_assert_eq!(
-        input.len() % 8,
-        0,
-        "Input length must be a multiple of 8 for u64 conversion"
-    );
+    unsafe {
+        debug_assert_eq!(
+            input.len() % 8,
+            0,
+            "Input length must be a multiple of 8 for u64 conversion"
+        );
 
-    let mut output: Vec<u64> = Vec::new();
-    output.reserve_exact(input.len() / 8);
+        let mut output: Vec<u64> = Vec::new();
+        output.reserve_exact(input.len() / 8);
 
-    let mut input = input.chunks_exact(32);
+        let mut input = input.chunks_exact(32);
 
-    let shuffle_mask = _mm256_setr_epi8(
-        7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
-        15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
-        23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
-        31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64
-    );
+        let shuffle_mask = _mm256_setr_epi8(
+            7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
+            15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
+            23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
+            31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64
+        );
 
-    for (i, chunk) in input.by_ref().enumerate() {
-        let out = output.as_mut_ptr().cast::<__m256i>().add(i);
-        let data = _mm256_loadu_si256(chunk.as_ptr().cast());
-        let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 4);
+        for (i, chunk) in input.by_ref().enumerate() {
+            let out = output.as_mut_ptr().cast::<__m256i>().add(i);
+            let data = _mm256_loadu_si256(chunk.as_ptr().cast());
+            let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
+            _mm256_storeu_si256(out, shuffled);
+            output.set_len((i + 1) * 4);
+        }
+        let input = input.remainder();
+
+        for chunk in input.chunks_exact(8) {
+            let bytes: [u8; 8] = chunk.try_into().unwrap();
+            let val = u64::from_be_bytes(bytes);
+            output.push(val);
+        }
+
+        output
     }
-    let input = input.remainder();
-
-    for chunk in input.chunks_exact(8) {
-        let bytes: [u8; 8] = chunk.try_into().unwrap();
-        let val = u64::from_be_bytes(bytes);
-        output.push(val);
-    }
-
-    output
 }
 
 pub fn u8_slice_to_i64_be(input: &[u8]) -> Vec<i64> {
@@ -158,31 +162,33 @@ fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
-    let mut output: Vec<u8> = Vec::new();
-    output.reserve_exact(input.len() * 4);
+    unsafe {
+        let mut output: Vec<u8> = Vec::new();
+        output.reserve_exact(input.len() * 4);
 
-    let shuffle_mask = _mm256_setr_epi8(
-        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20, 27,
-        26, 25, 24, 31, 30, 29, 28,
-    );
+        let shuffle_mask = _mm256_setr_epi8(
+            3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20,
+            27, 26, 25, 24, 31, 30, 29, 28,
+        );
 
-    let mut input = input.chunks_exact(8);
-    for (i, chunk) in input.by_ref().enumerate() {
-        let out = output.as_mut_ptr().cast::<__m256i>().add(i);
-        let data = _mm256_loadu_si256(chunk.as_ptr().cast());
-        let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 32);
+        let mut input = input.chunks_exact(8);
+        for (i, chunk) in input.by_ref().enumerate() {
+            let out = output.as_mut_ptr().cast::<__m256i>().add(i);
+            let data = _mm256_loadu_si256(chunk.as_ptr().cast());
+            let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
+            _mm256_storeu_si256(out, shuffled);
+            output.set_len((i + 1) * 32);
+        }
+
+        let input = input.remainder();
+
+        for val in input {
+            let val = val.to_be_bytes();
+            output.extend_from_slice(&val);
+        }
+
+        output
     }
-
-    let input = input.remainder();
-
-    for val in input {
-        let val = val.to_be_bytes();
-        output.extend_from_slice(&val);
-    }
-
-    output
 }
 
 pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
@@ -200,30 +206,32 @@ fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
-    let mut output: Vec<u8> = Vec::new();
-    output.reserve_exact(input.len() * 8);
+    unsafe {
+        let mut output: Vec<u8> = Vec::new();
+        output.reserve_exact(input.len() * 8);
 
-    let shuffle_mask = _mm256_setr_epi8(
-        7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
-        15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
-        23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
-        31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64
-    );
+        let shuffle_mask = _mm256_setr_epi8(
+            7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
+            15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
+            23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
+            31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64
+        );
 
-    let mut input = input.chunks_exact(4);
+        let mut input = input.chunks_exact(4);
 
-    for (i, chunk) in input.by_ref().enumerate() {
-        let out = output.as_mut_ptr().cast::<__m256i>().add(i);
-        let data = _mm256_loadu_si256(chunk.as_ptr().cast());
-        let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 32);
+        for (i, chunk) in input.by_ref().enumerate() {
+            let out = output.as_mut_ptr().cast::<__m256i>().add(i);
+            let data = _mm256_loadu_si256(chunk.as_ptr().cast());
+            let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
+            _mm256_storeu_si256(out, shuffled);
+            output.set_len((i + 1) * 32);
+        }
+
+        for val in input.remainder() {
+            let val = val.to_be_bytes();
+            output.extend_from_slice(&val);
+        }
+
+        output
     }
-
-    for val in input.remainder() {
-        let val = val.to_be_bytes();
-        output.extend_from_slice(&val);
-    }
-
-    output
 }

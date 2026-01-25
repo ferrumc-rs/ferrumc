@@ -129,10 +129,13 @@ impl World {
         let mut found_chunks = Vec::new();
         let mut missing_chunks = Vec::new();
         for coord in coords {
-            if let Some(chunk) = self.cache.get(&(coord.0, coord.1.to_string())) {
-                found_chunks.push(chunk);
-            } else {
-                missing_chunks.push(*coord);
+            match self.cache.get(&(coord.0, coord.1.to_string())) {
+                Some(chunk) => {
+                    found_chunks.push(chunk);
+                }
+                _ => {
+                    missing_chunks.push(*coord);
+                }
             }
         }
         let fetched = load_chunk_batch_internal(self, &missing_chunks)?;
@@ -154,10 +157,13 @@ impl World {
         let mut found_chunks = Vec::new();
         let mut missing_chunks = Vec::new();
         for coord in coords {
-            if let Some(chunk) = self.cache.get_mut(&(coord.0, coord.1.to_string())) {
-                found_chunks.push(chunk);
-            } else {
-                missing_chunks.push(*coord);
+            match self.cache.get_mut(&(coord.0, coord.1.to_string())) {
+                Some(chunk) => {
+                    found_chunks.push(chunk);
+                }
+                _ => {
+                    missing_chunks.push(*coord);
+                }
             }
         }
         let fetched = load_chunk_batch_internal(self, &missing_chunks)?;

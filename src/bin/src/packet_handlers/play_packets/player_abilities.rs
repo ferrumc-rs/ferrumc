@@ -73,7 +73,8 @@ pub fn handle(
                 };
 
                 // 4. Send the correction
-                if let Err(e) = writer.send_packet_ref(&correction_packet) {
+                let packet_ref = writer.send_packet_ref(&correction_packet);
+                if let Err(e) = packet_ref {
                     error!(
                         "Failed to send abilities correction packet to {}: {:?}",
                         trigger_eid.index(),

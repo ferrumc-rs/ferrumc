@@ -10,7 +10,7 @@
 cargo-features = ["profile-rustflags"]
 
 [workspace]
-resolver = "2"
+resolver = "3"
 
 #================= Members =================#
 members = [
@@ -49,7 +49,7 @@ members = [
 ]
 
 [workspace.package]
-edition = "2021"
+edition = "2024"
 version = "0.1.0"
 
 #================== Lints ==================#

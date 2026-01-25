@@ -36,7 +36,8 @@ where
         if !writer.is_running() {
             continue;
         }
-        if let Err(err) = writer.send_packet_ref(packet) {
+        let packet_ref = writer.send_packet_ref(packet);
+        if let Err(err) = packet_ref {
             error!("Failed to broadcast packet to {:?}: {:?}", entity, err);
         }
     }
@@ -56,7 +57,8 @@ where
         if !writer.is_running() {
             continue;
         }
-        if let Err(err) = writer.send_packet_ref(packet) {
+        let packet_ref = writer.send_packet_ref(packet);
+        if let Err(err) = packet_ref {
             error!("Failed to broadcast packet to {:?}: {:?}", entity, err);
         }
     }

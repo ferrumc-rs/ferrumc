@@ -14,14 +14,18 @@ pub fn handle(
 
     for (entity, conn, identity) in query.iter() {
         if state.0.players.is_connected(entity) {
-            if let Err(e) = conn.send_packet_ref(&packet) {
-                tracing::error!(
-                    "Failed to send shutdown packet to player {}: {}",
-                    identity.username,
-                    e
-                );
-            } else {
-                tracing::info!("Shutdown packet sent to player {}", identity.username);
+            let packet_ref = conn.send_packet_ref(&packet);
+            match packet_ref {
+                Err(e) => {
+                    tracing::error!(
+                        "Failed to send shutdown packet to player {}: {}",
+                        identity.username,
+                        e
+                    );
+                }
+                _ => {
+                    tracing::info!("Shutdown packet sent to player {}", identity.username);
+                }
             }
         }
     }

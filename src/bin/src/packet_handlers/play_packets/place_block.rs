@@ -177,7 +177,8 @@ pub fn handle(
                         if (offset_chunk_x - chunk_x).abs() <= render_distance
                             && (offset_chunk_z - chunk_z).abs() <= render_distance
                         {
-                            if let Err(err) = conn.send_packet_ref(&chunk_packet) {
+                            let packet_ref = conn.send_packet_ref(&chunk_packet);
+                            if let Err(err) = packet_ref {
                                 error!("Failed to send block update packet: {:?}", err);
                             }
                         }

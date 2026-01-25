@@ -45,10 +45,13 @@ fn main() {
 
         Some(Command::Import(import_args)) => {
             info!("Starting import...");
-            if let Err(e) = launch::handle_import(import_args) {
-                error!("Import failed with the following error: {}", e.to_string());
-            } else {
-                info!("Import completed successfully.");
+            match launch::handle_import(import_args) {
+                Err(e) => {
+                    error!("Import failed with the following error: {}", e.to_string());
+                }
+                _ => {
+                    info!("Import completed successfully.");
+                }
             }
         }
 
@@ -65,10 +68,13 @@ fn main() {
             } else {
                 info!("Server setup complete.");
             }
-            if let Err(e) = entry(start_time) {
-                error!("Server exited with the following error: {}", e.to_string());
-            } else {
-                info!("Server exited successfully.");
+            match entry(start_time) {
+                Err(e) => {
+                    error!("Server exited with the following error: {}", e.to_string());
+                }
+                _ => {
+                    info!("Server exited successfully.");
+                }
             }
         }
     }

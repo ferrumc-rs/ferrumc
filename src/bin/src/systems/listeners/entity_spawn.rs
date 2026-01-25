@@ -67,7 +67,8 @@ fn broadcast_entity_spawn(world: &mut World, entity: Entity) {
     // Broadcast to all connected players
     let mut writer_query = world.query::<&StreamWriter>();
     for writer in writer_query.iter(world) {
-        if let Err(e) = writer.send_packet_ref(&spawn_packet) {
+        let packet_ref = writer.send_packet_ref(&spawn_packet);
+        if let Err(e) = packet_ref {
             error!("Failed to send spawn packet: {:?}", e);
         }
     }

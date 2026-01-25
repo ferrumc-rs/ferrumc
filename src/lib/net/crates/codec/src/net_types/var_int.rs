@@ -131,7 +131,7 @@ impl VarInt {
     }
 
     pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
-        let VarInt(mut val) = self;
+        let &VarInt(mut val) = self;
         loop {
             if (val & !SEGMENT_BITS) == 0 {
                 cursor.write_all(&[val as u8])?;
@@ -147,7 +147,7 @@ impl VarInt {
         &self,
         cursor: &mut W,
     ) -> Result<(), NetTypesError> {
-        let VarInt(mut val) = self;
+        let &VarInt(mut val) = self;
         loop {
             if (val & !SEGMENT_BITS) == 0 {
                 cursor.write_all(&[val as u8]).await?;

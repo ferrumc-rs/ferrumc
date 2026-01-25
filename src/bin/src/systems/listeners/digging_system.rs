@@ -79,7 +79,8 @@ pub fn handle_start_digging(
                 let ack_packet = BlockChangeAck {
                     sequence: event.sequence,
                 };
-                if let Err(e) = writer.send_packet_ref(&ack_packet) {
+                let packet_ref = writer.send_packet_ref(&ack_packet);
+                if let Err(e) = packet_ref {
                     error!(
                         "Failed to send start_dig ACK to {:?}: {:?}",
                         event.player, e
@@ -113,7 +114,8 @@ pub fn handle_start_digging(
             let ack_packet = BlockChangeAck {
                 sequence: event.sequence,
             };
-            if let Err(e) = writer.send_packet_ref(&ack_packet) {
+            let packet_ref = writer.send_packet_ref(&ack_packet);
+            if let Err(e) = packet_ref {
                 error!(
                     "Failed to send start_dig ACK to {:?}: {:?}",
                     event.player, e
@@ -141,7 +143,8 @@ pub fn handle_cancel_digging(
             let ack_packet = BlockChangeAck {
                 sequence: event.sequence,
             };
-            if let Err(e) = writer.send_packet_ref(&ack_packet) {
+            let packet_ref = writer.send_packet_ref(&ack_packet);
+            if let Err(e) = packet_ref {
                 error!(
                     "Failed to send cancel_dig ACK to {:?}: {:?}",
                     event.player, e
@@ -179,7 +182,8 @@ pub fn handle_finish_digging(
             let ack_packet = BlockChangeAck {
                 sequence: event.sequence,
             };
-            if let Err(e) = writer.send_packet_ref(&ack_packet) {
+            let packet_ref = writer.send_packet_ref(&ack_packet);
+            if let Err(e) = packet_ref {
                 error!("Failed to send fail_dig ACK to {:?}: {:?}", event.player, e);
             }
             continue;
@@ -195,7 +199,8 @@ pub fn handle_finish_digging(
             let ack_packet = BlockChangeAck {
                 sequence: event.sequence,
             };
-            if let Err(e) = writer.send_packet_ref(&ack_packet) {
+            let packet_ref = writer.send_packet_ref(&ack_packet);
+            if let Err(e) = packet_ref {
                 error!("Failed to send fail_dig ACK to {:?}: {:?}", event.player, e);
             }
             commands.entity(event.player).remove::<PlayerDigging>();
@@ -231,7 +236,8 @@ pub fn handle_finish_digging(
                 block_state_id: VarInt::from(real_block_state),
             };
 
-            if let Err(e) = writer.send_packet_ref(&revert_packet) {
+            let packet_ref = writer.send_packet_ref(&revert_packet);
+            if let Err(e) = packet_ref {
                 error!(
                     "Failed to send anti-cheat revert packet to {:?}: {:?}",
                     event.player, e
@@ -246,12 +252,13 @@ pub fn handle_finish_digging(
 
             // We wrap the block-breaking logic in its own function
             // to handle the errors cleanly (replaces `try` block).
-            if let Err(e) = break_block(
+            let break_block = break_block(
                 &state,
                 &broadcast_query,
                 &event.position,
                 &mut block_break_writer,
-            ) {
+            );
+            if let Err(e) = break_block {
                 error!("Error handling finished digging: {:?}", e);
             }
         }
@@ -260,7 +267,8 @@ pub fn handle_finish_digging(
         let ack_packet = BlockChangeAck {
             sequence: event.sequence,
         };
-        if let Err(e) = writer.send_packet_ref(&ack_packet) {
+        let packet_ref = writer.send_packet_ref(&ack_packet);
+        if let Err(e) = packet_ref {
             error!(
                 "Failed to send finish_dig ACK to {:?}: {:?}",
                 event.player, e
