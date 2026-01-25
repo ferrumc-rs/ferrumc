@@ -1,5 +1,7 @@
 use bevy_ecs::prelude::{Commands, Entity, MessageWriter, Query, Res};
-use ferrumc_components::player::offline_player_data::{OfflinePlayerData, StorageOfflinePlayerData};
+use ferrumc_components::player::offline_player_data::{
+    OfflinePlayerData, StorageOfflinePlayerData,
+};
 use ferrumc_components::{
     active_effects::ActiveEffects,
     health::Health,

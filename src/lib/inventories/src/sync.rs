@@ -62,11 +62,7 @@ impl EquipmentState {
     /// Builds an EquipmentState from the player's inventory and hotbar selection.
     pub fn from_inventory(inventory: &Inventory, hotbar: &Hotbar) -> Self {
         let get_slot = |idx: u8| -> Option<InventorySlot> {
-            inventory
-                .get_item(idx as usize)
-                .ok()
-                .flatten()
-                .cloned()
+            inventory.get_item(idx as usize).ok().flatten().cloned()
         };
 
         let main_hand_idx = hotbar.get_selected_inventory_index() as u8;
@@ -129,6 +125,8 @@ impl EquipmentState {
 
     /// Returns true if all equipment slots are empty.
     pub fn is_empty(&self) -> bool {
-        EquipmentSlot::ALL.iter().all(|&slot| self.get(slot).is_none())
+        EquipmentSlot::ALL
+            .iter()
+            .all(|&slot| self.get(slot).is_none())
     }
 }

@@ -30,10 +30,7 @@ use tracing::{debug, error, trace};
 pub fn initial_inventory_sync(
     mut commands: Commands,
     state: Res<GlobalStateResource>,
-    query: Query<
-        (Entity, &Inventory, &StreamWriter),
-        With<NeedsInventorySync>,
-    >,
+    query: Query<(Entity, &Inventory, &StreamWriter), With<NeedsInventorySync>>,
     mut sync_events: MessageWriter<InventorySynced>,
 ) {
     for (entity, inventory, writer) in query.iter() {
@@ -76,7 +73,10 @@ pub fn initial_inventory_sync(
 
 /// Detects equipment changes and broadcasts them to other players.
 /// Uses `Changed<Inventory>` and `Changed<Hotbar>` filters.
-#[expect(clippy::type_complexity, reason = "Bevy ECS queries require complex tuples")]
+#[expect(
+    clippy::type_complexity,
+    reason = "Bevy ECS queries require complex tuples"
+)]
 pub fn equipment_broadcast(
     state: Res<GlobalStateResource>,
     mut changed_query: Query<
@@ -171,13 +171,7 @@ pub fn join_equipment_exchange(
         Added<PlayerIdentity>,
     >,
     // Query all players for exchange
-    all_players: Query<(
-        Entity,
-        &PlayerIdentity,
-        &Inventory,
-        &Hotbar,
-        &StreamWriter,
-    )>,
+    all_players: Query<(Entity, &PlayerIdentity, &Inventory, &Hotbar, &StreamWriter)>,
 ) {
     for (joining_entity, joining_identity, joining_inv, joining_hotbar, joining_writer) in
         new_players.iter()
@@ -203,7 +197,10 @@ pub fn join_equipment_exchange(
                     item: item.clone(),
                 })
                 .collect();
-            Some(SetEquipmentPacket::new(joining_identity.short_uuid, entries))
+            Some(SetEquipmentPacket::new(
+                joining_identity.short_uuid,
+                entries,
+            ))
         } else {
             None
         };
@@ -257,4 +254,3 @@ pub fn join_equipment_exchange(
         );
     }
 }
-

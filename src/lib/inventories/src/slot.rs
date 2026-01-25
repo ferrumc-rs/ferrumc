@@ -178,8 +178,8 @@ mod tests {
         assert_eq!(buffer[0], 0);
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert!(decoded.is_empty());
     }
@@ -193,8 +193,8 @@ mod tests {
             .expect("Encode failed");
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert_eq!(decoded.count.0, 64);
         assert_eq!(decoded.item_id.unwrap().0.0, 1);
@@ -226,8 +226,8 @@ mod tests {
         println!("Encoded bytes: {:?}", buffer);
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert_eq!(decoded.count.0, 1);
         assert_eq!(decoded.components_to_add.len(), 1);
@@ -247,8 +247,8 @@ mod tests {
         println!("Encoded bytes: {:?}", buffer);
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert_eq!(decoded.count.0, 1);
         assert_eq!(decoded.components_to_add.len(), 1);
@@ -268,8 +268,8 @@ mod tests {
         println!("Encoded bytes: {:?}", buffer);
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert_eq!(decoded.count.0, 1);
         assert_eq!(decoded.components_to_add.len(), 1);
@@ -280,21 +280,22 @@ mod tests {
     #[ignore = "Protocol asymmetry: encode (server format) vs decode (client format)"]
     fn test_slot_with_custom_name_roundtrip() {
         // Test with CustomName (NBT-based component)
-        let slot = InventorySlot::with_components(
-            1,
-            1,
-            vec![Component::custom_name("Test Diamond")],
-        );
+        let slot =
+            InventorySlot::with_components(1, 1, vec![Component::custom_name("Test Diamond")]);
 
         let mut buffer = Vec::new();
         slot.encode(&mut buffer, &NetEncodeOpts::default())
             .expect("Encode failed");
 
-        println!("CustomName encoded bytes ({} bytes): {:02X?}", buffer.len(), &buffer);
+        println!(
+            "CustomName encoded bytes ({} bytes): {:02X?}",
+            buffer.len(),
+            &buffer
+        );
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert_eq!(decoded.count.0, 1);
         assert_eq!(decoded.components_to_add.len(), 1);
@@ -306,7 +307,7 @@ mod tests {
     fn test_slot_with_multiple_components_roundtrip() {
         // Test with multiple components including NBT-based ones
         let slot = InventorySlot::with_components(
-            862,  // Diamond
+            862, // Diamond
             64,
             vec![
                 Component::Rarity(Rarity::Epic),
@@ -319,11 +320,15 @@ mod tests {
         slot.encode(&mut buffer, &NetEncodeOpts::default())
             .expect("Encode failed");
 
-        println!("Multi-component encoded bytes ({} bytes): {:02X?}", buffer.len(), &buffer);
+        println!(
+            "Multi-component encoded bytes ({} bytes): {:02X?}",
+            buffer.len(),
+            &buffer
+        );
 
         let mut reader = Cursor::new(&buffer);
-        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
-            .expect("Decode failed");
+        let decoded =
+            InventorySlot::decode(&mut reader, &NetDecodeOpts::default()).expect("Decode failed");
 
         assert_eq!(decoded.count.0, 64);
         assert_eq!(decoded.components_to_add.len(), 3);

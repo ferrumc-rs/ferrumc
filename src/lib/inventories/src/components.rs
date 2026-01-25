@@ -5,7 +5,7 @@
 
 use crate::slot::InventorySlot;
 use ferrumc_macros::{NetDecode, NetEncode};
-use ferrumc_nbt::{read_nbt_bytes, NBT, NbtTag};
+use ferrumc_nbt::{NBT, NbtTag, read_nbt_bytes};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -29,7 +29,11 @@ use tokio::io::{AsyncRead, AsyncWrite};
 pub struct RawNbt(pub Vec<u8>);
 
 impl NetEncode for RawNbt {
-    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         writer.write_all(&self.0)?;
         Ok(())
     }
@@ -79,7 +83,9 @@ fn parse_text_component_from_nbt_bytes(nbt_bytes: &[u8]) -> NBT<TextComponent> {
 
 /// Reads one complete NBT value from a stream without knowing its length ahead of time.
 /// Returns the parsed TextComponent.
-fn read_streaming_text_component<R: Read>(reader: &mut R) -> Result<NBT<TextComponent>, NetDecodeError> {
+fn read_streaming_text_component<R: Read>(
+    reader: &mut R,
+) -> Result<NBT<TextComponent>, NetDecodeError> {
     let nbt_bytes = read_nbt_bytes(reader)?;
     Ok(parse_text_component_from_nbt_bytes(&nbt_bytes))
 }
@@ -177,19 +183,21 @@ fn skip_nbt_value(bytes: &[u8], start: usize, tag: u8) -> usize {
     let mut pos = start;
 
     match tag {
-        0 => pos,                // TAG_END
-        1 => pos + 1,            // TAG_BYTE
-        2 => pos + 2,            // TAG_SHORT
-        3 => pos + 4,            // TAG_INT
-        4 => pos + 8,            // TAG_LONG
-        5 => pos + 4,            // TAG_FLOAT
-        6 => pos + 8,            // TAG_DOUBLE
+        0 => pos,     // TAG_END
+        1 => pos + 1, // TAG_BYTE
+        2 => pos + 2, // TAG_SHORT
+        3 => pos + 4, // TAG_INT
+        4 => pos + 8, // TAG_LONG
+        5 => pos + 4, // TAG_FLOAT
+        6 => pos + 8, // TAG_DOUBLE
         7 => {
             // TAG_BYTE_ARRAY
             if pos + 4 > bytes.len() {
                 return bytes.len();
             }
-            let len = i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]]) as usize;
+            let len =
+                i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]])
+                    as usize;
             pos + 4 + len
         }
         8 => {
@@ -206,7 +214,12 @@ fn skip_nbt_value(bytes: &[u8], start: usize, tag: u8) -> usize {
                 return bytes.len();
             }
             let elem_tag = bytes[pos];
-            let count = i32::from_be_bytes([bytes[pos + 1], bytes[pos + 2], bytes[pos + 3], bytes[pos + 4]]) as usize;
+            let count = i32::from_be_bytes([
+                bytes[pos + 1],
+                bytes[pos + 2],
+                bytes[pos + 3],
+                bytes[pos + 4],
+            ]) as usize;
             pos += 5;
             for _ in 0..count {
                 pos = skip_nbt_value(bytes, pos, elem_tag);
@@ -237,7 +250,9 @@ fn skip_nbt_value(bytes: &[u8], start: usize, tag: u8) -> usize {
             if pos + 4 > bytes.len() {
                 return bytes.len();
             }
-            let len = i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]]) as usize;
+            let len =
+                i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]])
+                    as usize;
             pos + 4 + len * 4
         }
         12 => {
@@ -245,7 +260,9 @@ fn skip_nbt_value(bytes: &[u8], start: usize, tag: u8) -> usize {
             if pos + 4 > bytes.len() {
                 return bytes.len();
             }
-            let len = i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]]) as usize;
+            let len =
+                i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]])
+                    as usize;
             pos + 4 + len * 8
         }
         _ => bytes.len(), // Unknown tag, skip to end
@@ -1670,9 +1687,13 @@ impl NetDecode for Component {
             // ID 4: Unbreakable (no data)
             4 => Ok(Component::Unbreakable),
             // ID 5: CustomName - entire buffer is NBT
-            5 => Ok(Component::CustomName(parse_text_component_from_nbt_bytes(&data))),
+            5 => Ok(Component::CustomName(parse_text_component_from_nbt_bytes(
+                &data,
+            ))),
             // ID 6: ItemName - entire buffer is NBT
-            6 => Ok(Component::ItemName(parse_text_component_from_nbt_bytes(&data))),
+            6 => Ok(Component::ItemName(parse_text_component_from_nbt_bytes(
+                &data,
+            ))),
             // ID 7: ItemModel
             7 => Ok(Component::ItemModel(String::decode(&mut cursor, opts)?)),
             // ID 8: Lore - count + streaming NBT elements
@@ -1688,13 +1709,25 @@ impl NetDecode for Component {
             // ID 9: Rarity
             9 => Ok(Component::Rarity(Rarity::decode(&mut cursor, opts)?)),
             // ID 10: Enchantments
-            10 => Ok(Component::Enchantments(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            10 => Ok(Component::Enchantments(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 11: CanPlaceOn
-            11 => Ok(Component::CanPlaceOn(BlockPredicates::decode(&mut cursor, opts)?)),
+            11 => Ok(Component::CanPlaceOn(BlockPredicates::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 12: CanBreak
-            12 => Ok(Component::CanBreak(BlockPredicates::decode(&mut cursor, opts)?)),
+            12 => Ok(Component::CanBreak(BlockPredicates::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 13: AttributeModifiers
-            13 => Ok(Component::AttributeModifiers(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            13 => Ok(Component::AttributeModifiers(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 14: CustomModelData
             14 => Ok(Component::CustomModelData {
                 floats: LengthPrefixedVec::decode(&mut cursor, opts)?,
@@ -1712,7 +1745,10 @@ impl NetDecode for Component {
             // ID 17: CreativeSlotLock (no data)
             17 => Ok(Component::CreativeSlotLock),
             // ID 18: EnchantmentGlintOverride
-            18 => Ok(Component::EnchantmentGlintOverride(bool::decode(&mut cursor, opts)?)),
+            18 => Ok(Component::EnchantmentGlintOverride(bool::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 19: IntangibleProjectile - entire buffer is raw NBT
             19 => Ok(Component::IntangibleProjectile(RawNbt(data))),
             // ID 20: Food
@@ -1730,14 +1766,20 @@ impl NetDecode for Component {
                 consume_effects: LengthPrefixedVec::decode(&mut cursor, opts)?,
             }),
             // ID 22: UseRemainder
-            22 => Ok(Component::UseRemainder(InventorySlot::decode(&mut cursor, opts)?)),
+            22 => Ok(Component::UseRemainder(InventorySlot::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 23: UseCooldown
             23 => Ok(Component::UseCooldown {
                 seconds: f32::decode(&mut cursor, opts)?,
                 cooldown_group: PrefixedOptional::decode(&mut cursor, opts)?,
             }),
             // ID 24: DamageResistant
-            24 => Ok(Component::DamageResistant(String::decode(&mut cursor, opts)?)),
+            24 => Ok(Component::DamageResistant(String::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 25: Tool
             25 => Ok(Component::Tool {
                 rules: LengthPrefixedVec::decode(&mut cursor, opts)?,
@@ -1770,7 +1812,10 @@ impl NetDecode for Component {
             // ID 31: TooltipStyle
             31 => Ok(Component::TooltipStyle(String::decode(&mut cursor, opts)?)),
             // ID 32: DeathProtection
-            32 => Ok(Component::DeathProtection(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            32 => Ok(Component::DeathProtection(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 33: BlocksAttacks
             33 => Ok(Component::BlocksAttacks {
                 block_delay_seconds: f32::decode(&mut cursor, opts)?,
@@ -1782,7 +1827,10 @@ impl NetDecode for Component {
                 disable_sound: PrefixedOptional::decode(&mut cursor, opts)?,
             }),
             // ID 34: StoredEnchantments
-            34 => Ok(Component::StoredEnchantments(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            34 => Ok(Component::StoredEnchantments(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 35: DyedColor
             35 => Ok(Component::DyedColor(i32::decode(&mut cursor, opts)?)),
             // ID 36: MapColor
@@ -1792,11 +1840,20 @@ impl NetDecode for Component {
             // ID 38: MapDecorations - entire buffer is raw NBT
             38 => Ok(Component::MapDecorations(RawNbt(data))),
             // ID 39: MapPostProcessing
-            39 => Ok(Component::MapPostProcessing(MapPostProcessing::decode(&mut cursor, opts)?)),
+            39 => Ok(Component::MapPostProcessing(MapPostProcessing::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 40: ChargedProjectiles
-            40 => Ok(Component::ChargedProjectiles(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            40 => Ok(Component::ChargedProjectiles(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 41: BundleContents
-            41 => Ok(Component::BundleContents(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            41 => Ok(Component::BundleContents(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 42: PotionContents
             42 => Ok(Component::PotionContents {
                 potion_id: PrefixedOptional::decode(&mut cursor, opts)?,
@@ -1805,11 +1862,20 @@ impl NetDecode for Component {
                 custom_name: String::decode(&mut cursor, opts)?,
             }),
             // ID 43: PotionDurationScale
-            43 => Ok(Component::PotionDurationScale(f32::decode(&mut cursor, opts)?)),
+            43 => Ok(Component::PotionDurationScale(f32::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 44: SuspiciousStewEffects
-            44 => Ok(Component::SuspiciousStewEffects(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            44 => Ok(Component::SuspiciousStewEffects(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 45: WritableBookContent
-            45 => Ok(Component::WritableBookContent(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            45 => Ok(Component::WritableBookContent(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 46: WrittenBookContent (requires NBT<TextComponent> decode - not yet supported)
             46 => todo!("WrittenBookContent decoding requires FromNbt for TextComponent"),
             // ID 47: Trim
@@ -1832,19 +1898,28 @@ impl NetDecode for Component {
                 data: RawNbt::decode(&mut cursor, opts)?,
             }),
             // ID 52: Instrument
-            52 => Ok(Component::Instrument(IdOrInstrument::decode(&mut cursor, opts)?)),
+            52 => Ok(Component::Instrument(IdOrInstrument::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 53: ProvidesTrimMaterial
             53 => Ok(Component::ProvidesTrimMaterial {
                 material: IdOrIdentifier::decode(&mut cursor, opts)?,
             }),
             // ID 54: OminousBottleAmplifier
-            54 => Ok(Component::OminousBottleAmplifier(VarInt::decode(&mut cursor, opts)?)),
+            54 => Ok(Component::OminousBottleAmplifier(VarInt::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 55: JukeboxPlayable
             55 => Ok(Component::JukeboxPlayable {
                 song: IdOrJukeboxSong::decode(&mut cursor, opts)?,
             }),
             // ID 56: ProvidesBannerPatterns
-            56 => Ok(Component::ProvidesBannerPatterns(String::decode(&mut cursor, opts)?)),
+            56 => Ok(Component::ProvidesBannerPatterns(String::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 57: Recipes - entire buffer is raw NBT
             57 => Ok(Component::Recipes(RawNbt(data))),
             // ID 58: LodestoneTracker
@@ -1853,74 +1928,146 @@ impl NetDecode for Component {
                 tracked: bool::decode(&mut cursor, opts)?,
             }),
             // ID 59: FireworkExplosion
-            59 => Ok(Component::FireworkExplosion(FireworkExplosion::decode(&mut cursor, opts)?)),
+            59 => Ok(Component::FireworkExplosion(FireworkExplosion::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 60: Fireworks
             60 => Ok(Component::Fireworks {
                 flight_duration: VarInt::decode(&mut cursor, opts)?,
                 explosions: LengthPrefixedVec::decode(&mut cursor, opts)?,
             }),
             // ID 61: Profile
-            61 => Ok(Component::Profile(ResolvableProfile::decode(&mut cursor, opts)?)),
+            61 => Ok(Component::Profile(ResolvableProfile::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 62: NoteBlockSound
-            62 => Ok(Component::NoteBlockSound(String::decode(&mut cursor, opts)?)),
+            62 => Ok(Component::NoteBlockSound(String::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 63: BannerPatterns
-            63 => Ok(Component::BannerPatterns(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            63 => Ok(Component::BannerPatterns(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 64: BaseColor
             64 => Ok(Component::BaseColor(DyeColor::decode(&mut cursor, opts)?)),
             // ID 65: PotDecorations
-            65 => Ok(Component::PotDecorations(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            65 => Ok(Component::PotDecorations(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 66: Container
-            66 => Ok(Component::Container(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            66 => Ok(Component::Container(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 67: BlockState
-            67 => Ok(Component::BlockState(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            67 => Ok(Component::BlockState(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 68: Bees
-            68 => Ok(Component::Bees(LengthPrefixedVec::decode(&mut cursor, opts)?)),
+            68 => Ok(Component::Bees(LengthPrefixedVec::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 69: Lock
             69 => Ok(Component::Lock(String::decode(&mut cursor, opts)?)),
             // ID 70: ContainerLoot - entire buffer is raw NBT
             70 => Ok(Component::ContainerLoot(RawNbt(data))),
             // ID 71: BreakSound
-            71 => Ok(Component::BreakSound(IdOrSoundEvent::decode(&mut cursor, opts)?)),
+            71 => Ok(Component::BreakSound(IdOrSoundEvent::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 72: VillagerVariant
-            72 => Ok(Component::VillagerVariant(VarInt::decode(&mut cursor, opts)?)),
+            72 => Ok(Component::VillagerVariant(VarInt::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 73: WolfVariant
             73 => Ok(Component::WolfVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 74: WolfSoundVariant
-            74 => Ok(Component::WolfSoundVariant(VarInt::decode(&mut cursor, opts)?)),
+            74 => Ok(Component::WolfSoundVariant(VarInt::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 75: WolfCollar
             75 => Ok(Component::WolfCollar(DyeColor::decode(&mut cursor, opts)?)),
             // ID 76: FoxVariant
-            76 => Ok(Component::FoxVariant(FoxVariant::decode(&mut cursor, opts)?)),
+            76 => Ok(Component::FoxVariant(FoxVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 77: SalmonSize
-            77 => Ok(Component::SalmonSize(SalmonSize::decode(&mut cursor, opts)?)),
+            77 => Ok(Component::SalmonSize(SalmonSize::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 78: ParrotVariant
-            78 => Ok(Component::ParrotVariant(ParrotVariant::decode(&mut cursor, opts)?)),
+            78 => Ok(Component::ParrotVariant(ParrotVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 79: TropicalFishPattern
-            79 => Ok(Component::TropicalFishPattern(TropicalFishPattern::decode(&mut cursor, opts)?)),
+            79 => Ok(Component::TropicalFishPattern(TropicalFishPattern::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 80: TropicalFishBaseColor
-            80 => Ok(Component::TropicalFishBaseColor(DyeColor::decode(&mut cursor, opts)?)),
+            80 => Ok(Component::TropicalFishBaseColor(DyeColor::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 81: TropicalFishPatternColor
-            81 => Ok(Component::TropicalFishPatternColor(DyeColor::decode(&mut cursor, opts)?)),
+            81 => Ok(Component::TropicalFishPatternColor(DyeColor::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 82: MooshroomVariant
-            82 => Ok(Component::MooshroomVariant(MooshroomVariant::decode(&mut cursor, opts)?)),
+            82 => Ok(Component::MooshroomVariant(MooshroomVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 83: RabbitVariant
-            83 => Ok(Component::RabbitVariant(RabbitVariant::decode(&mut cursor, opts)?)),
+            83 => Ok(Component::RabbitVariant(RabbitVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 84: PigVariant
             84 => Ok(Component::PigVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 85: CowVariant
             85 => Ok(Component::CowVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 86: ChickenVariant
-            86 => Ok(Component::ChickenVariant(IdOrIdentifier::decode(&mut cursor, opts)?)),
+            86 => Ok(Component::ChickenVariant(IdOrIdentifier::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 87: FrogVariant
             87 => Ok(Component::FrogVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 88: HorseVariant
-            88 => Ok(Component::HorseVariant(HorseVariant::decode(&mut cursor, opts)?)),
+            88 => Ok(Component::HorseVariant(HorseVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 89: PaintingVariant
-            89 => Ok(Component::PaintingVariant(IdOrPaintingVariant::decode(&mut cursor, opts)?)),
+            89 => Ok(Component::PaintingVariant(IdOrPaintingVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 90: LlamaVariant
-            90 => Ok(Component::LlamaVariant(LlamaVariant::decode(&mut cursor, opts)?)),
+            90 => Ok(Component::LlamaVariant(LlamaVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 91: AxolotlVariant
-            91 => Ok(Component::AxolotlVariant(AxolotlVariant::decode(&mut cursor, opts)?)),
+            91 => Ok(Component::AxolotlVariant(AxolotlVariant::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // ID 92: CatVariant
             92 => Ok(Component::CatVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 93: CatCollar
@@ -1928,10 +2075,17 @@ impl NetDecode for Component {
             // ID 94: SheepColor
             94 => Ok(Component::SheepColor(DyeColor::decode(&mut cursor, opts)?)),
             // ID 95: ShulkerColor
-            95 => Ok(Component::ShulkerColor(DyeColor::decode(&mut cursor, opts)?)),
+            95 => Ok(Component::ShulkerColor(DyeColor::decode(
+                &mut cursor,
+                opts,
+            )?)),
             // Unknown component ID - skip by consuming the data we already read
             id => {
-                tracing::warn!("Unknown component ID: {}, skipping {} bytes", id, data_length.0);
+                tracing::warn!(
+                    "Unknown component ID: {}, skipping {} bytes",
+                    id,
+                    data_length.0
+                );
                 Err(NetDecodeError::InvalidEnumVariant)
             }
         }
@@ -2027,7 +2181,9 @@ impl NetDecode for IdOrTrimMaterial {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let id = VarInt::decode(reader, opts)?;
         if id.0 == 0 {
-            Ok(IdOrTrimMaterial::Inline(TrimMaterial::decode(reader, opts)?))
+            Ok(IdOrTrimMaterial::Inline(TrimMaterial::decode(
+                reader, opts,
+            )?))
         } else {
             Ok(IdOrTrimMaterial::Id(VarInt(id.0 - 1)))
         }
@@ -2099,7 +2255,9 @@ impl NetDecode for IdOrPaintingVariant {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let id = VarInt::decode(reader, opts)?;
         if id.0 == 0 {
-            Ok(IdOrPaintingVariant::Inline(PaintingVariant::decode(reader, opts)?))
+            Ok(IdOrPaintingVariant::Inline(PaintingVariant::decode(
+                reader, opts,
+            )?))
         } else {
             Ok(IdOrPaintingVariant::Id(VarInt(id.0 - 1)))
         }

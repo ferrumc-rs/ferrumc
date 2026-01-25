@@ -271,9 +271,7 @@ mod tests {
 
     #[test]
     fn test_item_with_custom_name() {
-        let item = ItemBuilder::new(862)
-            .custom_name("Epic Diamond")
-            .build();
+        let item = ItemBuilder::new(862).custom_name("Epic Diamond").build();
 
         assert_eq!(item.components_to_add.len(), 1);
         // Verify it's a CustomName component

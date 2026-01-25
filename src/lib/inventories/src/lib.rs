@@ -11,8 +11,8 @@ pub mod sync;
 
 pub use builder::ItemBuilder;
 pub use inventory::{Inventory, StorageInventory};
-pub use sync::{EquipmentSlot, EquipmentState, NeedsInventorySync};
 pub use storage::{StorageComponent, StorageInventorySlot};
+pub use sync::{EquipmentSlot, EquipmentState, NeedsInventorySync};
 
 use crate::slot::InventorySlot;
 use bevy_ecs::prelude::Entity;

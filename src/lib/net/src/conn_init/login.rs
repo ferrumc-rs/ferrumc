@@ -45,7 +45,9 @@ use crate::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::packets::outgoing::set_compression::SetCompressionPacket;
 use crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use crate::ConnState;
-use ferrumc_components::player::offline_player_data::{OfflinePlayerData, StorageOfflinePlayerData};
+use ferrumc_components::player::offline_player_data::{
+    OfflinePlayerData, StorageOfflinePlayerData,
+};
 use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};

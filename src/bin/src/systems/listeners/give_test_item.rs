@@ -22,10 +22,7 @@ const TEST_SLOT: i16 = 38;
 /// Gives new players a test item with components.
 /// Uses `Added<PlayerIdentity>` to detect new players after commands are applied.
 pub fn handle(
-    mut new_players: Query<
-        (&PlayerIdentity, &StreamWriter, &mut Inventory),
-        Added<PlayerIdentity>,
-    >,
+    mut new_players: Query<(&PlayerIdentity, &StreamWriter, &mut Inventory), Added<PlayerIdentity>>,
 ) {
     for (identity, writer, mut inventory) in new_players.iter_mut() {
         let test_item = ItemBuilder::new(Item::DIAMOND.id as i32)
@@ -54,10 +51,7 @@ pub fn handle(
                 identity.username, err
             );
         } else {
-            info!(
-                "[DEBUG] Gave test diamond to player {}",
-                identity.username
-            );
+            info!("[DEBUG] Gave test diamond to player {}", identity.username);
         }
     }
 }

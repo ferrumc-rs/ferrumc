@@ -13,7 +13,7 @@ pub enum NetDecodeError {
 
     #[error("Invalid Enum Variant")]
     InvalidEnumVariant,
-    
+
     #[error("Net Type Error: {0}")]
     NetTypeError(#[from] NetTypesError),
 }

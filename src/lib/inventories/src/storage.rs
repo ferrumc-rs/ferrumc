@@ -320,56 +320,119 @@ macro_rules! impl_safe_enum_convert {
     };
 }
 
-impl_safe_enum_convert!(rarity_from_u8, Rarity, [
-    Common = 0, Uncommon = 1, Rare = 2, Epic = 3
-]);
+impl_safe_enum_convert!(
+    rarity_from_u8,
+    Rarity,
+    [Common = 0, Uncommon = 1, Rare = 2, Epic = 3]
+);
 
-impl_safe_enum_convert!(dye_color_from_u8, DyeColor, [
-    White = 0, Orange = 1, Magenta = 2, LightBlue = 3, Yellow = 4, Lime = 5,
-    Pink = 6, Gray = 7, LightGray = 8, Cyan = 9, Purple = 10, Blue = 11,
-    Brown = 12, Green = 13, Red = 14, Black = 15
-]);
+impl_safe_enum_convert!(
+    dye_color_from_u8,
+    DyeColor,
+    [
+        White = 0,
+        Orange = 1,
+        Magenta = 2,
+        LightBlue = 3,
+        Yellow = 4,
+        Lime = 5,
+        Pink = 6,
+        Gray = 7,
+        LightGray = 8,
+        Cyan = 9,
+        Purple = 10,
+        Blue = 11,
+        Brown = 12,
+        Green = 13,
+        Red = 14,
+        Black = 15
+    ]
+);
 
-impl_safe_enum_convert!(map_post_processing_from_u8, MapPostProcessing, [
-    Lock = 0, Scale = 1
-]);
+impl_safe_enum_convert!(
+    map_post_processing_from_u8,
+    MapPostProcessing,
+    [Lock = 0, Scale = 1]
+);
 
-impl_safe_enum_convert!(fox_variant_from_u8, FoxVariant, [
-    Red = 0, Snow = 1
-]);
+impl_safe_enum_convert!(fox_variant_from_u8, FoxVariant, [Red = 0, Snow = 1]);
 
-impl_safe_enum_convert!(salmon_size_from_u8, SalmonSize, [
-    Small = 0, Medium = 1, Large = 2
-]);
+impl_safe_enum_convert!(
+    salmon_size_from_u8,
+    SalmonSize,
+    [Small = 0, Medium = 1, Large = 2]
+);
 
-impl_safe_enum_convert!(parrot_variant_from_u8, ParrotVariant, [
-    RedBlue = 0, Blue = 1, Green = 2, YellowBlue = 3, Gray = 4
-]);
+impl_safe_enum_convert!(
+    parrot_variant_from_u8,
+    ParrotVariant,
+    [RedBlue = 0, Blue = 1, Green = 2, YellowBlue = 3, Gray = 4]
+);
 
-impl_safe_enum_convert!(tropical_fish_pattern_from_u8, TropicalFishPattern, [
-    Kob = 0, Sunstreak = 1, Snooper = 2, Dasher = 3, Brinely = 4, Spotty = 5,
-    Flopper = 6, Stripey = 7, Glitter = 8, Blockfish = 9, Betty = 10, Clayfish = 11
-]);
+impl_safe_enum_convert!(
+    tropical_fish_pattern_from_u8,
+    TropicalFishPattern,
+    [
+        Kob = 0,
+        Sunstreak = 1,
+        Snooper = 2,
+        Dasher = 3,
+        Brinely = 4,
+        Spotty = 5,
+        Flopper = 6,
+        Stripey = 7,
+        Glitter = 8,
+        Blockfish = 9,
+        Betty = 10,
+        Clayfish = 11
+    ]
+);
 
-impl_safe_enum_convert!(mooshroom_variant_from_u8, MooshroomVariant, [
-    Red = 0, Brown = 1
-]);
+impl_safe_enum_convert!(
+    mooshroom_variant_from_u8,
+    MooshroomVariant,
+    [Red = 0, Brown = 1]
+);
 
-impl_safe_enum_convert!(rabbit_variant_from_u8, RabbitVariant, [
-    Brown = 0, White = 1, Black = 2, BlackAndWhite = 3, Gold = 4, SaltAndPepper = 5, Evil = 6
-]);
+impl_safe_enum_convert!(
+    rabbit_variant_from_u8,
+    RabbitVariant,
+    [
+        Brown = 0,
+        White = 1,
+        Black = 2,
+        BlackAndWhite = 3,
+        Gold = 4,
+        SaltAndPepper = 5,
+        Evil = 6
+    ]
+);
 
-impl_safe_enum_convert!(horse_variant_from_u8, HorseVariant, [
-    White = 0, Creamy = 1, Chestnut = 2, Brown = 3, Black = 4, Gray = 5, DarkBrown = 6
-]);
+impl_safe_enum_convert!(
+    horse_variant_from_u8,
+    HorseVariant,
+    [
+        White = 0,
+        Creamy = 1,
+        Chestnut = 2,
+        Brown = 3,
+        Black = 4,
+        Gray = 5,
+        DarkBrown = 6
+    ]
+);
 
-impl_safe_enum_convert!(llama_variant_from_u8, LlamaVariant, [
-    Creamy = 0, White = 1, Brown = 2, Gray = 3
-]);
+impl_safe_enum_convert!(
+    llama_variant_from_u8,
+    LlamaVariant,
+    [Creamy = 0, White = 1, Brown = 2, Gray = 3]
+);
 
-impl_safe_enum_convert!(axolotl_variant_from_u8, AxolotlVariant, [
-    Lucy = 0, Wild = 1, Gold = 2, Cyan = 3, Blue = 4
-]);
+impl_safe_enum_convert!(
+    axolotl_variant_from_u8,
+    AxolotlVariant,
+    [Lucy = 0, Wild = 1, Gold = 2, Cyan = 3, Blue = 4]
+);
 
 // ============================================================================
 // Component -> StorageComponent Conversion
@@ -417,7 +480,9 @@ impl From<&Component> for StorageComponent {
             },
             Component::RepairCost(v) => StorageComponent::RepairCost(v.0),
             Component::CreativeSlotLock => StorageComponent::CreativeSlotLock,
-            Component::EnchantmentGlintOverride(b) => StorageComponent::EnchantmentGlintOverride(*b),
+            Component::EnchantmentGlintOverride(b) => {
+                StorageComponent::EnchantmentGlintOverride(*b)
+            }
             Component::IntangibleProjectile(raw) => {
                 StorageComponent::IntangibleProjectile(raw.0.clone())
             }
@@ -476,9 +541,15 @@ impl From<&Component> for StorageComponent {
             }
             Component::PotionContents { .. } => StorageComponent::PotionContents(String::new()),
             Component::PotionDurationScale(f) => StorageComponent::PotionDurationScale(*f),
-            Component::SuspiciousStewEffects(_) => StorageComponent::SuspiciousStewEffects(String::new()),
-            Component::WritableBookContent(_) => StorageComponent::WritableBookContent(String::new()),
-            Component::WrittenBookContent { .. } => StorageComponent::WrittenBookContent(String::new()),
+            Component::SuspiciousStewEffects(_) => {
+                StorageComponent::SuspiciousStewEffects(String::new())
+            }
+            Component::WritableBookContent(_) => {
+                StorageComponent::WritableBookContent(String::new())
+            }
+            Component::WrittenBookContent { .. } => {
+                StorageComponent::WrittenBookContent(String::new())
+            }
             Component::Trim { .. } => StorageComponent::Trim(String::new()),
             Component::DebugStickState(raw) => StorageComponent::DebugStickState(raw.0.clone()),
             Component::EntityData { entity_type, data } => StorageComponent::EntityData {
@@ -494,7 +565,9 @@ impl From<&Component> for StorageComponent {
                 data: data.0.clone(),
             },
             Component::Instrument(_) => StorageComponent::Instrument(String::new()),
-            Component::ProvidesTrimMaterial { .. } => StorageComponent::ProvidesTrimMaterial(String::new()),
+            Component::ProvidesTrimMaterial { .. } => {
+                StorageComponent::ProvidesTrimMaterial(String::new())
+            }
             Component::OminousBottleAmplifier(v) => StorageComponent::OminousBottleAmplifier(v.0),
             Component::JukeboxPlayable { .. } => StorageComponent::JukeboxPlayable(String::new()),
             Component::ProvidesBannerPatterns(s) => {
@@ -533,7 +606,9 @@ impl From<&Component> for StorageComponent {
             Component::SalmonSize(s) => StorageComponent::SalmonSize(*s as u8),
             Component::ParrotVariant(v) => StorageComponent::ParrotVariant(*v as u8),
             Component::TropicalFishPattern(p) => StorageComponent::TropicalFishPattern(*p as u8),
-            Component::TropicalFishBaseColor(c) => StorageComponent::TropicalFishBaseColor(*c as u8),
+            Component::TropicalFishBaseColor(c) => {
+                StorageComponent::TropicalFishBaseColor(*c as u8)
+            }
             Component::TropicalFishPatternColor(c) => {
                 StorageComponent::TropicalFishPatternColor(*c as u8)
             }
@@ -572,9 +647,7 @@ impl TryFrom<StorageComponent> for Component {
             StorageComponent::CustomName(json) => {
                 Component::CustomName(NBT::new(json_to_text(&json)?))
             }
-            StorageComponent::ItemName(json) => {
-                Component::ItemName(NBT::new(json_to_text(&json)?))
-            }
+            StorageComponent::ItemName(json) => Component::ItemName(NBT::new(json_to_text(&json)?)),
             StorageComponent::ItemModel(s) => Component::ItemModel(s),
             StorageComponent::Lore(lines) => {
                 let data: Result<Vec<_>, _> = lines
@@ -584,9 +657,9 @@ impl TryFrom<StorageComponent> for Component {
                 Component::Lore(LengthPrefixedVec::new(data?))
             }
             StorageComponent::Rarity(r) => Component::Rarity(rarity_from_u8(r)?),
-            StorageComponent::Enchantments(vec) => {
-                Component::Enchantments(LengthPrefixedVec::new(vec.into_iter().map(Into::into).collect()))
-            }
+            StorageComponent::Enchantments(vec) => Component::Enchantments(LengthPrefixedVec::new(
+                vec.into_iter().map(Into::into).collect(),
+            )),
             StorageComponent::RepairCost(v) => Component::RepairCost(VarInt(v)),
             StorageComponent::CreativeSlotLock => Component::CreativeSlotLock,
             StorageComponent::EnchantmentGlintOverride(b) => Component::EnchantmentGlintOverride(b),
@@ -612,9 +685,9 @@ impl TryFrom<StorageComponent> for Component {
             StorageComponent::Enchantable(v) => Component::Enchantable(VarInt(v)),
             StorageComponent::Glider => Component::Glider,
             StorageComponent::TooltipStyle(s) => Component::TooltipStyle(s),
-            StorageComponent::StoredEnchantments(vec) => {
-                Component::StoredEnchantments(LengthPrefixedVec::new(vec.into_iter().map(Into::into).collect()))
-            }
+            StorageComponent::StoredEnchantments(vec) => Component::StoredEnchantments(
+                LengthPrefixedVec::new(vec.into_iter().map(Into::into).collect()),
+            ),
             StorageComponent::DyedColor(c) => Component::DyedColor(c),
             StorageComponent::MapColor(c) => Component::MapColor(c),
             StorageComponent::MapId(v) => Component::MapId(VarInt(v)),
@@ -672,12 +745,8 @@ impl TryFrom<StorageComponent> for Component {
             StorageComponent::PigVariant(v) => Component::PigVariant(VarInt(v)),
             StorageComponent::CowVariant(v) => Component::CowVariant(VarInt(v)),
             StorageComponent::FrogVariant(v) => Component::FrogVariant(VarInt(v)),
-            StorageComponent::HorseVariant(v) => {
-                Component::HorseVariant(horse_variant_from_u8(v)?)
-            }
-            StorageComponent::LlamaVariant(v) => {
-                Component::LlamaVariant(llama_variant_from_u8(v)?)
-            }
+            StorageComponent::HorseVariant(v) => Component::HorseVariant(horse_variant_from_u8(v)?),
+            StorageComponent::LlamaVariant(v) => Component::LlamaVariant(llama_variant_from_u8(v)?),
             StorageComponent::AxolotlVariant(v) => {
                 Component::AxolotlVariant(axolotl_variant_from_u8(v)?)
             }
@@ -705,7 +774,7 @@ impl From<&InventorySlot> for StorageInventorySlot {
     fn from(slot: &InventorySlot) -> Self {
         Self {
             count: slot.count.0,
-            item_id: slot.item_id.map(|id| id.0 .0),
+            item_id: slot.item_id.map(|id| id.0.0),
             components_to_add: slot.components_to_add.iter().map(Into::into).collect(),
             components_to_remove: slot.components_to_remove.iter().map(|v| v.0).collect(),
         }
@@ -726,7 +795,11 @@ impl TryFrom<StorageInventorySlot> for InventorySlot {
             count: VarInt(storage.count),
             item_id: storage.item_id.map(ItemID::new),
             components_to_add: components?,
-            components_to_remove: storage.components_to_remove.into_iter().map(VarInt).collect(),
+            components_to_remove: storage
+                .components_to_remove
+                .into_iter()
+                .map(VarInt)
+                .collect(),
         })
     }
 }
@@ -742,10 +815,7 @@ mod tests {
         let restored = InventorySlot::try_from(storage).unwrap();
 
         assert_eq!(slot.count.0, restored.count.0);
-        assert_eq!(
-            slot.item_id.map(|i| i.0 .0),
-            restored.item_id.map(|i| i.0 .0)
-        );
+        assert_eq!(slot.item_id.map(|i| i.0.0), restored.item_id.map(|i| i.0.0));
     }
 
     #[test]
@@ -764,11 +834,7 @@ mod tests {
 
     #[test]
     fn test_slot_with_custom_name_roundtrip() {
-        let slot = InventorySlot::with_components(
-            1,
-            1,
-            vec![Component::custom_name("Test Name")],
-        );
+        let slot = InventorySlot::with_components(1, 1, vec![Component::custom_name("Test Name")]);
         let storage = StorageInventorySlot::from(&slot);
         let restored = InventorySlot::try_from(storage).unwrap();
 

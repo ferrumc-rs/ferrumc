@@ -7,7 +7,9 @@ use ferrumc_components::player::experience::Experience;
 use ferrumc_components::player::gamemode::GameModeComponent;
 use ferrumc_components::player::gameplay_state::ender_chest::EnderChest;
 use ferrumc_components::player::hunger::Hunger;
-use ferrumc_components::player::offline_player_data::{OfflinePlayerData, StorageOfflinePlayerData};
+use ferrumc_components::player::offline_player_data::{
+    OfflinePlayerData, StorageOfflinePlayerData,
+};
 use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
