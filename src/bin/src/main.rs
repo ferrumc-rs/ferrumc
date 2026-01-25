@@ -77,12 +77,6 @@ fn main() {
 fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = launch::create_state(start_time)?;
     let global_state = Arc::new(state);
-    if ferrumc_state::MORE_GLOBAL_STATE
-        .set(global_state.clone())
-        .is_err()
-    {
-        panic!("Failed to set MORE_GLOBAL_STATE, This should never happen");
-    }
     create_whitelist();
     if !global_state
         .world

@@ -13,7 +13,7 @@ pub fn handle(
     for (event, eid) in receiver.0.try_iter() {
         if let Ok((mut rot, mut ground, tracker)) = query.get_mut(eid) {
             if tracker.waiting_for_confirm {
-                // Ignore position updates while waiting for teleport confirmation
+                // Ignore rotation updates while waiting for teleport confirmation
                 continue;
             }
             let new_rot = Rotation::new(event.yaw, event.pitch);

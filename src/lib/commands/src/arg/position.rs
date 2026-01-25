@@ -84,6 +84,9 @@ impl CommandArgument for CommandPosition {
                 .map_err(|_| parser_error("invalid z coordinate"))?;
             PositionType::Absolute(value)
         };
+        if parts.next().is_some() {
+            return Err(parser_error("too many coordinates provided"));
+        }
         Ok(CommandPosition { x, y, z })
     }
 
@@ -118,6 +121,7 @@ impl CommandPosition {
 mod tests {
     use super::*;
     use crate::{Command, CommandInput, Sender};
+    use ferrumc_state::create_test_state;
     use std::sync::Arc;
 
     #[test]
@@ -132,6 +136,7 @@ mod tests {
                 args: vec![],
             }),
             sender: Sender::Server,
+            state: create_test_state().0.0,
         };
         let cmd_pos = CommandPosition::parse(&mut ctx).unwrap();
         match cmd_pos.x {
@@ -160,5 +165,84 @@ mod tests {
         assert_eq!(resolved.x, 110.0);
         assert_eq!(resolved.y, 5.0);
         assert_eq!(resolved.z, 90.0);
+    }
+
+    #[test]
+    fn test_parse_all_tildes_is_error() {
+        let mut ctx = CommandContext {
+            input: CommandInput {
+                input: "~ ~ ~".to_string(),
+                cursor: 0,
+            },
+            command: Arc::new(Command {
+                name: "",
+                args: vec![],
+            }),
+            sender: Sender::Server,
+            state: create_test_state().0.0,
+        };
+        // current parser treats bare '~' as having an empty offset which fails to parse
+        assert!(CommandPosition::parse(&mut ctx).is_err());
+    }
+
+    #[test]
+    fn test_parse_tildes_with_plus_minus_zero() {
+        let mut ctx = CommandContext {
+            input: CommandInput {
+                input: "~+0 ~-0 ~0".to_string(),
+                cursor: 0,
+            },
+            command: Arc::new(Command {
+                name: "",
+                args: vec![],
+            }),
+            sender: Sender::Server,
+            state: create_test_state().0.0,
+        };
+        let cmd_pos = CommandPosition::parse(&mut ctx).unwrap();
+        match cmd_pos.x {
+            PositionType::Relative(offset) => assert_eq!(offset, 0.0),
+            _ => panic!("Expected relative x"),
+        }
+        match cmd_pos.y {
+            PositionType::Relative(offset) => assert_eq!(offset, 0.0),
+            _ => panic!("Expected relative y"),
+        }
+        match cmd_pos.z {
+            PositionType::Relative(offset) => assert_eq!(offset, 0.0),
+            _ => panic!("Expected relative z"),
+        }
+    }
+
+    #[test]
+    fn test_parse_invalid_inputs() {
+        let cases = vec![
+            "",
+            "1 2",
+            "1 two 3",
+            "not_a_number 5 6",
+            "1 2 ~",
+            "~ ~",
+            "1 2 3 4",
+        ];
+        for input in cases {
+            let mut ctx = CommandContext {
+                input: CommandInput {
+                    input: input.to_string(),
+                    cursor: 0,
+                },
+                command: Arc::new(Command {
+                    name: "",
+                    args: vec![],
+                }),
+                sender: Sender::Server,
+                state: create_test_state().0.0,
+            };
+            assert!(
+                CommandPosition::parse(&mut ctx).is_err(),
+                "input `{}` should be invalid",
+                input
+            );
+        }
     }
 }

@@ -35,7 +35,7 @@ pub enum EntityArgument {
     Uuid(Uuid),
     AnyEntity,
     AnyPlayer,
-    NearestPlayer,
+    // NearestPlayer,
     RandomPlayer,
 }
 
@@ -43,7 +43,7 @@ impl CommandArgument for EntityArgument {
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         const PREFIXES: &[(&str, EntityArgument)] = &[
             ("@e", EntityArgument::AnyEntity),
-            ("@p", EntityArgument::NearestPlayer),
+            // ("@p", EntityArgument::NearestPlayer),
             ("@r", EntityArgument::RandomPlayer),
             ("@a", EntityArgument::AnyPlayer),
         ];
@@ -66,16 +66,16 @@ impl CommandArgument for EntityArgument {
         PrimitiveArgument::word()
     }
 
-    fn suggest(_ctx: &mut CommandContext) -> Vec<Suggestion> {
+    fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         let mut suggestions = vec![
             Suggestion {
                 content: "@e".to_string(),
                 tooltip: Some(ferrumc_nbt::NBT::new("Any Entity".into())),
             },
-            Suggestion {
-                content: "@p".to_string(),
-                tooltip: Some(ferrumc_nbt::NBT::new("Nearest Player".into())),
-            },
+            // Suggestion {
+            //     content: "@p".to_string(),
+            //     tooltip: Some(ferrumc_nbt::NBT::new("Nearest Player".into())),
+            // },
             Suggestion {
                 content: "@r".to_string(),
                 tooltip: Some(ferrumc_nbt::NBT::new("Random Player".into())),
@@ -85,21 +85,19 @@ impl CommandArgument for EntityArgument {
                 tooltip: Some(ferrumc_nbt::NBT::new("All Players".into())),
             },
         ];
-        let state_opt = ferrumc_state::MORE_GLOBAL_STATE.get();
-        if let Some(state) = state_opt {
-            for kv in &state.clone().players.player_list {
-                let (_, (uuid, name)) = kv.pair();
-                suggestions.push(Suggestion {
-                    content: name.clone(),
-                    tooltip: Some(ferrumc_nbt::NBT::new(
-                        Uuid::from_u128(*uuid)
-                            .as_hyphenated()
-                            .to_string()
-                            .to_uppercase()
-                            .into(),
-                    )),
-                });
-            }
+        let state = ctx.state.clone();
+        for kv in &state.clone().players.player_list {
+            let (_, (uuid, name)) = kv.pair();
+            suggestions.push(Suggestion {
+                content: name.clone(),
+                tooltip: Some(ferrumc_nbt::NBT::new(
+                    Uuid::from_u128(*uuid)
+                        .as_hyphenated()
+                        .to_string()
+                        .to_uppercase()
+                        .into(),
+                )),
+            });
         }
         suggestions
     }
@@ -119,10 +117,10 @@ impl EntityArgument {
                 .unwrap_or_default(),
             EntityArgument::AnyEntity => any_entity::resolve_any_entity(iter),
             EntityArgument::AnyPlayer => any_player::resolve_any_player(iter),
-            EntityArgument::NearestPlayer => {
-                // TODO: Figure this out
-                vec![]
-            }
+            // EntityArgument::NearestPlayer => {
+            //     // TODO: Figure this out
+            //     vec![]
+            // }
             EntityArgument::RandomPlayer => random_player::resolve_random_player(iter)
                 .map(|e| vec![e])
                 .unwrap_or_default(),
@@ -137,6 +135,7 @@ mod tests {
     use bevy_ecs::prelude::World;
     use ferrumc_core::identity::entity_identity::EntityIdentity;
     use ferrumc_core::identity::player_identity::PlayerIdentity;
+    use ferrumc_state::create_test_state;
     use std::sync::Arc;
 
     #[test]
@@ -151,6 +150,7 @@ mod tests {
                 args: vec![],
             }),
             sender: Sender::Server,
+            state: create_test_state().0.0,
         };
         let arg = EntityArgument::parse(&mut ctx).unwrap();
         assert_eq!(arg, EntityArgument::PlayerName("Steve".to_string()));
@@ -165,23 +165,24 @@ mod tests {
                 args: vec![],
             }),
             sender: Sender::Server,
+            state: create_test_state().0.0,
         };
         let arg = EntityArgument::parse(&mut ctx).unwrap();
         assert_eq!(arg, EntityArgument::AnyEntity);
 
-        let mut ctx = CommandContext {
-            input: CommandInput {
-                input: "@p".to_string(),
-                cursor: 0,
-            },
-            command: Arc::new(Command {
-                name: "",
-                args: vec![],
-            }),
-            sender: Sender::Server,
-        };
-        let arg = EntityArgument::parse(&mut ctx).unwrap();
-        assert_eq!(arg, EntityArgument::NearestPlayer);
+        // let mut ctx = CommandContext {
+        //     input: CommandInput {
+        //         input: "@p".to_string(),
+        //         cursor: 0,
+        //     },
+        //     command: Arc::new(Command {
+        //         name: "",
+        //         args: vec![],
+        //     }),
+        //     sender: Sender::Server,
+        // };
+        // let arg = EntityArgument::parse(&mut ctx).unwrap();
+        // assert_eq!(arg, EntityArgument::NearestPlayer);
 
         let mut ctx = CommandContext {
             input: CommandInput {
@@ -193,6 +194,7 @@ mod tests {
                 args: vec![],
             }),
             sender: Sender::Server,
+            state: create_test_state().0.0,
         };
         let arg = EntityArgument::parse(&mut ctx).unwrap();
         assert_eq!(arg, EntityArgument::RandomPlayer);
@@ -207,6 +209,7 @@ mod tests {
                 args: vec![],
             }),
             sender: Sender::Server,
+            state: create_test_state().0.0,
         };
         let arg = EntityArgument::parse(&mut ctx).unwrap();
         assert_eq!(arg, EntityArgument::AnyPlayer);
@@ -222,6 +225,7 @@ mod tests {
                 args: vec![],
             }),
             sender: Sender::Server,
+            state: create_test_state().0.0,
         };
         let arg = EntityArgument::parse(&mut ctx).unwrap();
         assert_eq!(

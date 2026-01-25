@@ -65,9 +65,6 @@ fn tp_to_command(
             false,
         );
         return;
-    } else if resolved_targets.is_empty() {
-        sender.send_message("No valid target found to teleport to.".into(), false);
-        return;
     } else if matches!(sender, Sender::Server) {
         sender.send_message("This command can only be used by players.".into(), false);
         return;
@@ -75,12 +72,8 @@ fn tp_to_command(
 
     let target_entity = resolved_targets.first().expect("Checked above; qed");
 
-    let sender_e = match sender {
-        Player(e) => e,
-        _ => {
-            sender.send_message("This command can only be used by players.".into(), false);
-            return;
-        }
+    let Player(sender_e) = sender else {
+        unreachable!();
     };
 
     let Ok([(sender_rot, _), (_, target_pos)]) = query.get_many([sender_e, *target_entity]) else {

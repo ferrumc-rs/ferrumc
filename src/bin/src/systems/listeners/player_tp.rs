@@ -2,7 +2,6 @@ use bevy_ecs::prelude::{Entity, MessageReader, MessageWriter, Query};
 use ferrumc_components::player::teleport_tracker::TeleportTracker;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
-use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_messages::teleport_player::TeleportPlayer;
@@ -12,13 +11,7 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use tracing::error;
 
 pub fn teleport_player(
-    mut query: Query<(
-        Entity,
-        &StreamWriter,
-        &mut Position,
-        &Rotation,
-        &mut TeleportTracker,
-    )>,
+    mut query: Query<(Entity, &StreamWriter, &mut Position, &mut TeleportTracker)>,
     id_query: Query<&PlayerIdentity>,
     mut message_reader: MessageReader<TeleportPlayer>,
     mut chunk_calc_msg: MessageWriter<ChunkCalc>,
@@ -36,7 +29,7 @@ pub fn teleport_player(
                 continue;
             }
         };
-        for (entity, conn, mut pos, rot, mut tracker) in query.iter_mut() {
+        for (entity, conn, mut pos, mut tracker) in query.iter_mut() {
             if entity == message_entity {
                 // Block movement tracking until the player has been teleported
                 tracker.waiting_for_confirm = true;
@@ -52,8 +45,8 @@ pub fn teleport_player(
                     vel_x: message.vel_x,
                     vel_y: message.vel_y,
                     vel_z: message.vel_z,
-                    yaw: rot.yaw,
-                    pitch: rot.pitch,
+                    yaw: message.yaw,
+                    pitch: message.pitch,
                     flags: 0,
                 }) {
                     error!("Failed to send teleport packet: {}", err);
@@ -70,8 +63,8 @@ pub fn teleport_player(
                     vel_x: 0.0,
                     vel_y: 0.0,
                     vel_z: 0.0,
-                    yaw: rot.yaw,
-                    pitch: rot.pitch,
+                    yaw: message.yaw,
+                    pitch: message.pitch,
                     on_ground: false,
                 }) {
                     error!("Failed to send teleport packet: {}", err);
