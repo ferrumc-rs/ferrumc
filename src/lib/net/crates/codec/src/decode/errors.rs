@@ -16,4 +16,7 @@ pub enum NetDecodeError {
 
     #[error("Net Type Error: {0}")]
     NetTypeError(#[from] NetTypesError),
+
+    #[error("Async decoding not supported for this type")]
+    AsyncNotSupported,
 }

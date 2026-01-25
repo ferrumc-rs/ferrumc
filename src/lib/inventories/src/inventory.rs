@@ -35,7 +35,18 @@ impl From<StorageInventory> for Inventory {
         let slots: Vec<Option<InventorySlot>> = storage
             .slots
             .into_iter()
-            .map(|opt| opt.and_then(|s| s.try_into().ok()))
+            .map(|opt| {
+                opt.and_then(|s| match s.try_into() {
+                    Ok(slot) => Some(slot),
+                    Err(e) => {
+                        tracing::error!(
+                            "Failed to restore inventory slot (item data lost): {:?}",
+                            e
+                        );
+                        None
+                    }
+                })
+            })
             .collect();
         Self {
             slots: slots.into_boxed_slice(),

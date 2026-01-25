@@ -2,6 +2,7 @@
 
 pub mod de;
 pub mod errors;
+pub mod limits;
 mod nbt;
 pub mod ser;
 

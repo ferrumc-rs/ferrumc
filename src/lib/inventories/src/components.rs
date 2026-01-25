@@ -43,7 +43,7 @@ impl NetEncode for RawNbt {
         _writer: &mut W,
         _opts: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
-        todo!("RawNbt async encoding not yet implemented")
+        Err(NetEncodeError::AsyncNotSupported)
     }
 }
 
@@ -57,7 +57,7 @@ impl NetDecode for RawNbt {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!("RawNbt async decoding not yet implemented")
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -1393,7 +1393,7 @@ impl NetEncode for PotionEffect {
         _writer: &mut W,
         _opts: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
-        todo!()
+        Err(NetEncodeError::AsyncNotSupported)
     }
 }
 
@@ -1426,7 +1426,7 @@ impl NetDecode for PotionEffect {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -1664,8 +1664,32 @@ impl NetDecode for Component {
         // Step 1: Read component type ID
         let component_id = VarInt::decode(reader, opts)?;
 
-        // Step 2: Read component data length (VarInt)
+        // Step 2: Read component data length (VarInt) with validation
         let data_length = VarInt::decode(reader, opts)?;
+
+        // Validate length is non-negative to prevent integer overflow attacks
+        if data_length.0 < 0 {
+            return Err(NetDecodeError::ExternalError(Box::new(
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Negative component data length: {}", data_length.0),
+                ),
+            )));
+        }
+
+        // Limit component size to prevent memory exhaustion (2 MB, matching NBT limits)
+        const MAX_COMPONENT_SIZE: i32 = 2 * 1024 * 1024;
+        if data_length.0 > MAX_COMPONENT_SIZE {
+            return Err(NetDecodeError::ExternalError(Box::new(
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!(
+                        "Component size {} exceeds limit {}",
+                        data_length.0, MAX_COMPONENT_SIZE
+                    ),
+                ),
+            )));
+        }
 
         // Step 3: Read exactly that many bytes into a buffer
         let mut data = vec![0u8; data_length.0 as usize];
@@ -1877,7 +1901,18 @@ impl NetDecode for Component {
                 opts,
             )?)),
             // ID 46: WrittenBookContent (requires NBT<TextComponent> decode - not yet supported)
-            46 => todo!("WrittenBookContent decoding requires FromNbt for TextComponent"),
+            // Return a default empty book with a warning logged
+            46 => {
+                tracing::warn!("WrittenBookContent decoding not fully implemented, using defaults");
+                Ok(Component::WrittenBookContent {
+                    raw_title: String::new(),
+                    filtered_title: PrefixedOptional::new(None),
+                    author: String::new(),
+                    generation: VarInt(0),
+                    pages: LengthPrefixedVec::new(vec![]),
+                    resolved: false,
+                })
+            }
             // ID 47: Trim
             47 => Ok(Component::Trim {
                 material: IdOrTrimMaterial::decode(&mut cursor, opts)?,
@@ -2095,7 +2130,7 @@ impl NetDecode for Component {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!("Async component decoding not yet implemented")
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2117,7 +2152,7 @@ impl NetDecode for IdOrSoundEvent {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2140,7 +2175,7 @@ impl NetDecode for IdOrBannerPattern {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2155,7 +2190,7 @@ impl NetDecode for BannerPatternLayer {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2173,7 +2208,7 @@ impl NetDecode for IdOrIdentifier {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2193,7 +2228,7 @@ impl NetDecode for IdOrTrimMaterial {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2211,7 +2246,7 @@ impl NetDecode for IdOrTrimPattern {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2229,7 +2264,7 @@ impl NetDecode for IdOrInstrument {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2247,7 +2282,7 @@ impl NetDecode for IdOrJukeboxSong {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2267,7 +2302,7 @@ impl NetDecode for IdOrPaintingVariant {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2297,21 +2332,27 @@ impl NetDecode for ConsumeEffect {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
 impl NetDecode for WrittenBookPage {
     fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         // Requires NBT<TextComponent> decode which needs FromNbt for TextComponent
-        todo!("WrittenBookPage decoding requires FromNbt for TextComponent")
+        // Return error for inline decoding; callers should use registry IDs instead
+        Err(NetDecodeError::ExternalError(Box::new(
+            std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "WrittenBookPage inline decoding not implemented",
+            ),
+        )))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2329,7 +2370,7 @@ impl NetDecode for BeeData {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
@@ -2348,76 +2389,106 @@ impl NetDecode for BlockPredicate {
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
 impl NetDecode for TrimMaterial {
     fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         // Requires NBT<TextComponent> decode which needs FromNbt for TextComponent
-        todo!("TrimMaterial decoding requires FromNbt for TextComponent")
+        // Return error for inline decoding; callers should use registry IDs instead
+        Err(NetDecodeError::ExternalError(Box::new(
+            std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "TrimMaterial inline decoding not implemented",
+            ),
+        )))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
 impl NetDecode for TrimPattern {
     fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         // Requires NBT<TextComponent> decode which needs FromNbt for TextComponent
-        todo!("TrimPattern decoding requires FromNbt for TextComponent")
+        // Return error for inline decoding; callers should use registry IDs instead
+        Err(NetDecodeError::ExternalError(Box::new(
+            std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "TrimPattern inline decoding not implemented",
+            ),
+        )))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
 impl NetDecode for Instrument {
     fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         // Requires NBT<TextComponent> decode which needs FromNbt for TextComponent
-        todo!("Instrument decoding requires FromNbt for TextComponent")
+        // Return error for inline decoding; callers should use registry IDs instead
+        Err(NetDecodeError::ExternalError(Box::new(
+            std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "Instrument inline decoding not implemented",
+            ),
+        )))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
 impl NetDecode for JukeboxSong {
     fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         // Requires NBT<TextComponent> decode which needs FromNbt for TextComponent
-        todo!("JukeboxSong decoding requires FromNbt for TextComponent")
+        // Return error for inline decoding; callers should use registry IDs instead
+        Err(NetDecodeError::ExternalError(Box::new(
+            std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "JukeboxSong inline decoding not implemented",
+            ),
+        )))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }
 
 impl NetDecode for PaintingVariant {
     fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         // Requires NBT<TextComponent> decode which needs FromNbt for TextComponent
-        todo!("PaintingVariant decoding requires FromNbt for TextComponent")
+        // Return error for inline decoding; callers should use registry IDs instead
+        Err(NetDecodeError::ExternalError(Box::new(
+            std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "PaintingVariant inline decoding not implemented",
+            ),
+        )))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         _reader: &mut R,
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        todo!()
+        Err(NetDecodeError::AsyncNotSupported)
     }
 }

@@ -33,4 +33,10 @@ pub enum NBTError {
     NoRootTag,
     #[error("Element `{0}` not found in NBT data")]
     ElementNotFound(&'static str),
+    #[error("NBT size {size} exceeds maximum allowed {max}")]
+    SizeExceeded { size: usize, max: usize },
+    #[error("NBT nesting depth {depth} exceeds maximum allowed {max}")]
+    DepthExceeded { depth: usize, max: usize },
+    #[error("Negative length in NBT data: {0}")]
+    NegativeLength(i32),
 }
