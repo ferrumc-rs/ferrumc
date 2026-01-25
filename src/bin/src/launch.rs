@@ -7,12 +7,11 @@ use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
-use ferrumc_world::chunk::light::{LightSection, LightType};
-use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
+use ferrumc_world::pos::{ChunkPos};
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::time::Instant;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 /// Creates the initial server state with all required components.
 pub fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
