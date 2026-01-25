@@ -52,10 +52,14 @@ impl CommandArgument for CommandPosition {
             .next()
             .ok_or_else(|| parser_error("missing z coordinate"))?;
         let x = if let Some(x_str) = x_str.strip_prefix('~') {
-            let offset = x_str
-                .parse::<f64>()
-                .map_err(|_| parser_error("invalid x coordinate"))?;
-            PositionType::Relative(offset)
+            if x_str.is_empty() {
+                PositionType::Relative(0.0)
+            } else {
+                let offset = x_str
+                    .parse::<f64>()
+                    .map_err(|_| parser_error("invalid x coordinate"))?;
+                PositionType::Relative(offset)
+            }
         } else {
             let value = x_str
                 .parse::<f64>()
@@ -63,10 +67,14 @@ impl CommandArgument for CommandPosition {
             PositionType::Absolute(value)
         };
         let y = if let Some(y_str) = y_str.strip_prefix('~') {
-            let offset = y_str
-                .parse::<f64>()
-                .map_err(|_| parser_error("invalid y coordinate"))?;
-            PositionType::Relative(offset)
+            if y_str.is_empty() {
+                PositionType::Relative(0.0)
+            } else {
+                let offset = y_str
+                    .parse::<f64>()
+                    .map_err(|_| parser_error("invalid y coordinate"))?;
+                PositionType::Relative(offset)
+            }
         } else {
             let value = y_str
                 .parse::<f64>()
@@ -74,10 +82,14 @@ impl CommandArgument for CommandPosition {
             PositionType::Absolute(value)
         };
         let z = if let Some(z_str) = z_str.strip_prefix('~') {
-            let offset = z_str
-                .parse::<f64>()
-                .map_err(|_| parser_error("invalid z coordinate"))?;
-            PositionType::Relative(offset)
+            if z_str.is_empty() {
+                PositionType::Relative(0.0)
+            } else {
+                let offset = z_str
+                    .parse::<f64>()
+                    .map_err(|_| parser_error("invalid z coordinate"))?;
+                PositionType::Relative(offset)
+            }
         } else {
             let value = z_str
                 .parse::<f64>()
@@ -168,63 +180,108 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_all_tildes_is_error() {
-        let mut ctx = CommandContext {
-            input: CommandInput {
-                input: "~ ~ ~".to_string(),
-                cursor: 0,
-            },
-            command: Arc::new(Command {
-                name: "",
-                args: vec![],
-            }),
-            sender: Sender::Server,
-            state: create_test_state().0.0,
-        };
-        // current parser treats bare '~' as having an empty offset which fails to parse
-        assert!(CommandPosition::parse(&mut ctx).is_err());
-    }
-
-    #[test]
-    fn test_parse_tildes_with_plus_minus_zero() {
-        let mut ctx = CommandContext {
-            input: CommandInput {
-                input: "~+0 ~-0 ~0".to_string(),
-                cursor: 0,
-            },
-            command: Arc::new(Command {
-                name: "",
-                args: vec![],
-            }),
-            sender: Sender::Server,
-            state: create_test_state().0.0,
-        };
-        let cmd_pos = CommandPosition::parse(&mut ctx).unwrap();
-        match cmd_pos.x {
-            PositionType::Relative(offset) => assert_eq!(offset, 0.0),
-            _ => panic!("Expected relative x"),
-        }
-        match cmd_pos.y {
-            PositionType::Relative(offset) => assert_eq!(offset, 0.0),
-            _ => panic!("Expected relative y"),
-        }
-        match cmd_pos.z {
-            PositionType::Relative(offset) => assert_eq!(offset, 0.0),
-            _ => panic!("Expected relative z"),
+    fn parse_valid_inputs() {
+        let cases = vec![
+            (
+                "100 64 -200",
+                (
+                    PositionType::Absolute(100.0),
+                    PositionType::Absolute(64.0),
+                    PositionType::Absolute(-200.0),
+                ),
+            ),
+            (
+                "~10 ~ ~-5",
+                (
+                    PositionType::Relative(10.0),
+                    PositionType::Relative(0.0),
+                    PositionType::Relative(-5.0),
+                ),
+            ),
+            (
+                "50 ~20 30",
+                (
+                    PositionType::Absolute(50.0),
+                    PositionType::Relative(20.0),
+                    PositionType::Absolute(30.0),
+                ),
+            ),
+            (
+                "~ ~ ~",
+                (
+                    PositionType::Relative(0.0),
+                    PositionType::Relative(0.0),
+                    PositionType::Relative(0.0),
+                ),
+            ),
+            (
+                "1 2 ~",
+                (
+                    PositionType::Absolute(1.0),
+                    PositionType::Absolute(2.0),
+                    PositionType::Relative(0.0),
+                ),
+            ),
+            (
+                "~-0 ~0 ~+0",
+                (
+                    PositionType::Relative(-0.0),
+                    PositionType::Relative(0.0),
+                    PositionType::Relative(0.0),
+                ),
+            ),
+        ];
+        for (input, expected) in cases {
+            let mut ctx = CommandContext {
+                input: CommandInput {
+                    input: input.to_string(),
+                    cursor: 0,
+                },
+                command: Arc::new(Command {
+                    name: "",
+                    args: vec![],
+                }),
+                sender: Sender::Server,
+                state: create_test_state().0.0,
+            };
+            let cmd_pos = CommandPosition::parse(&mut ctx)
+                .unwrap_or_else(|_| panic!("input `{}` should be valid", input));
+            match cmd_pos.x {
+                PositionType::Absolute(val) => match expected.0 {
+                    PositionType::Absolute(exp_val) => assert_eq!(val, exp_val),
+                    _ => panic!("Expected relative x for input `{}`", input),
+                },
+                PositionType::Relative(offset) => match expected.0 {
+                    PositionType::Relative(exp_offset) => assert_eq!(offset, exp_offset),
+                    _ => panic!("Expected absolute x for input `{}`", input),
+                },
+            }
+            match cmd_pos.y {
+                PositionType::Absolute(val) => match expected.1 {
+                    PositionType::Absolute(exp_val) => assert_eq!(val, exp_val),
+                    _ => panic!("Expected relative y for input `{}`", input),
+                },
+                PositionType::Relative(offset) => match expected.1 {
+                    PositionType::Relative(exp_offset) => assert_eq!(offset, exp_offset),
+                    _ => panic!("Expected absolute y for input `{}`", input),
+                },
+            }
+            match cmd_pos.z {
+                PositionType::Absolute(val) => match expected.2 {
+                    PositionType::Absolute(exp_val) => assert_eq!(val, exp_val),
+                    _ => panic!("Expected relative z for input `{}`", input),
+                },
+                PositionType::Relative(offset) => match expected.2 {
+                    PositionType::Relative(exp_offset) => assert_eq!(offset, exp_offset),
+                    _ => panic!("Expected absolute z for input `{}`", input),
+                },
+            }
         }
     }
 
     #[test]
     fn test_parse_invalid_inputs() {
-        let cases = vec![
-            "",
-            "1 2",
-            "1 two 3",
-            "not_a_number 5 6",
-            "1 2 ~",
-            "~ ~",
-            "1 2 3 4",
-        ];
+        let cases = vec!["", "1 2", "1 two 3", "not_a_number 5 6", "~ ~", "1 2 3 4"];
         for input in cases {
             let mut ctx = CommandContext {
                 input: CommandInput {
