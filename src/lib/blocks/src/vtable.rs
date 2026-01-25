@@ -23,6 +23,11 @@ impl StateBehaviorTable {
     }
 
     #[inline(always)]
+    pub fn update(&self, world: &World, pos: BlockPos) -> u32 {
+        (self.block.update)(self.id, world, pos)
+    }
+
+    #[inline(always)]
     pub fn test(&self) {
         (self.block.test)(self.id)
     }
@@ -31,6 +36,7 @@ impl StateBehaviorTable {
 pub struct BlockBehaviorTable {
     get_placement_state:
         fn(id: u32, context: PlacementContext, world: &World, pos: BlockPos) -> u32,
+    update: fn(id: u32, world: &World, pos: BlockPos) -> u32,
     test: fn(id: u32),
 }
 
@@ -38,6 +44,7 @@ impl BlockBehaviorTable {
     pub const fn from<T: BlockBehavior>() -> BlockBehaviorTable {
         Self {
             get_placement_state: Self::placement_state_for::<T>,
+            update: Self::update_for::<T>,
             test: Self::test_for::<T>,
         }
     }
@@ -57,6 +64,10 @@ impl BlockBehaviorTable {
         pos: BlockPos,
     ) -> u32 {
         Self::convert_id::<T>(id, |data| data.get_placement_state(context, world, pos))
+    }
+
+    fn update_for<T: BlockBehavior>(id: u32, world: &World, pos: BlockPos) -> u32 {
+        Self::convert_id::<T>(id, |data| data.update(world, pos))
     }
 
     fn test_for<T: BlockBehavior>(id: u32) {

@@ -2,7 +2,7 @@
 
 use bevy_math::DVec2;
 use ferrumc_block_properties::SlabType;
-use ferrumc_blocks_generated::SlabBlock;
+use ferrumc_blocks_generated::{SlabBlock, SnowyBlock};
 use ferrumc_core::block::BlockFace;
 use ferrumc_macros::match_block;
 use ferrumc_world::block_state_id::BlockStateId;
@@ -25,8 +25,9 @@ pub struct PlacementContext {
 pub trait BlockBehavior:
     TryInto<u32, Error = ()> + TryFrom<u32, Error = ()> + Clone + Debug
 {
-    fn get_placement_state(&mut self, context: PlacementContext, world: &World, pos: BlockPos);
-    fn test(&self);
+    fn get_placement_state(&mut self, _context: PlacementContext, _world: &World, _pos: BlockPos) {}
+    fn update(&mut self, _world: &World, _pos: BlockPos) {}
+    fn test(&self) {}
 }
 
 impl<T> BlockBehavior for T
@@ -41,6 +42,9 @@ where
         _pos: BlockPos,
     ) {
     }
+
+    #[inline(always)]
+    default fn update(&mut self, _world: &World, _pos: BlockPos) {}
 
     #[inline(always)]
     default fn test(&self) {}
@@ -70,6 +74,22 @@ impl BlockBehavior for SlabBlock {
     #[inline(always)]
     fn test(&self) {
         panic!("hello")
+    }
+}
+
+fn has_snow_above(world: &World, pos: BlockPos) -> bool {
+    world
+        .get_block_and_fetch(pos + (0, 1, 0), "overworld")
+        .is_ok_and(|id| match_block!("snow", id))
+}
+
+impl BlockBehavior for SnowyBlock {
+    fn get_placement_state(&mut self, _context: PlacementContext, world: &World, pos: BlockPos) {
+        self.snowy = has_snow_above(world, pos);
+    }
+
+    fn update(&mut self, world: &World, pos: BlockPos) {
+        self.snowy = has_snow_above(world, pos);
     }
 }
 
