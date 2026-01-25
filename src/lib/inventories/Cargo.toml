@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-
+serde_json = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 bevy_ecs = { workspace = true }
 tokio = { workspace = true }
@@ -15,6 +15,10 @@ ferrumc-registry = { workspace = true }
 ferrumc-world = { workspace = true }
 bitcode = { workspace = true }
 bitcode_derive = { workspace = true }
+ferrumc-macros = { workspace = true }
+ferrumc-nbt = { workspace = true }
+ferrumc-text = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

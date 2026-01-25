@@ -23,9 +23,11 @@ pub use change_gamemode::*;
 
 pub mod entity_spawn;
 pub mod entity_update;
+pub mod inventory;
 pub mod particle;
 
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
+pub use inventory::{EquipmentChanged, HeldItemChanged, InventorySynced};
 
 pub mod block_break;
 pub mod teleport_player;

@@ -1,3 +1,5 @@
+use crate::net_types::NetTypesError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum NetDecodeError {
     #[error("IO error: {0}")]
@@ -11,4 +13,7 @@ pub enum NetDecodeError {
 
     #[error("Invalid Enum Variant")]
     InvalidEnumVariant,
+
+    #[error("Net Type Error: {0}")]
+    NetTypeError(#[from] NetTypesError),
 }

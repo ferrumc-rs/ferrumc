@@ -1,5 +1,7 @@
 use bevy_ecs::prelude::{Commands, Entity, MessageWriter, Query, Res};
-use ferrumc_components::player::offline_player_data::OfflinePlayerData;
+use ferrumc_components::player::offline_player_data::{
+    OfflinePlayerData, StorageOfflinePlayerData,
+};
 use ferrumc_components::{
     active_effects::ActiveEffects,
     health::Health,
@@ -103,8 +105,8 @@ pub fn connection_killer(
                 );
             }
 
-            // Save data to cache
-            let data_to_cache = OfflinePlayerData {
+            // Save player data to cache
+            let data = OfflinePlayerData {
                 abilities: *abilities,
                 gamemode: gamemode.0,
                 position: (*pos).into(),
@@ -116,10 +118,12 @@ pub fn connection_killer(
                 ender_chest: echest.clone(),
                 active_effects: effects.clone(),
             };
+            // Convert to storage format and save
+            let storage_data = StorageOfflinePlayerData::from(&data);
             if let Err(err) = state
                 .0
                 .world
-                .save_player_data(player_identity.uuid, &data_to_cache)
+                .save_player_data(player_identity.uuid, &storage_data)
             {
                 warn!(
                     "Failed to save player data for {}: {:?}",

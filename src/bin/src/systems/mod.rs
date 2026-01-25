@@ -5,6 +5,7 @@ pub mod chunk_unloader;
 pub mod connection_killer;
 pub mod day_cycle;
 pub mod emit_player_joined;
+mod inventory_sync;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
@@ -37,6 +38,11 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(send_entity_updates::handle);
 
     schedule.add_systems(day_cycle::tick_daylight_cycle);
+
+    // Inventory sync systems (must run after new_connections to pick up NeedsInventorySync)
+    schedule.add_systems(inventory_sync::initial_inventory_sync);
+    schedule.add_systems(inventory_sync::equipment_broadcast);
+    schedule.add_systems(inventory_sync::join_equipment_exchange);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);

@@ -7,7 +7,9 @@ use ferrumc_components::player::experience::Experience;
 use ferrumc_components::player::gamemode::GameModeComponent;
 use ferrumc_components::player::gameplay_state::ender_chest::EnderChest;
 use ferrumc_components::player::hunger::Hunger;
-use ferrumc_components::player::offline_player_data::OfflinePlayerData;
+use ferrumc_components::player::offline_player_data::{
+    OfflinePlayerData, StorageOfflinePlayerData,
+};
 use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
@@ -65,10 +67,12 @@ pub fn sync_world(
             ender_chest: ender_chest.clone(),
             active_effects: active_effects.clone(),
         };
+        // Convert to storage format and save
+        let storage_data = StorageOfflinePlayerData::from(&data);
         state
             .0
             .world
-            .save_player_data(identity.uuid, &data)
+            .save_player_data(identity.uuid, &storage_data)
             .expect("Failed to save player data");
     }
 
