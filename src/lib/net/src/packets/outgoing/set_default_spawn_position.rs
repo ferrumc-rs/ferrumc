@@ -8,6 +8,8 @@ pub struct SetDefaultSpawnPositionPacket {
     pub angle: f32,
 }
 
+// Spawn in chunk (1, 1) at y=100 to ensure spawning above ground, since for some reason the terrain
+// gen can't create land at (0, 0)
 pub const DEFAULT_SPAWN_POSITION: NetworkPosition = NetworkPosition {
     x: 16,
     y: 100,

@@ -15,6 +15,7 @@ use tracing::{error, info};
 
 /// Creates the initial server state with all required components.
 pub fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
+    // Fixed seed for world generation. This seed ensures you spawn above land at the default spawn point.
     const SEED: u64 = 380;
     Ok(ServerState {
         world: World::new(&get_global_config().database.db_path),
