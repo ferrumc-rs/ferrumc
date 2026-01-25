@@ -62,7 +62,7 @@ pub fn accept_new_connections(
             identity: new_connection.player_identity.clone(),
             abilities: player_data.abilities,
             gamemode: GameModeComponent(player_data.gamemode),
-            position: player_data.position.into(),
+            position: player_data.position,
             rotation: player_data.rotation,
             on_ground: OnGround::default(),
             chunk_receiver: ChunkReceiver::default(),

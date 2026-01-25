@@ -6,6 +6,7 @@ use crate::player::gamemode::GameMode;
 use crate::player::gameplay_state::ender_chest::{EnderChest, StorageEnderChest};
 use crate::player::hunger::Hunger;
 use bitcode_derive::{Decode, Encode};
+use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::StorageInventory;
@@ -15,7 +16,7 @@ use ferrumc_inventories::StorageInventory;
 pub struct OfflinePlayerData {
     pub abilities: PlayerAbilities,
     pub gamemode: GameMode,
-    pub position: (f64, f64, f64),
+    pub position: Position,
     pub rotation: Rotation,
     pub inventory: Inventory,
     pub health: Health,
@@ -45,7 +46,7 @@ impl From<&OfflinePlayerData> for StorageOfflinePlayerData {
         Self {
             abilities: data.abilities,
             gamemode: data.gamemode,
-            position: data.position,
+            position: data.position.into(),
             rotation: data.rotation,
             inventory: StorageInventory::from(&data.inventory),
             health: data.health,
@@ -62,7 +63,7 @@ impl From<StorageOfflinePlayerData> for OfflinePlayerData {
         Self {
             abilities: storage.abilities,
             gamemode: storage.gamemode,
-            position: storage.position,
+            position: storage.position.into(),
             rotation: storage.rotation,
             inventory: Inventory::from(storage.inventory),
             health: storage.health,

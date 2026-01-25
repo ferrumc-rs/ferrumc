@@ -400,10 +400,7 @@ async fn sync_player_position(
         .flatten()
         .map(|storage| {
             let data = OfflinePlayerData::from(storage);
-            (
-                Position::new(data.position.0, data.position.1, data.position.2),
-                data.rotation,
-            )
+            (data.position, data.rotation)
         })
         .unwrap_or_else(|| {
             (

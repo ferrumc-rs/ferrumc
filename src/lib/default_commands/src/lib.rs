@@ -1,6 +1,7 @@
 pub mod echo;
 pub mod fly;
 pub mod gamemode;
+mod givetest;
 mod kill;
 pub mod nested;
 pub mod spawn;

@@ -109,7 +109,7 @@ pub fn connection_killer(
             let data = OfflinePlayerData {
                 abilities: *abilities,
                 gamemode: gamemode.0,
-                position: (*pos).into(),
+                position: *pos,
                 rotation: *rot,
                 inventory: inv.clone(),
                 health: *health,

@@ -58,7 +58,7 @@ pub fn sync_world(
         let data = OfflinePlayerData {
             abilities: *abilities,
             gamemode: gamemode.0,
-            position: (*position).into(),
+            position: *position,
             rotation: *rotation,
             inventory: inventory.clone(),
             health: *health,
