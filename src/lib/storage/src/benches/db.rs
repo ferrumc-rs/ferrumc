@@ -1,5 +1,4 @@
 use ferrumc_storage::lmdb::LmdbBackend;
-use rand::Rng;
 use std::collections::HashSet;
 
 fn generate_random_data(size: usize) -> Vec<u8> {
@@ -19,8 +18,7 @@ fn generate_random_key(used: &mut HashSet<u128>) -> u128 {
 }
 
 fn select_random<T: Clone + Copy>(choices: Vec<T>) -> T {
-    let mut rng = rand::rng();
-    let index = rng.random::<u32>() as usize % choices.len();
+    let index = rand::random::<u32>() as usize % choices.len();
     *choices.get(index).unwrap()
 }
 
@@ -28,7 +26,7 @@ pub(crate) fn db_benches(c: &mut criterion::Criterion) {
     let mut used_keys = HashSet::new();
     let tempdir = tempfile::TempDir::new().unwrap().keep();
 
-    let db = LmdbBackend::initialize(Some(tempdir)).unwrap();
+    let db = LmdbBackend::initialize(Some(tempdir), 100 * 1024 * 1024 * 1024).unwrap();
 
     db.create_table("insert_test".to_string()).unwrap();
 

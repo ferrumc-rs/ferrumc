@@ -8,14 +8,11 @@ edition = "2021"
 thiserror = { workspace = true }
 bevy_ecs = { workspace = true }
 bevy_math = { workspace = true }
-tracing = { workspace = true }
 typename = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 uuid = { workspace = true }
 crossbeam-queue = { workspace = true }
-dashmap = { workspace = true }
-ferrumc-data = { workspace = true }
 bitcode = { workspace = true }
 bitcode_derive = { workspace = true }
 

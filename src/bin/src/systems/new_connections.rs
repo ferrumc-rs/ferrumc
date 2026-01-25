@@ -77,9 +77,10 @@ pub fn accept_new_connections(
                 sender: Some(new_connection.disconnect_handle),
             },
             KeepAliveTracker {
-                last_sent_keep_alive: 0,
+                last_sent_keep_alive_id: 0,
                 last_received_keep_alive: Instant::now(),
                 has_received_keep_alive: true,
+                last_sent_keep_alive: Instant::now(),
             },
             PendingPlayerJoin(new_connection.player_identity.clone()),
         ));

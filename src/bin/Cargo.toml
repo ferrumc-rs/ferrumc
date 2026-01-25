@@ -46,14 +46,13 @@ once_cell = { workspace = true }
 serde_json = { workspace = true }
 
 tracing = { workspace = true }
-clap = { workspace = true, features = ["derive", "env"] }
-flate2 = { workspace = true }
+clap = { workspace = true }
 rand = { workspace = true }
 ctrlc = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
+tokio = { workspace = true }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
-dhat = { version = "0.3", optional = true }
+dhat = { workspace = true, optional = true }
 bitcode = { workspace = true }
 
 [features]

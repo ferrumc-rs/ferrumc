@@ -1,7 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use fastanvil::Region;
 use ferrumc_anvil::load_anvil_file;
-use ferrumc_utils::root;
 use rayon::prelude::*;
 use std::fs::File;
 use std::hint::black_box;
@@ -12,7 +11,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     read_all_group.bench_function("FerrumC Rayon", |b| {
         b.iter(|| {
-            let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
+            let file_path = PathBuf::from(".etc/r.0.0.mca");
             let loaded_file = load_anvil_file(file_path).unwrap();
             let locations = loaded_file.get_locations();
             locations.chunks(96).par_bridge().for_each(|chunk| {
@@ -25,7 +24,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     read_all_group.bench_function("FerrumC", |b| {
         b.iter(|| {
-            let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
+            let file_path = PathBuf::from(".etc/r.0.0.mca");
             let loaded_file = load_anvil_file(file_path).unwrap();
             let locations = loaded_file.get_locations();
             locations.iter().for_each(|location| {
@@ -40,7 +39,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     read_all_group.bench_function("FastAnvil", |b| {
         b.iter(|| {
-            let file = File::open(root!(".etc/r.0.0.mca")).unwrap();
+            let file = File::open(".etc/r.0.0.mca").unwrap();
             let mut region = Region::from_stream(file).unwrap();
             region.iter().for_each(|chunk| {
                 black_box(chunk.unwrap().data);
@@ -54,7 +53,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     read_one_group.bench_function("FerrumC", |b| {
         b.iter(|| {
-            let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
+            let file_path = PathBuf::from(".etc/r.0.0.mca");
             let loaded_file = load_anvil_file(file_path).unwrap();
             black_box(loaded_file.get_chunk(0, 0).expect("bad chunk"));
         });
@@ -62,7 +61,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     read_one_group.bench_function("FastAnvil", |b| {
         b.iter(|| {
-            let file = File::open(root!(".etc/r.0.0.mca")).unwrap();
+            let file = File::open(".etc/r.0.0.mca").unwrap();
             let mut region = Region::from_stream(file).unwrap();
             black_box(region.read_chunk(0, 0).unwrap());
         });

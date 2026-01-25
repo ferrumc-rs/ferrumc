@@ -6,15 +6,15 @@ use rand::Rng;
 use std::hint::black_box;
 
 fn get_rand_in_range(min: i32, max: i32) -> i32 {
-    let mut rng = rand::rng();
-    rng.random_range(min..=max)
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..=max)
 }
 
 #[expect(clippy::unit_arg)]
 pub(crate) fn bench_edits(c: &mut Criterion) {
     let chunk_data = std::fs::read("../../../.etc/raw_chunk.dat").unwrap();
     let chunk: Chunk = bitcode::decode(&chunk_data)
-        .expect("If this fails, go run the dump_chunk test at src/lib/world/src/lib.rs");
+        .expect("If this fails, go run the dump_chunk test at src/lib/world/src/mod");
 
     let mut read_group = c.benchmark_group("edit_read");
 
