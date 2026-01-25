@@ -11,7 +11,7 @@ phf = { workspace = true }
 criterion = { workspace = true }
 
 [build-dependencies]
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true }
 serde_json = { workspace = true }
 phf_codegen = { workspace = true }
 

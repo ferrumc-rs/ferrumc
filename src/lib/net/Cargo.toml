@@ -24,14 +24,11 @@ ferrumc-utils = { workspace = true }
 
 tracing = { workspace = true }
 tokio = { workspace = true }
-dashmap = { workspace = true }
-flate2 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_derive = { workspace = true }
 rand = { workspace = true }
-uuid = { workspace = true, features = ["v4"] }
-byteorder = { workspace = true }
+uuid = { workspace = true }
 ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }
 typename = { workspace = true }

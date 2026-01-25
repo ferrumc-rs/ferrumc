@@ -20,9 +20,3 @@ pub enum AnvilError {
     #[error("Cannot decompress data (probably invalid)")]
     DecompressionError,
 }
-
-impl From<lzzzz::Error> for AnvilError {
-    fn from(_: lzzzz::Error) -> Self {
-        AnvilError::DecompressionError
-    }
-}

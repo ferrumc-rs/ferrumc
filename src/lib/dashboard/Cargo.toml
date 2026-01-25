@@ -7,9 +7,9 @@ edition = "2021"
 
 tracing = { workspace = true }
 axum = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true }
 sysinfo = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true }
 serde_json = { workspace = true }
 include_dir = { workspace = true }
 mime_guess = { workspace = true }
@@ -17,12 +17,11 @@ dir-size = { workspace = true }
 
 # ferrumc local crates
 ferrumc-state = { workspace = true }
-ferrumc-config = { workspace = true, features = ["dashboard"] }
 ferrumc-general-purpose = { workspace = true }
+ferrumc-config = { workspace = true }
 
 [build-dependencies]
-reqwest = { workspace = true, features = ["blocking"] }
-simd-json = { workspace = true }
+reqwest = { workspace = true }
 
-anyhow = "1.0"
-zip = "7.0"
+anyhow = { workspace = true }
+zip = { version = "7.2.0", default-features = false, features = ["deflate"] }

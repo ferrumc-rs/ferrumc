@@ -1,3 +1,4 @@
+pub mod crafting;
 pub mod defined_slots;
 pub mod errors;
 pub mod hotbar;

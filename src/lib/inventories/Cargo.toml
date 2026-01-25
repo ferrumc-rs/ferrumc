@@ -15,6 +15,7 @@ ferrumc-registry = { workspace = true }
 ferrumc-world = { workspace = true }
 bitcode = { workspace = true }
 bitcode_derive = { workspace = true }
+ferrumc-data = { workspace = true }
 
 [lints]
 workspace = true
