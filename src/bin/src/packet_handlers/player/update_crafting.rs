@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::Entity;
-use ferrumc_core::crafting::get_recipes_from_2x2;
 use ferrumc_data::items::Item;
+use ferrumc_inventories::crafting::get_recipes_from_2x2;
 use ferrumc_inventories::defined_slots;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::item::ItemID;

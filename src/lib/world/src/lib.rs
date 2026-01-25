@@ -92,8 +92,10 @@ impl World {
         if backend_path.is_relative() {
             backend_path = get_root_path().join(backend_path);
         }
-        let storage_backend =
-            LmdbBackend::initialize(Some(backend_path)).expect("Failed to initialize database");
+        // Convert the map size from GB to bytes and round it to the nearest page size.
+        let map_size = get_global_config().database.map_size as usize * 1024 * 1024 * 1024;
+        let storage_backend = LmdbBackend::initialize(Some(backend_path), map_size)
+            .expect("Failed to initialize database");
 
         let rand_seed = rand::random();
 

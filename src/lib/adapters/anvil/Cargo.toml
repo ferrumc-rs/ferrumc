@@ -6,9 +6,7 @@ edition = "2021"
 [dependencies]
 thiserror = { workspace = true }
 memmap2 = { workspace = true }
-flate2 = { workspace = true }
 yazi = { workspace = true }
-lzzzz = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
