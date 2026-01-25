@@ -1,14 +1,13 @@
 mod net;
 
-use enum_discriminant::discriminant;
 use ferrumc_core::color::Color;
 use ferrumc_core::transform::position::Position;
 use ferrumc_inventories::slot::InventorySlot;
+use ferrumc_macros::Discriminant;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::block_state_id::BlockStateId;
 
-#[discriminant(i32)]
-#[derive(Clone)]
+#[derive(Clone, Discriminant)]
 /// Enum representing different types of particles in the game.
 ///
 /// To send to clients, use the `SendParticle` message from `ferrumc_messages::particle`.

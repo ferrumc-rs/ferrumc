@@ -12,4 +12,3 @@ ferrumc-config = { workspace = true }
 bevy_math = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-world = { workspace = true }
-ferrumc-world-gen = { workspace = true }

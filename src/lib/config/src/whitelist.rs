@@ -188,13 +188,12 @@ fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
         .par_bridge()
         .map(|uuid| {
             let uuid = uuid.as_simple();
-            let response = ureq::get(format!(
+            let response = reqwest::blocking::get(format!(
                 "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
-            ))
-            .call();
+            ));
 
             match response {
-                Ok(mut response) => Some(response.body_mut().read_json()),
+                Ok(response) => Some(response.json::<MojangProfile>()),
                 _ => None,
             }
         })
