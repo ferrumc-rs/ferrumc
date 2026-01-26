@@ -1,7 +1,7 @@
 [package]
 name = "ferrumc-commands"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 thiserror = { workspace = true }
@@ -15,8 +15,11 @@ ferrumc-macros = { workspace = true }
 bevy_ecs = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 regex = { workspace = true }
-ferrumc-components = {workspace = true }
+ferrumc-components = { workspace = true }
 ferrumc-nbt = { workspace = true }
+ferrumc-state = { workspace = true }
+uuid = { workspace = true }
+rand = { workspace = true }
 
 [dev-dependencies] # Needed for the ServerState mock... :concern:
 ferrumc-world = { workspace = true }

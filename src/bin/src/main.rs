@@ -77,7 +77,6 @@ fn main() {
 fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = launch::create_state(start_time)?;
     let global_state = Arc::new(state);
-
     create_whitelist();
     if !global_state
         .world

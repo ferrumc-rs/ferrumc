@@ -179,24 +179,25 @@ impl CommandGraph {
             }
             CommandNodeType::Literal => {
                 // for literal nodes, everything must match exactly.
-                if let Some(name) = &current_node.name {
-                    if !input_words.is_empty() && input_words[0] == name {
-                        // we found a match, we continue with the remaining input.
-                        let remaining = if input_words.len() > 1 {
-                            remaining_input[name.len()..].trim_start()
-                        } else {
-                            ""
-                        };
+                if let Some(name) = &current_node.name
+                    && !input_words.is_empty()
+                    && input_words[0] == name
+                {
+                    // we found a match, we continue with the remaining input.
+                    let remaining = if input_words.len() > 1 {
+                        remaining_input[name.len()..].trim_start()
+                    } else {
+                        ""
+                    };
 
-                        // once we found a node that is executable and the remaining input is empty, we've found something.
-                        if remaining.is_empty() && current_node.is_executable() {
-                            matches.push((node_idx, remaining));
-                        }
+                    // once we found a node that is executable and the remaining input is empty, we've found something.
+                    if remaining.is_empty() && current_node.is_executable() {
+                        matches.push((node_idx, remaining));
+                    }
 
-                        // we continue checking the other children.
-                        for child_idx in current_node.children.data.iter() {
-                            self.find_command_recursive(child_idx.0 as u32, remaining, matches);
-                        }
+                    // we continue checking the other children.
+                    for child_idx in current_node.children.data.iter() {
+                        self.find_command_recursive(child_idx.0 as u32, remaining, matches);
                     }
                 }
             }
@@ -224,10 +225,10 @@ impl CommandGraph {
     fn collect_command_parts(&self, node_idx: u32, parts: &mut Vec<String>) {
         let node = &self.nodes[node_idx as usize];
 
-        if let Some(name) = &node.name {
-            if node.node_type() == CommandNodeType::Literal {
-                parts.push(name.clone());
-            }
+        if let Some(name) = &node.name
+            && node.node_type() == CommandNodeType::Literal
+        {
+            parts.push(name.clone());
         }
 
         // find the parent

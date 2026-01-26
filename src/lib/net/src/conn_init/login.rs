@@ -466,6 +466,8 @@ fn send_initial_chunks(
     let client_view_distance = client_view_distance as i32;
     let radius = server_render_distance.min(client_view_distance);
 
+    let start = std::time::Instant::now();
+
     // Generate/load chunks in parallel
     let mut batch = state.thread_pool.batch();
 
@@ -499,6 +501,13 @@ fn send_initial_chunks(
             }
         }
     }
+
+    let end = std::time::Instant::now();
+    let duration = end.duration_since(start);
+    debug!(
+        "Sent initial chunks in {:?} milliseconds",
+        duration.as_millis()
+    );
 
     Ok(())
 }
