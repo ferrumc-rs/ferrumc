@@ -278,25 +278,98 @@ fn break_block(
     block_break_writer: &mut MessageWriter<ferrumc_messages::BlockBrokenEvent>,
 ) -> Result<(), BinaryError> {
     let pos: BlockPos = position.clone().into();
-    let mut chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
-        .expect("Failed to load or generate chunk");
-    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+
+    // Get the block data before breaking to check if it's a door
+    let block_state_id = state
+        .0
+        .world
+        .get_block_and_fetch(pos.clone(), "overworld")
+        .unwrap_or_default();
+    let block_data = block_state_id.to_block_data();
+
+    // Check if this is a door block
+    let other_half_pos = if let Some(ref data) = block_data {
+        if data.name.ends_with("_door") {
+            if let Some(ref props) = data.properties {
+                let half = props.get("half").map(|s| s.as_str());
+                match half {
+                    Some("lower") => Some(pos.clone() + (0, 1, 0)), // Upper half is above
+                    Some("upper") => Some(pos.clone() + (0, -1, 0)), // Lower half is below
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Break the main block in its own scope to release lock
+    {
+        let mut chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
+            .expect("Failed to load or generate chunk");
+        chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+    } // Lock released here
 
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
-    block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: pos });
+    block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
+        position: pos.clone(),
+    });
 
     // Broadcast the block break to all players
     let block_update_packet = BlockUpdate {
         location: position.clone(),
         block_state_id: VarInt::from(BlockStateId::default()),
     };
+
+    // If it's a door, also break the other half
+    let other_half_packet = if let Some(ref other_pos) = other_half_pos {
+        // Break the other half in its own scope to release lock
+        {
+            let mut other_chunk =
+                ferrumc_utils::world::load_or_generate_mut(&state.0, other_pos.chunk(), "overworld")
+                    .expect("Failed to load or generate chunk for other door half");
+            other_chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
+        } // Lock released here
+
+        debug!(
+            "Also breaking other door half at ({}, {}, {})",
+            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z
+        );
+
+        // Send block broken event for the other half too
+        block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
+            position: other_pos.clone(),
+        });
+
+        Some(BlockUpdate {
+            location: ferrumc_net_codec::net_types::network_position::NetworkPosition {
+                x: other_pos.pos.x,
+                y: other_pos.pos.y as i16,
+                z: other_pos.pos.z,
+            },
+            block_state_id: VarInt::from(BlockStateId::default()),
+        })
+    } else {
+        None
+    };
+
     for (eid, conn) in broadcast_query {
         if !state.0.players.is_connected(eid) {
             continue;
         }
         conn.send_packet_ref(&block_update_packet)
             .map_err(BinaryError::Net)?;
+
+        // Also send the other half update if it's a door
+        if let Some(ref other_packet) = other_half_packet {
+            conn.send_packet_ref(other_packet)
+                .map_err(BinaryError::Net)?;
+        }
     }
     Ok(())
 }

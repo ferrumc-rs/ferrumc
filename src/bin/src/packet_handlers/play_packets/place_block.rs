@@ -53,6 +53,32 @@ pub fn handle(
             trace!("Entity {:?} is not connected", entity);
             continue;
         }
+
+        // First, check if the clicked block is interactive (like a door)
+        let clicked_pos: BlockPos = event.position.clone().into();
+        let clicked_block_state = state
+            .0
+            .world
+            .get_block_and_fetch(clicked_pos.clone(), "overworld")
+            .unwrap_or_default();
+        let clicked_block_data = clicked_block_state.to_block_data();
+
+        // Handle door interaction
+        if let Some(ref data) = clicked_block_data {
+            if data.name.ends_with("_door") {
+                if handle_door_interaction(
+                    &state,
+                    &query,
+                    conn,
+                    &event,
+                    &clicked_pos,
+                    data,
+                ) {
+                    continue 'ev_loop;
+                }
+            }
+        }
+
         match event.hand.0 {
             0 => {
                 let Ok(slot) = hotbar.get_selected_item(inventory) else {
@@ -66,7 +92,11 @@ pub fn handle(
                     };
                     let Some(mapped_block_state_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0 .0)
                     else {
-                        error!("No block mapping found for item ID: {}", item_id.0);
+                        // No block mapping - could be a non-placeable item, just ack and continue
+                        let ack_packet = BlockChangeAck {
+                            sequence: event.sequence,
+                        };
+                        let _ = conn.send_packet_ref(&ack_packet);
                         continue 'ev_loop;
                     };
                     debug!(
@@ -112,15 +142,6 @@ pub fn handle(
                             _ => (0, 0, 0),
                         };
 
-                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
-                        &state.0,
-                        offset_pos.chunk(),
-                        "overworld",
-                    )
-                    .expect("Failed to load or generate chunk");
-                    let block_clicked = chunk.get_block(offset_pos.chunk_block_pos());
-                    trace!("Block clicked: {:?}", block_clicked);
-
                     // Check if the block collides with any entities
                     let does_collide = {
                         pos_q.into_iter().any(|(pos, bounds)| {
@@ -148,7 +169,16 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
+                    // Place the lower half in its own scope to release the lock
+                    {
+                        let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                            &state.0,
+                            offset_pos.chunk(),
+                            "overworld",
+                        )
+                        .expect("Failed to load or generate chunk");
+                        chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
+                    } // Lock released here
 
                     // Handle door placement - doors are two blocks tall
                     // When placing the lower half, we need to also place the upper half
@@ -170,16 +200,18 @@ pub fn handle(
                                     // Place the upper half one block above
                                     let upper_pos = offset_pos + (0, 1, 0);
 
-                                    // Load chunk for upper position (might be different chunk at chunk boundary)
-                                    let mut upper_chunk =
-                                        ferrumc_utils::world::load_or_generate_mut(
-                                            &state.0,
-                                            upper_pos.chunk(),
-                                            "overworld",
-                                        )
-                                        .expect("Failed to load or generate chunk for upper door");
-                                    upper_chunk
-                                        .set_block(upper_pos.chunk_block_pos(), upper_block_id);
+                                    // Load chunk for upper position in its own scope
+                                    {
+                                        let mut upper_chunk =
+                                            ferrumc_utils::world::load_or_generate_mut(
+                                                &state.0,
+                                                upper_pos.chunk(),
+                                                "overworld",
+                                            )
+                                            .expect("Failed to load or generate chunk for upper door");
+                                        upper_chunk
+                                            .set_block(upper_pos.chunk_block_pos(), upper_block_id);
+                                    } // Lock released here
 
                                     debug!(
                                         "Placed upper door half at ({}, {}, {}) with state {}",
@@ -263,4 +295,123 @@ pub fn handle(
             }
         }
     }
+}
+
+/// Handle door interaction (open/close)
+/// Returns true if the interaction was handled, false otherwise
+fn handle_door_interaction(
+    state: &Res<GlobalStateResource>,
+    query: &Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
+    conn: &StreamWriter,
+    event: &ferrumc_net::packets::incoming::place_block::PlaceBlock,
+    clicked_pos: &BlockPos,
+    door_data: &BlockData,
+) -> bool {
+    let Some(ref props) = door_data.properties else {
+        return false;
+    };
+
+    // Toggle the open state
+    let current_open = props.get("open").map(|s| s == "true").unwrap_or(false);
+    let new_open = if current_open { "false" } else { "true" };
+
+    // Create new block data with toggled open state
+    let mut new_props = props.clone();
+    new_props.insert("open".to_string(), new_open.to_string());
+
+    let new_block_data = BlockData {
+        name: door_data.name.clone(),
+        properties: Some(new_props.clone()),
+    };
+    let new_block_id = BlockStateId::from_block_data(&new_block_data);
+
+    // Determine the other half position
+    let half = props.get("half").map(|s| s.as_str());
+    let (this_pos, other_pos) = match half {
+        Some("lower") => (clicked_pos.clone(), clicked_pos.clone() + (0, 1, 0)),
+        Some("upper") => (clicked_pos.clone(), clicked_pos.clone() + (0, -1, 0)),
+        _ => return false,
+    };
+
+    // Create the other half's block data (same open state, but different half)
+    let other_half = if half == Some("lower") { "upper" } else { "lower" };
+    let mut other_props = new_props.clone();
+    other_props.insert("half".to_string(), other_half.to_string());
+
+    let other_block_data = BlockData {
+        name: door_data.name.clone(),
+        properties: Some(other_props),
+    };
+    let other_block_id = BlockStateId::from_block_data(&other_block_data);
+
+    // Update both halves in the world
+    {
+        let mut chunk =
+            ferrumc_utils::world::load_or_generate_mut(&state.0, this_pos.chunk(), "overworld")
+                .expect("Failed to load chunk for door");
+        chunk.set_block(this_pos.chunk_block_pos(), new_block_id);
+    }
+    {
+        let mut other_chunk =
+            ferrumc_utils::world::load_or_generate_mut(&state.0, other_pos.chunk(), "overworld")
+                .expect("Failed to load chunk for other door half");
+        other_chunk.set_block(other_pos.chunk_block_pos(), other_block_id);
+    }
+
+    debug!(
+        "Door {} at ({}, {}, {})",
+        if current_open { "closed" } else { "opened" },
+        clicked_pos.pos.x,
+        clicked_pos.pos.y,
+        clicked_pos.pos.z
+    );
+
+    // Send ack packet
+    let ack_packet = BlockChangeAck {
+        sequence: event.sequence,
+    };
+    if let Err(err) = conn.send_packet_ref(&ack_packet) {
+        error!("Failed to send door interaction ack: {:?}", err);
+    }
+
+    // Create update packets for both halves
+    let this_packet = BlockUpdate {
+        location: NetworkPosition {
+            x: this_pos.pos.x,
+            y: this_pos.pos.y as i16,
+            z: this_pos.pos.z,
+        },
+        block_state_id: VarInt::from(new_block_id),
+    };
+    let other_packet = BlockUpdate {
+        location: NetworkPosition {
+            x: other_pos.pos.x,
+            y: other_pos.pos.y as i16,
+            z: other_pos.pos.z,
+        },
+        block_state_id: VarInt::from(other_block_id),
+    };
+
+    // Broadcast to all nearby players
+    let render_distance = get_global_config().chunk_render_distance as i32;
+    let door_chunk = clicked_pos.chunk();
+    let (door_chunk_x, door_chunk_z) = (door_chunk.x(), door_chunk.z());
+
+    for (_, player_conn, _, _, pos) in query.iter() {
+        let player_chunk = pos.chunk();
+        let (chunk_x, chunk_z) = (player_chunk.x, player_chunk.y);
+
+        if (door_chunk_x - chunk_x).abs() <= render_distance
+            && (door_chunk_z - chunk_z).abs() <= render_distance
+        {
+            if let Err(err) = player_conn.send_packet_ref(&this_packet) {
+                error!("Failed to send door update packet: {:?}", err);
+            }
+            if let Err(err) = player_conn.send_packet_ref(&other_packet) {
+                error!("Failed to send other door half update packet: {:?}", err);
+            }
+        }
+    }
+
+    true
 }
