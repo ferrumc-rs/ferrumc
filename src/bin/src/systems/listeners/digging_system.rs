@@ -199,7 +199,10 @@ pub fn handle_finish_digging(
                     sequence: event.sequence,
                 };
                 if let Err(e) = writer.send_packet_ref(&ack_packet) {
-                    error!("Failed to send creative_dig ACK to {:?}: {:?}", event.player, e);
+                    error!(
+                        "Failed to send creative_dig ACK to {:?}: {:?}",
+                        event.player, e
+                    );
                 }
                 continue;
             }
@@ -347,8 +350,9 @@ fn break_block(
 
     // Break the main block in its own scope to release lock
     {
-        let mut chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
-            .expect("Failed to load or generate chunk");
+        let mut chunk =
+            ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
+                .expect("Failed to load or generate chunk");
         chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
     } // Lock released here
 
@@ -368,9 +372,12 @@ fn break_block(
     let other_half_packet = if let Some(ref other_pos) = other_half_pos {
         // Break the other half in its own scope to release lock
         {
-            let mut other_chunk =
-                ferrumc_utils::world::load_or_generate_mut(&state.0, other_pos.chunk(), "overworld")
-                    .expect("Failed to load or generate chunk for other door half");
+            let mut other_chunk = ferrumc_utils::world::load_or_generate_mut(
+                &state.0,
+                other_pos.chunk(),
+                "overworld",
+            )
+            .expect("Failed to load or generate chunk for other door half");
             other_chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
         } // Lock released here
 

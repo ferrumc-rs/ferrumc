@@ -8,10 +8,11 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
-use tracing::{error, warn};
+use tracing::{debug, error, warn};
 
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
@@ -42,16 +43,84 @@ pub fn handle(
             // Only instabreak (status 0) is relevant in creative.
             if event.status.0 == 0 {
                 let res: Result<(), BinaryError> = try {
-                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
-                        &state.0,
-                        pos.chunk(),
-                        "overworld",
-                    )
-                    .expect("Failed to load or generate chunk");
-                    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+                    // Get the block data before breaking to check if it's a door
+                    let block_state_id = state
+                        .0
+                        .world
+                        .get_block_and_fetch(pos.clone(), "overworld")
+                        .unwrap_or_default();
+                    let block_data = block_state_id.to_block_data();
+
+                    // Check if this is a door block and get other half position
+                    let other_half_pos = if let Some(ref data) = block_data {
+                        if data.name.ends_with("_door") {
+                            debug!("Creative mode: breaking door block {}", data.name);
+                            if let Some(ref props) = data.properties {
+                                let half = props.get("half").map(|s| s.as_str());
+                                match half {
+                                    Some("lower") => Some(pos.clone() + (0, 1, 0)),
+                                    Some("upper") => Some(pos.clone() + (0, -1, 0)),
+                                    _ => None,
+                                }
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+
+                    // Break the main block
+                    {
+                        let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                            &state.0,
+                            pos.chunk(),
+                            "overworld",
+                        )
+                        .expect("Failed to load or generate chunk");
+                        chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+                    }
 
                     // Send block broken event for un-grounding system
-                    block_break_events.write(BlockBrokenEvent { position: pos });
+                    block_break_events.write(BlockBrokenEvent {
+                        position: pos.clone(),
+                    });
+
+                    // If it's a door, also break the other half
+                    let other_half_update = if let Some(ref other_pos) = other_half_pos {
+                        {
+                            let mut other_chunk = ferrumc_utils::world::load_or_generate_mut(
+                                &state.0,
+                                other_pos.chunk(),
+                                "overworld",
+                            )
+                            .expect("Failed to load or generate chunk for other door half");
+                            other_chunk
+                                .set_block(other_pos.chunk_block_pos(), BlockStateId::default());
+                        }
+
+                        debug!(
+                            "Creative mode: also breaking other door half at ({}, {}, {})",
+                            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z
+                        );
+
+                        block_break_events.write(BlockBrokenEvent {
+                            position: other_pos.clone(),
+                        });
+
+                        Some(BlockUpdate {
+                            location: NetworkPosition {
+                                x: other_pos.pos.x,
+                                y: other_pos.pos.y as i16,
+                                z: other_pos.pos.z,
+                            },
+                            block_state_id: VarInt::from(BlockStateId::default()),
+                        })
+                    } else {
+                        None
+                    };
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {
@@ -65,6 +134,12 @@ pub fn handle(
                         };
                         conn.send_packet_ref(&block_update_packet)
                             .map_err(BinaryError::Net)?;
+
+                        // Also send other half update if it's a door
+                        if let Some(ref other_update) = other_half_update {
+                            conn.send_packet_ref(other_update)
+                                .map_err(BinaryError::Net)?;
+                        }
 
                         if eid == trigger_eid {
                             // Send ACK to the creative player

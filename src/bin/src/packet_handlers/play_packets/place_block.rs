@@ -66,14 +66,7 @@ pub fn handle(
         // Handle door interaction
         if let Some(ref data) = clicked_block_data {
             if data.name.ends_with("_door") {
-                if handle_door_interaction(
-                    &state,
-                    &query,
-                    conn,
-                    &event,
-                    &clicked_pos,
-                    data,
-                ) {
+                if handle_door_interaction(&state, &query, conn, &event, &clicked_pos, data) {
                     continue 'ev_loop;
                 }
             }
@@ -208,7 +201,9 @@ pub fn handle(
                                                 upper_pos.chunk(),
                                                 "overworld",
                                             )
-                                            .expect("Failed to load or generate chunk for upper door");
+                                            .expect(
+                                                "Failed to load or generate chunk for upper door",
+                                            );
                                         upper_chunk
                                             .set_block(upper_pos.chunk_block_pos(), upper_block_id);
                                     } // Lock released here
@@ -334,7 +329,11 @@ fn handle_door_interaction(
     };
 
     // Create the other half's block data (same open state, but different half)
-    let other_half = if half == Some("lower") { "upper" } else { "lower" };
+    let other_half = if half == Some("lower") {
+        "upper"
+    } else {
+        "lower"
+    };
     let mut other_props = new_props.clone();
     other_props.insert("half".to_string(), other_half.to_string());
 
