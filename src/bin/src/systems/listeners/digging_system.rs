@@ -55,16 +55,16 @@ pub fn handle_start_digging(
         };
 
         // --- 3. Get Hardness ---
-        // Get Hardness directly using the ID
-        let Some(block_data) = Block::by_id(block_state_id.raw()) else {
-            warn!(
-                "Could not find block data for BlockStateId: {}",
-                block_state_id
-            );
-            continue;
-        };
-
-        let hardness = block_data.hardness;
+        // Get Hardness directly using the ID, or use default hardness for unknown blocks
+        let hardness = Block::by_id(block_state_id.raw())
+            .map(|b| b.hardness)
+            .unwrap_or_else(|| {
+                debug!(
+                    "Could not find block data for BlockStateId: {}, using default hardness 1.5",
+                    block_state_id
+                );
+                1.5 // Default hardness for unknown blocks (like doors)
+            });
 
         // --- 4. Check for unbreakable block ---
         if hardness < 0.0 {
@@ -157,7 +157,8 @@ pub fn handle_finish_digging(
     mut commands: Commands,
     mut events: MessageReader<PlayerFinishedDigging>,
     state: Res<GlobalStateResource>,
-    mut player_query: Query<DiggingPlayerQuery>,
+    mut player_query: Query<DiggingPlayerQuery, With<PlayerAbilities>>,
+    abilities_query: Query<&PlayerAbilities>,
     broadcast_query: Query<(Entity, &StreamWriter)>, // For broadcasting the break
     mut block_break_writer: MessageWriter<ferrumc_messages::BlockBrokenEvent>,
 ) {
@@ -170,8 +171,39 @@ pub fn handle_finish_digging(
             continue;
         };
 
-        // Check if the player was actually digging
+        // Check if player is in creative mode (instant break)
+        let is_creative = abilities_query
+            .get(event.player)
+            .map(|a| a.creative_mode)
+            .unwrap_or(false);
+
+        // Check if the player was actually digging (or is in creative mode)
         let Some(digging) = digging_opt else {
+            if is_creative {
+                // Creative mode: instant break without starting digging first
+                debug!(
+                    "Player {:?} instant-broke block at {:?} (creative mode)",
+                    event.player, event.position
+                );
+
+                if let Err(e) = break_block(
+                    &state,
+                    &broadcast_query,
+                    &event.position,
+                    &mut block_break_writer,
+                ) {
+                    error!("Error handling creative mode block break: {:?}", e);
+                }
+
+                let ack_packet = BlockChangeAck {
+                    sequence: event.sequence,
+                };
+                if let Err(e) = writer.send_packet_ref(&ack_packet) {
+                    error!("Failed to send creative_dig ACK to {:?}: {:?}", event.player, e);
+                }
+                continue;
+            }
+
             warn!(
                 "Player {:?} finished digging without starting.",
                 event.player
@@ -204,8 +236,8 @@ pub fn handle_finish_digging(
 
         let elapsed = Instant::now().duration_since(digging.start_time);
 
-        // --- 2. Check if enough time has passed ---
-        if elapsed < digging.break_time {
+        // --- 2. Check if enough time has passed (skip for creative mode) ---
+        if !is_creative && elapsed < digging.break_time {
             // --- ANTI-CHEAT ---
             warn!(
                 "Player {:?} finished digging too fast! ({}ms < {}ms)",
@@ -287,9 +319,15 @@ fn break_block(
         .unwrap_or_default();
     let block_data = block_state_id.to_block_data();
 
+    debug!(
+        "Breaking block at ({}, {}, {}): state_id={}, data={:?}",
+        pos.pos.x, pos.pos.y, pos.pos.z, block_state_id, block_data
+    );
+
     // Check if this is a door block
     let other_half_pos = if let Some(ref data) = block_data {
         if data.name.ends_with("_door") {
+            debug!("Detected door block: {}", data.name);
             if let Some(ref props) = data.properties {
                 let half = props.get("half").map(|s| s.as_str());
                 match half {
