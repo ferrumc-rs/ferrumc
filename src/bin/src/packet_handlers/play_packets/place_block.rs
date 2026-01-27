@@ -9,6 +9,7 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
+use ferrumc_world::vanilla_chunk_format::BlockData;
 use tracing::{debug, error, trace};
 
 use ferrumc_config::server_config::get_global_config;
@@ -148,6 +149,67 @@ pub fn handle(
                     }
 
                     chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
+
+                    // Handle door placement - doors are two blocks tall
+                    // When placing the lower half, we need to also place the upper half
+                    let block_data = mapped_block_state_id.to_block_data();
+                    let upper_door_packet = if let Some(ref data) = block_data {
+                        if data.name.ends_with("_door") {
+                            if let Some(ref props) = data.properties {
+                                if props.get("half").map(|h| h == "lower").unwrap_or(false) {
+                                    // Create the upper half with same properties but half=upper
+                                    let mut upper_props = props.clone();
+                                    upper_props.insert("half".to_string(), "upper".to_string());
+                                    let upper_block_data = BlockData {
+                                        name: data.name.clone(),
+                                        properties: Some(upper_props),
+                                    };
+                                    let upper_block_id =
+                                        BlockStateId::from_block_data(&upper_block_data);
+
+                                    // Place the upper half one block above
+                                    let upper_pos = offset_pos + (0, 1, 0);
+
+                                    // Load chunk for upper position (might be different chunk at chunk boundary)
+                                    let mut upper_chunk =
+                                        ferrumc_utils::world::load_or_generate_mut(
+                                            &state.0,
+                                            upper_pos.chunk(),
+                                            "overworld",
+                                        )
+                                        .expect("Failed to load or generate chunk for upper door");
+                                    upper_chunk
+                                        .set_block(upper_pos.chunk_block_pos(), upper_block_id);
+
+                                    debug!(
+                                        "Placed upper door half at ({}, {}, {}) with state {}",
+                                        upper_pos.pos.x,
+                                        upper_pos.pos.y,
+                                        upper_pos.pos.z,
+                                        upper_block_id
+                                    );
+
+                                    Some(BlockUpdate {
+                                        location: NetworkPosition {
+                                            x: upper_pos.pos.x,
+                                            y: upper_pos.pos.y as i16,
+                                            z: upper_pos.pos.z,
+                                        },
+                                        block_state_id: VarInt::from(upper_block_id),
+                                    })
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
@@ -179,6 +241,15 @@ pub fn handle(
                         {
                             if let Err(err) = conn.send_packet_ref(&chunk_packet) {
                                 error!("Failed to send block update packet: {:?}", err);
+                            }
+                            // Also send the upper door half packet if we placed a door
+                            if let Some(ref upper_packet) = upper_door_packet {
+                                if let Err(err) = conn.send_packet_ref(upper_packet) {
+                                    error!(
+                                        "Failed to send upper door block update packet: {:?}",
+                                        err
+                                    );
+                                }
                             }
                         }
                     }
