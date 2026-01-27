@@ -318,24 +318,18 @@ fn break_block(
     let block_state_id = state
         .0
         .world
-        .get_block_and_fetch(pos.clone(), "overworld")
+        .get_block_and_fetch(pos, "overworld")
         .unwrap_or_default();
     let block_data = block_state_id.to_block_data();
-
-    debug!(
-        "Breaking block at ({}, {}, {}): state_id={}, data={:?}",
-        pos.pos.x, pos.pos.y, pos.pos.z, block_state_id, block_data
-    );
 
     // Check if this is a door block
     let other_half_pos = if let Some(ref data) = block_data {
         if data.name.ends_with("_door") {
-            debug!("Detected door block: {}", data.name);
             if let Some(ref props) = data.properties {
                 let half = props.get("half").map(|s| s.as_str());
                 match half {
-                    Some("lower") => Some(pos.clone() + (0, 1, 0)), // Upper half is above
-                    Some("upper") => Some(pos.clone() + (0, -1, 0)), // Lower half is below
+                    Some("lower") => Some(pos + (0, 1, 0)), // Upper half is above
+                    Some("upper") => Some(pos + (0, -1, 0)), // Lower half is below
                     _ => None,
                 }
             } else {
@@ -358,9 +352,7 @@ fn break_block(
 
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
-    block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
-        position: pos.clone(),
-    });
+    block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: pos });
 
     // Broadcast the block break to all players
     let block_update_packet = BlockUpdate {
@@ -388,7 +380,7 @@ fn break_block(
 
         // Send block broken event for the other half too
         block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
-            position: other_pos.clone(),
+            position: *other_pos,
         });
 
         Some(BlockUpdate {

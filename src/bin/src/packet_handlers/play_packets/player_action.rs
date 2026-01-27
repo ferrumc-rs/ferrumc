@@ -47,7 +47,7 @@ pub fn handle(
                     let block_state_id = state
                         .0
                         .world
-                        .get_block_and_fetch(pos.clone(), "overworld")
+                        .get_block_and_fetch(pos, "overworld")
                         .unwrap_or_default();
                     let block_data = block_state_id.to_block_data();
 
@@ -58,8 +58,8 @@ pub fn handle(
                             if let Some(ref props) = data.properties {
                                 let half = props.get("half").map(|s| s.as_str());
                                 match half {
-                                    Some("lower") => Some(pos.clone() + (0, 1, 0)),
-                                    Some("upper") => Some(pos.clone() + (0, -1, 0)),
+                                    Some("lower") => Some(pos + (0, 1, 0)),
+                                    Some("upper") => Some(pos + (0, -1, 0)),
                                     _ => None,
                                 }
                             } else {
@@ -84,9 +84,7 @@ pub fn handle(
                     }
 
                     // Send block broken event for un-grounding system
-                    block_break_events.write(BlockBrokenEvent {
-                        position: pos.clone(),
-                    });
+                    block_break_events.write(BlockBrokenEvent { position: pos });
 
                     // If it's a door, also break the other half
                     let other_half_update = if let Some(ref other_pos) = other_half_pos {
@@ -107,7 +105,7 @@ pub fn handle(
                         );
 
                         block_break_events.write(BlockBrokenEvent {
-                            position: other_pos.clone(),
+                            position: *other_pos,
                         });
 
                         Some(BlockUpdate {

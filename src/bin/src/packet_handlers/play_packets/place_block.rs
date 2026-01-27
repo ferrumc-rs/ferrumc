@@ -59,16 +59,16 @@ pub fn handle(
         let clicked_block_state = state
             .0
             .world
-            .get_block_and_fetch(clicked_pos.clone(), "overworld")
+            .get_block_and_fetch(clicked_pos, "overworld")
             .unwrap_or_default();
         let clicked_block_data = clicked_block_state.to_block_data();
 
         // Handle door interaction
         if let Some(ref data) = clicked_block_data {
-            if data.name.ends_with("_door") {
-                if handle_door_interaction(&state, &query, conn, &event, &clicked_pos, data) {
-                    continue 'ev_loop;
-                }
+            if data.name.ends_with("_door")
+                && handle_door_interaction(&state, &query, conn, &event, &clicked_pos, data)
+            {
+                continue 'ev_loop;
             }
         }
 
@@ -323,8 +323,8 @@ fn handle_door_interaction(
     // Determine the other half position
     let half = props.get("half").map(|s| s.as_str());
     let (this_pos, other_pos) = match half {
-        Some("lower") => (clicked_pos.clone(), clicked_pos.clone() + (0, 1, 0)),
-        Some("upper") => (clicked_pos.clone(), clicked_pos.clone() + (0, -1, 0)),
+        Some("lower") => (clicked_pos, *clicked_pos + (0, 1, 0)),
+        Some("upper") => (clicked_pos, *clicked_pos + (0, -1, 0)),
         _ => return false,
     };
 
