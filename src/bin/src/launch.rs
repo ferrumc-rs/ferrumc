@@ -7,7 +7,7 @@ use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
-use ferrumc_world::pos::ChunkPos;
+use ferrumc_world::pos::{ChunkPos};
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::time::Instant;
@@ -47,7 +47,17 @@ pub fn generate_spawn_chunks(state: GlobalState) -> Result<(), BinaryError> {
             let chunk = state_clone.terrain_generator.generate_chunk(pos);
 
             match chunk {
-                Ok(chunk) => {
+                Ok(mut chunk) => {
+                    // skylight
+                    {
+                        let mut light_engine = state_clone.world.light_engine.lock().unwrap();
+
+                        if let Err(e) = light_engine.sky.initialize_chunk_skylight(&mut chunk, &pos)
+                        {
+                            error!("Lighting Engine: {}", e);
+                        }
+                    }
+
                     if let Err(e) = state_clone.world.insert_chunk(pos, "overworld", chunk) {
                         error!("Error saving chunk ({}, {}): {:?}", x, z, e);
                     }

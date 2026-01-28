@@ -12,7 +12,7 @@ pub struct Heightmaps {
     pub motion_blocking: ChunkHeightmap,
 }
 
-#[derive(Clone, DeepSizeOf, Encode, Decode)]
+#[derive(Clone, Debug, DeepSizeOf, Encode, Decode)]
 pub struct ChunkHeightmap {
     data: Box<[i16]>,
 }

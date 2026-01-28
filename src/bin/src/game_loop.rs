@@ -12,6 +12,7 @@ use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
 use crate::systems::emit_player_joined::emit_player_joined;
 use crate::systems::lan_pinger::LanPinger;
+use crate::systems::light::register_light_listeners;
 use crate::systems::listeners::register_gameplay_listeners;
 use crate::systems::mobs::register_mob_systems;
 use crate::systems::new_connections::accept_new_connections;
@@ -263,6 +264,7 @@ fn build_timed_scheduler() -> Scheduler {
         register_gameplay_listeners(s); // Event listeners for gameplay events
         register_physics(s); // Physics systems (movement, collision, etc.)
         register_mob_systems(s); // Mob AI and behavior
+        register_light_listeners(s); // Lighting
     };
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
     timed.register(

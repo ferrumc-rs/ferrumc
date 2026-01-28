@@ -110,11 +110,13 @@ impl BlockData {
             .expect("Block state ID not found in block mappings file")
     }
 }
+
 impl From<BlockData> for BlockStateId {
     fn from(block_data: BlockData) -> Self {
         BlockStateId::from_block_data(&block_data)
     }
 }
+
 impl From<BlockStateId> for BlockData {
     /// Converts a BlockStateId to a BlockData. Will panic if the ID is not found.
     fn from(block_state_id: BlockStateId) -> Self {
