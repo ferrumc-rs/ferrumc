@@ -5,6 +5,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+ferrumc-core = { workspace = true }
 thiserror = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true }
