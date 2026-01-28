@@ -69,7 +69,11 @@ pub mod entity_types {
     #[derive(Component)]
     pub struct Sheep;
     #[derive(Component)]
+    pub struct SkeletonHorse;
+    #[derive(Component)]
     pub struct Sniffer;
+    #[derive(Component)]
+    pub struct SnowGolem;
     #[derive(Component)]
     pub struct Squid;
     #[derive(Component)]
@@ -81,7 +85,13 @@ pub mod entity_types {
     #[derive(Component)]
     pub struct Turtle;
     #[derive(Component)]
+    pub struct Villager;
+    #[derive(Component)]
+    pub struct WanderingTrader;
+    #[derive(Component)]
     pub struct Wolf;
+    #[derive(Component)]
+    pub struct ZombieHorse;
     #[derive(Component)]
     pub struct GlowSquid;
     #[derive(Component)]
