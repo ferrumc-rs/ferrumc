@@ -68,6 +68,38 @@ lazy_static! {
         m.insert("glow_squid", EntityType::GlowSquid);
         m.insert("mule", EntityType::Mule);
 
+        // Hostile entities
+        m.insert("blaze", EntityType::Blaze);
+        m.insert("bogged", EntityType::Bogged);
+        m.insert("breeze", EntityType::Breeze);
+        m.insert("creaking", EntityType::Creaking);
+        m.insert("creeper", EntityType::Creeper);
+        m.insert("elder_guardian", EntityType::ElderGuardian);
+        m.insert("endermite", EntityType::Endermite);
+        m.insert("evoker", EntityType::Evoker);
+        m.insert("ghast", EntityType::Ghast);
+        m.insert("guardian", EntityType::Guardian);
+        m.insert("hoglin", EntityType::Hoglin);
+        m.insert("husk", EntityType::Husk);
+        m.insert("magma_cube", EntityType::MagmaCube);
+        m.insert("phantom", EntityType::Phantom);
+        m.insert("piglin_brute", EntityType::PiglinBrute);
+        m.insert("pillager", EntityType::Pillager);
+        m.insert("ravager", EntityType::Ravager);
+        m.insert("shulker", EntityType::Shulker);
+        m.insert("silverfish", EntityType::Silverfish);
+        m.insert("skeleton", EntityType::Skeleton);
+        m.insert("slime", EntityType::Slime);
+        m.insert("stray", EntityType::Stray);
+        m.insert("vex", EntityType::Vex);
+        m.insert("vindicator", EntityType::Vindicator);
+        m.insert("warden", EntityType::Warden);
+        m.insert("witch", EntityType::Witch);
+        m.insert("wither_skeleton", EntityType::WitherSkeleton);
+        m.insert("zoglin", EntityType::Zoglin);
+        m.insert("zombie", EntityType::Zombie);
+        m.insert("zombie_villager", EntityType::ZombieVillager);
+
         m
     };
 }
