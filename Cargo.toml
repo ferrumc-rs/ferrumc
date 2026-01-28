@@ -82,6 +82,7 @@ inherits = "release"
 debug = true
 
 [profile.release]
+#debug = true
 
 [profile.hyper]
 inherits = "release"
@@ -149,8 +150,9 @@ tokio = { version = "1.49.0", features = [
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 tracing-appender = "0.2.4"
-tracing-tracy = "0.11.4"
+tracing-tracy = { version = "0.11.4", features = ["timer-fallback", "ondemand", "fibers", "context-switch-tracing", "delayed-init"] }
 log = "0.4.29"
+tracy-client = "0.18.4"
 
 # Concurrency/Parallelism
 parking_lot = "0.12.5"
