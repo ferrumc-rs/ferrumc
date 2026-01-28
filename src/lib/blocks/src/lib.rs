@@ -8,11 +8,13 @@ use ferrumc_macros::match_block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::World;
-use std::fmt::Debug;
 
-mod vtable;
+mod behavior_trait;
 
-pub use vtable::*;
+#[allow(unused_imports)] // Used in the include!
+use crate::behavior_trait::BlockBehaviorTable;
+
+pub use crate::behavior_trait::{BlockBehavior, StateBehaviorTable};
 
 pub const BLOCK_MAPPINGS: &[StateBehaviorTable] =
     include!(concat!(env!("OUT_DIR"), "/mappings.rs"));
@@ -20,34 +22,6 @@ pub const BLOCK_MAPPINGS: &[StateBehaviorTable] =
 pub struct PlacementContext {
     pub face: BlockFace,
     pub cursor: DVec2,
-}
-
-pub trait BlockBehavior:
-    TryInto<u32, Error = ()> + TryFrom<u32, Error = ()> + Clone + Debug
-{
-    fn get_placement_state(&mut self, _context: PlacementContext, _world: &World, _pos: BlockPos) {}
-    fn update(&mut self, _world: &World, _pos: BlockPos) {}
-    fn test(&self) {}
-}
-
-impl<T> BlockBehavior for T
-where
-    T: TryInto<u32, Error = ()> + TryFrom<u32, Error = ()> + Clone + Debug,
-{
-    #[inline(always)]
-    default fn get_placement_state(
-        &mut self,
-        _context: PlacementContext,
-        _world: &World,
-        _pos: BlockPos,
-    ) {
-    }
-
-    #[inline(always)]
-    default fn update(&mut self, _world: &World, _pos: BlockPos) {}
-
-    #[inline(always)]
-    default fn test(&self) {}
 }
 
 impl BlockBehavior for SlabBlock {
