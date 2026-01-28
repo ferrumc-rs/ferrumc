@@ -29,6 +29,8 @@ pub mod entity_types {
     #[derive(Component)]
     pub struct Cat;
     #[derive(Component)]
+    pub struct CaveSpider;
+    #[derive(Component)]
     pub struct Chicken;
     #[derive(Component)]
     pub struct Cod;
@@ -39,6 +41,10 @@ pub mod entity_types {
     #[derive(Component)]
     pub struct Donkey;
     #[derive(Component)]
+    pub struct Drowned;
+    #[derive(Component)]
+    pub struct Enderman;
+    #[derive(Component)]
     pub struct Fox;
     #[derive(Component)]
     pub struct Frog;
@@ -46,6 +52,8 @@ pub mod entity_types {
     pub struct Goat;
     #[derive(Component)]
     pub struct Horse;
+    #[derive(Component)]
+    pub struct IronGolem;
     #[derive(Component)]
     pub struct Llama;
     #[derive(Component)]
@@ -58,6 +66,8 @@ pub mod entity_types {
     pub struct Parrot;
     #[derive(Component)]
     pub struct Pig;
+    #[derive(Component)]
+    pub struct Piglin;
     #[derive(Component)]
     pub struct PolarBear;
     #[derive(Component)]
@@ -75,11 +85,15 @@ pub mod entity_types {
     #[derive(Component)]
     pub struct SnowGolem;
     #[derive(Component)]
+    pub struct Spider;
+    #[derive(Component)]
     pub struct Squid;
     #[derive(Component)]
     pub struct Strider;
     #[derive(Component)]
     pub struct Tadpole;
+    #[derive(Component)]
+    pub struct TraderLlama;
     #[derive(Component)]
     pub struct TropicalFish;
     #[derive(Component)]
@@ -96,4 +110,6 @@ pub mod entity_types {
     pub struct GlowSquid;
     #[derive(Component)]
     pub struct Mule;
+    #[derive(Component)]
+    pub struct ZombifiedPiglin;
 }
