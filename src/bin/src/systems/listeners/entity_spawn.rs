@@ -231,6 +231,58 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
             // Special: gravity but no water drag (amphibians, lava creatures)
             EntityType::Axolotl => spawn_gravity_entity!(commands, pos, AxolotlBundle, Axolotl),
             EntityType::Strider => spawn_gravity_entity!(commands, pos, StriderBundle, Strider),
+            EntityType::MagmaCube => {
+                spawn_gravity_entity!(commands, pos, MagmaCubeBundle, MagmaCube)
+            }
+            EntityType::Slime => spawn_gravity_entity!(commands, pos, SlimeBundle, Slime),
+
+            // Hostile ground entities
+            EntityType::Bogged => spawn_ground_entity!(commands, pos, BoggedBundle, Bogged),
+            EntityType::Creaking => spawn_ground_entity!(commands, pos, CreakingBundle, Creaking),
+            EntityType::Creeper => spawn_ground_entity!(commands, pos, CreeperBundle, Creeper),
+            EntityType::Endermite => {
+                spawn_ground_entity!(commands, pos, EndermiteBundle, Endermite)
+            }
+            EntityType::Evoker => spawn_ground_entity!(commands, pos, EvokerBundle, Evoker),
+            EntityType::Hoglin => spawn_ground_entity!(commands, pos, HoglinBundle, Hoglin),
+            EntityType::Husk => spawn_ground_entity!(commands, pos, HuskBundle, Husk),
+            EntityType::PiglinBrute => {
+                spawn_ground_entity!(commands, pos, PiglinBruteBundle, PiglinBrute)
+            }
+            EntityType::Pillager => spawn_ground_entity!(commands, pos, PillagerBundle, Pillager),
+            EntityType::Ravager => spawn_ground_entity!(commands, pos, RavagerBundle, Ravager),
+            EntityType::Silverfish => {
+                spawn_ground_entity!(commands, pos, SilverfishBundle, Silverfish)
+            }
+            EntityType::Skeleton => spawn_ground_entity!(commands, pos, SkeletonBundle, Skeleton),
+            EntityType::Stray => spawn_ground_entity!(commands, pos, StrayBundle, Stray),
+            EntityType::Vindicator => {
+                spawn_ground_entity!(commands, pos, VindicatorBundle, Vindicator)
+            }
+            EntityType::Warden => spawn_ground_entity!(commands, pos, WardenBundle, Warden),
+            EntityType::Witch => spawn_ground_entity!(commands, pos, WitchBundle, Witch),
+            EntityType::WitherSkeleton => {
+                spawn_ground_entity!(commands, pos, WitherSkeletonBundle, WitherSkeleton)
+            }
+            EntityType::Zoglin => spawn_ground_entity!(commands, pos, ZoglinBundle, Zoglin),
+            EntityType::Zombie => spawn_ground_entity!(commands, pos, ZombieBundle, Zombie),
+            EntityType::ZombieVillager => {
+                spawn_ground_entity!(commands, pos, ZombieVillagerBundle, ZombieVillager)
+            }
+            EntityType::Shulker => spawn_ground_entity!(commands, pos, ShulkerBundle, Shulker),
+
+            // Hostile flying entities
+            EntityType::Blaze => spawn_flying_entity!(commands, pos, BlazeBundle, Blaze),
+            EntityType::Breeze => spawn_flying_entity!(commands, pos, BreezeBundle, Breeze),
+            EntityType::Ghast => spawn_flying_entity!(commands, pos, GhastBundle, Ghast),
+            EntityType::Phantom => spawn_flying_entity!(commands, pos, PhantomBundle, Phantom),
+            EntityType::Vex => spawn_flying_entity!(commands, pos, VexBundle, Vex),
+
+            // Hostile water entities
+            EntityType::ElderGuardian => {
+                spawn_flying_entity!(commands, pos, ElderGuardianBundle, ElderGuardian)
+            }
+            EntityType::Guardian => spawn_flying_entity!(commands, pos, GuardianBundle, Guardian),
         }
     }
 }
