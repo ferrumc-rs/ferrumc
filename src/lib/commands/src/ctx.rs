@@ -2,14 +2,14 @@
 
 use std::sync::Arc;
 
-use tracing::error;
-
 use crate::{
-    arg::{utils::parser_error, CommandArgument, ParserResult},
+    Command,
+    arg::{CommandArgument, ParserResult, utils::parser_error},
     input::CommandInput,
     sender::Sender,
-    Command,
 };
+use ferrumc_state::GlobalState;
+use tracing::error;
 
 /// Context of the execution of a command.
 pub struct CommandContext {
@@ -21,6 +21,8 @@ pub struct CommandContext {
 
     /// The sender of the command.
     pub sender: Sender,
+
+    pub state: GlobalState,
 }
 
 impl CommandContext {

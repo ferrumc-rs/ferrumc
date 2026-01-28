@@ -10,7 +10,7 @@ use ferrumc_net::{
 use ferrumc_net_codec::net_types::{
     length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
 };
-use ferrumc_state::GlobalStateResource;
+use ferrumc_state::{GlobalState, GlobalStateResource};
 use tracing::error;
 
 fn find_command(input: String) -> Option<Arc<Command>> {
@@ -47,7 +47,12 @@ fn find_command(input: String) -> Option<Arc<Command>> {
     None
 }
 
-fn create_ctx(input: String, command: Option<Arc<Command>>, sender: Sender) -> CommandContext {
+fn create_ctx(
+    input: String,
+    command: Option<Arc<Command>>,
+    sender: Sender,
+    state: GlobalState,
+) -> CommandContext {
     let input = input
         .strip_prefix(command.clone().map(|c| c.name).unwrap_or_default())
         .unwrap_or(&input)
@@ -58,6 +63,7 @@ fn create_ctx(input: String, command: Option<Arc<Command>>, sender: Sender) -> C
         input: input.clone(),
         command: command.unwrap_or(ROOT_COMMAND.clone()),
         sender,
+        state,
     }
 }
 
@@ -82,7 +88,12 @@ pub fn handle(
             ))
             .unwrap_or(&input)
             .to_string();
-        let mut ctx = create_ctx(command_arg.clone(), command.clone(), Sender::Player(entity));
+        let mut ctx = create_ctx(
+            command_arg.clone(),
+            command.clone(),
+            Sender::Player(entity),
+            state.0.clone(),
+        );
         let command_arg = command_arg.clone(); // ok borrow checker
         let tokens = command_arg.split(" ").collect::<Vec<&str>>();
         let Some(current_token) = tokens.last() else {

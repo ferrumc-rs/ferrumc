@@ -502,6 +502,13 @@ fn send_initial_chunks(
         }
     }
 
+    let end = std::time::Instant::now();
+    let duration = end.duration_since(start);
+    debug!(
+        "Sent initial chunks in {:?} milliseconds",
+        duration.as_millis()
+    );
+
     Ok(())
 }
 

@@ -18,7 +18,42 @@ lazy_static! {
         let mut m = BiMap::new();
 
         // Add supported entities here
+        m.insert("allay", EntityType::Allay);
+        m.insert("armadillo", EntityType::Armadillo);
+        m.insert("axolotl", EntityType::Axolotl);
+        m.insert("bat", EntityType::Bat);
+        m.insert("bee", EntityType::Bee);
+        m.insert("camel", EntityType::Camel);
+        m.insert("cat", EntityType::Cat);
+        m.insert("chicken", EntityType::Chicken);
+        m.insert("cod", EntityType::Cod);
+        m.insert("cow", EntityType::Cow);
+        m.insert("dolphin", EntityType::Dolphin);
+        m.insert("donkey", EntityType::Donkey);
+        m.insert("fox", EntityType::Fox);
+        m.insert("frog", EntityType::Frog);
+        m.insert("goat", EntityType::Goat);
+        m.insert("horse", EntityType::Horse);
+        m.insert("llama", EntityType::Llama);
+        m.insert("mooshroom", EntityType::Mooshroom);
+        m.insert("ocelot", EntityType::Ocelot);
+        m.insert("panda", EntityType::Panda);
+        m.insert("parrot", EntityType::Parrot);
         m.insert("pig", EntityType::Pig);
+        m.insert("polar_bear", EntityType::PolarBear);
+        m.insert("pufferfish", EntityType::Pufferfish);
+        m.insert("rabbit", EntityType::Rabbit);
+        m.insert("salmon", EntityType::Salmon);
+        m.insert("sheep", EntityType::Sheep);
+        m.insert("sniffer", EntityType::Sniffer);
+        m.insert("squid", EntityType::Squid);
+        m.insert("strider", EntityType::Strider);
+        m.insert("tadpole", EntityType::Tadpole);
+        m.insert("tropical_fish", EntityType::TropicalFish);
+        m.insert("turtle", EntityType::Turtle);
+        m.insert("wolf", EntityType::Wolf);
+        m.insert("glow_squid", EntityType::GlowSquid);
+        m.insert("mule", EntityType::Mule);
 
         m
     };
@@ -58,7 +93,7 @@ impl CommandArgument for EntityTypeArg {
 /// Spawns an entity in front of the player.
 ///
 /// Usage: /spawn <entity_type>
-/// Currently supported: pig
+/// Supported: allay, armadillo, axolotl, bat, bee, camel, cat, chicken, cod, cow, dolphin, donkey, fox, frog, goat, horse, llama, mooshroom, ocelot, panda, parrot, pig
 #[command("spawn")]
 fn spawn_command(
     #[sender] sender: Sender,

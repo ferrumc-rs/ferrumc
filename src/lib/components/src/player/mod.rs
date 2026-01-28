@@ -9,4 +9,5 @@ pub mod pending_events;
 pub mod player_bundle;
 pub mod sneak;
 pub mod swimming;
+pub mod teleport_tracker;
 pub mod view_distance;
