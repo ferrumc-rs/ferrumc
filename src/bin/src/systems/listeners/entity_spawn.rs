@@ -173,9 +173,22 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
             }
             EntityType::Rabbit => spawn_ground_entity!(commands, pos, RabbitBundle, Rabbit),
             EntityType::Sheep => spawn_ground_entity!(commands, pos, SheepBundle, Sheep),
+            EntityType::SkeletonHorse => {
+                spawn_ground_entity!(commands, pos, SkeletonHorseBundle, SkeletonHorse)
+            }
             EntityType::Sniffer => spawn_ground_entity!(commands, pos, SnifferBundle, Sniffer),
+            EntityType::SnowGolem => {
+                spawn_ground_entity!(commands, pos, SnowGolemBundle, SnowGolem)
+            }
             EntityType::Turtle => spawn_ground_entity!(commands, pos, TurtleBundle, Turtle),
+            EntityType::Villager => spawn_ground_entity!(commands, pos, VillagerBundle, Villager),
+            EntityType::WanderingTrader => {
+                spawn_ground_entity!(commands, pos, WanderingTraderBundle, WanderingTrader)
+            }
             EntityType::Wolf => spawn_ground_entity!(commands, pos, WolfBundle, Wolf),
+            EntityType::ZombieHorse => {
+                spawn_ground_entity!(commands, pos, ZombieHorseBundle, ZombieHorse)
+            }
 
             // Flying entities (collisions only)
             EntityType::Allay => spawn_flying_entity!(commands, pos, AllayBundle, Allay),

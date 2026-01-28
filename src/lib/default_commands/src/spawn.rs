@@ -45,13 +45,18 @@ lazy_static! {
         m.insert("rabbit", EntityType::Rabbit);
         m.insert("salmon", EntityType::Salmon);
         m.insert("sheep", EntityType::Sheep);
+        m.insert("skeleton_horse", EntityType::SkeletonHorse);
         m.insert("sniffer", EntityType::Sniffer);
+        m.insert("snow_golem", EntityType::SnowGolem);
         m.insert("squid", EntityType::Squid);
         m.insert("strider", EntityType::Strider);
         m.insert("tadpole", EntityType::Tadpole);
         m.insert("tropical_fish", EntityType::TropicalFish);
         m.insert("turtle", EntityType::Turtle);
+        m.insert("villager", EntityType::Villager);
+        m.insert("wandering_trader", EntityType::WanderingTrader);
         m.insert("wolf", EntityType::Wolf);
+        m.insert("zombie_horse", EntityType::ZombieHorse);
         m.insert("glow_squid", EntityType::GlowSquid);
         m.insert("mule", EntityType::Mule);
 
