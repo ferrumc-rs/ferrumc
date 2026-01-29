@@ -40,6 +40,7 @@ ferrumc-data = { workspace = true }
 ferrumc-entities = { workspace = true }
 ferrumc-physics = { workspace = true }
 ferrumc-particles = { workspace = true }
+ferrumc-blocks = { workspace = true }
 bevy_math = { workspace = true }
 ferrumc-dashboard = { workspace = true, optional = true }
 once_cell = { workspace = true }
