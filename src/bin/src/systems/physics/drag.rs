@@ -10,7 +10,10 @@ use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 pub fn handle(
-    mut query: Query<(&mut Velocity, &Position, &EntityMetadata, Option<&Baby>), With<HasWaterDrag>>,
+    mut query: Query<
+        (&mut Velocity, &Position, &EntityMetadata, Option<&Baby>),
+        With<HasWaterDrag>,
+    >,
     state: Res<GlobalStateResource>,
     registry: Res<PhysicalRegistry>,
 ) {

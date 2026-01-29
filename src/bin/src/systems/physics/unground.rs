@@ -17,7 +17,10 @@ use super::collisions::is_solid_block;
 /// The main purpose is to re-enable gravity for entities that lose their ground support.
 pub fn handle(
     mut events: MessageReader<BlockBrokenEvent>,
-    mut entities: Query<(&Position, &EntityMetadata, Option<&Baby>, &mut OnGround), With<HasCollisions>>,
+    mut entities: Query<
+        (&Position, &EntityMetadata, Option<&Baby>, &mut OnGround),
+        With<HasCollisions>,
+    >,
     state: Res<GlobalStateResource>,
     registry: Res<PhysicalRegistry>,
 ) {

@@ -34,7 +34,9 @@ macro_rules! define_entity_bundle {
         };
         use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 
-        use $crate::components::{CombatProperties, EntityMetadata, LastSyncedPosition, SpawnProperties};
+        use $crate::components::{
+            CombatProperties, EntityMetadata, LastSyncedPosition, SpawnProperties,
+        };
 
         #[derive(Bundle)]
         pub struct $bundle_name {
