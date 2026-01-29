@@ -112,6 +112,16 @@ pub struct BlockData {
     pub properties: Option<BTreeMap<String, String>>,
 }
 
+impl BlockData {
+    pub fn get_property<S: Into<String>>(&self, property: S) -> Option<&String> {
+        if let Some(properties) = &self.properties {
+            properties.get(&property.into())
+        } else {
+            None
+        }
+    }
+}
+
 impl Display for BlockData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
