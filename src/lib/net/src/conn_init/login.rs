@@ -581,6 +581,7 @@ pub(super) async fn login(
         LoginResult {
             player_identity: Some(player_identity),
             compression: compressed,
+            client_information_component: Some(client_info.into()),
         },
     ))
 }

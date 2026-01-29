@@ -9,6 +9,7 @@ use crate::ConnState::Play;
 use crate::{handle_packet, PacketSender};
 use bevy_ecs::prelude::{Component, Entity};
 use crossbeam_channel::Sender;
+use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -232,6 +233,7 @@ impl StreamWriter {
 pub struct NewConnection {
     pub stream: StreamWriter,
     pub player_identity: PlayerIdentity,
+    pub client_information_component: ClientInformationComponent,
     pub entity_return: oneshot::Sender<Entity>,
     pub disconnect_handle: oneshot::Sender<()>,
 }
@@ -344,6 +346,9 @@ pub async fn handle_connection(
             player_identity: login_result.player_identity.unwrap_or_default(),
             entity_return,
             disconnect_handle: disconnect_return,
+            client_information_component: login_result
+                .client_information_component
+                .unwrap_or_default(),
         })
         .map_err(|_| NetError::Misc("Failed to register new connection".to_string()))?;
 
