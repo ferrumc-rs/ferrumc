@@ -74,6 +74,7 @@ pub fn accept_new_connections(
         // after `apply_deferred` flushes the entity into existence.
         entity_commands.insert((
             new_connection.stream,
+            new_connection.client_information_component,
             DisconnectHandle {
                 sender: Some(new_connection.disconnect_handle),
             },
