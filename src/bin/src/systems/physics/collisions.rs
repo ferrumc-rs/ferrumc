@@ -5,8 +5,8 @@ use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
+use ferrumc_entities::components::{Baby, EntityMetadata, PhysicalRegistry};
 use ferrumc_entities::markers::HasCollisions;
-use ferrumc_entities::PhysicalProperties;
 use ferrumc_macros::match_block;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_state::{GlobalState, GlobalStateResource};
@@ -19,16 +19,24 @@ pub fn handle(
             Entity,
             &mut Velocity,
             &mut Position,
-            &PhysicalProperties,
+            &EntityMetadata,
+            Option<&Baby>,
             &mut OnGround,
         ),
         With<HasCollisions>,
     >,
     mut writer: MessageWriter<SendEntityUpdate>,
     state: Res<GlobalStateResource>,
+    registry: Res<PhysicalRegistry>,
 ) {
-    for (eid, mut vel, mut pos, physical, mut grounded) in query {
+    for (eid, mut vel, mut pos, metadata, baby, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
+            // Get physical properties from registry
+            let is_baby = baby.is_some();
+            let Some(physical) = registry.get(metadata.protocol_id(), is_baby) else {
+                continue;
+            };
+
             // Figure out where the entity is going to be next tick
             let next_pos = pos.coords.as_vec3a() + **vel;
             let mut collided = false;
