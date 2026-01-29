@@ -181,19 +181,19 @@ impl Display for ParticleStatus {
     }
 }
 
-impl Into<ClientInformationComponent> for ClientInformation {
-    fn into(self) -> ClientInformationComponent {
+impl From<ClientInformation> for ClientInformationComponent {
+    fn from(info: ClientInformation) -> Self {
         ClientInformationComponent {
-            locale: self.locale,
-            view_distance: self.view_distance as u8,
-            chat_mode: match self.chat_mode {
+            locale: info.locale,
+            view_distance: info.view_distance as u8,
+            chat_mode: match info.chat_mode {
                 ChatMode::Enabled => 0,
                 ChatMode::CommandsOnly => 1,
                 ChatMode::Hidden => 2,
             },
-            chat_colors: self.chat_colors,
-            displayed_skin_parts: self.displayed_skin_parts,
-            main_hand: match self.main_hand {
+            chat_colors: info.chat_colors,
+            displayed_skin_parts: info.displayed_skin_parts,
+            main_hand: match info.main_hand {
                 MainHand::Left => 0,
                 MainHand::Right => 1,
             },

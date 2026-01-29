@@ -13,7 +13,6 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::ChunkPos;
 use std::sync::atomic::Ordering;
-use tracing::{debug, warn};
 
 // Just take the needed chunks from the ChunkReceiver and send them
 // calculating which chunks are required is figured out elsewhere

@@ -6,7 +6,7 @@ use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::transform::position::Position;
 use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_world::pos::ChunkPos;
-use tracing::{debug, warn};
+use tracing::warn;
 
 pub fn handle(
     mut messages: MessageReader<ChunkCalc>,
