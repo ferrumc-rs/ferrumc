@@ -12,9 +12,11 @@ pub use passive::*;
 
 /// Macro to define an entity bundle with all standard components.
 ///
-/// This macro generates a bundle struct with identity, metadata, physical properties,
-/// combat properties, spawn properties, position, rotation, velocity, ground state,
-/// and last synced position components.
+/// This macro generates a bundle struct with identity, metadata, combat properties,
+/// spawn properties, position, rotation, velocity, ground state, and last synced position.
+///
+/// Note: PhysicalProperties are NOT stored per-entity. Instead, they are looked up
+/// from the PhysicalRegistry resource using the entity's protocol_id.
 ///
 /// # Usage
 /// ```ignore
@@ -32,16 +34,12 @@ macro_rules! define_entity_bundle {
         };
         use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 
-        use crate::components::{
-            CombatProperties, EntityMetadata, LastSyncedPosition, PhysicalProperties,
-            SpawnProperties,
-        };
+        use crate::components::{CombatProperties, EntityMetadata, LastSyncedPosition, SpawnProperties};
 
         #[derive(Bundle)]
         pub struct $bundle_name {
             pub identity: EntityIdentity,
             pub metadata: EntityMetadata,
-            pub physical: PhysicalProperties,
             pub combat: CombatProperties,
             pub spawn: SpawnProperties,
             pub position: Position,
@@ -54,14 +52,12 @@ macro_rules! define_entity_bundle {
         impl $bundle_name {
             pub fn new(position: Position) -> Self {
                 let metadata = EntityMetadata::from_vanilla(&VanillaEntityType::$vanilla_type);
-                let physical = PhysicalProperties::from_metadata(&metadata);
                 let combat = CombatProperties::from_metadata(&metadata);
                 let spawn = SpawnProperties::from_metadata(&metadata);
 
                 Self {
                     identity: EntityIdentity::new(),
                     metadata,
-                    physical,
                     combat,
                     spawn,
                     rotation: Rotation::default(),
