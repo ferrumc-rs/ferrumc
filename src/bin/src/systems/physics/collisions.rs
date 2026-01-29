@@ -1,5 +1,6 @@
 use bevy_ecs::message::MessageWriter;
 use bevy_ecs::prelude::{DetectChanges, Entity, Query, Res, With};
+use bevy_ecs::world::Mut;
 use bevy_math::bounding::{Aabb3d, BoundingVolume};
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::grounded::OnGround;
@@ -13,18 +14,17 @@ use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
+type CollisionQueryItem<'a> = (
+    Entity,
+    Mut<'a, Velocity>,
+    Mut<'a, Position>,
+    &'a EntityMetadata,
+    Option<&'a Baby>,
+    Mut<'a, OnGround>,
+);
+
 pub fn handle(
-    query: Query<
-        (
-            Entity,
-            &mut Velocity,
-            &mut Position,
-            &EntityMetadata,
-            Option<&Baby>,
-            &mut OnGround,
-        ),
-        With<HasCollisions>,
-    >,
+    query: Query<CollisionQueryItem, With<HasCollisions>>,
     mut writer: MessageWriter<SendEntityUpdate>,
     state: Res<GlobalStateResource>,
     registry: Res<PhysicalRegistry>,
