@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
-use bevy_math::IVec3;
+use bevy_math::{IVec2, IVec3};
+use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::transform::position::Position;
@@ -12,19 +13,42 @@ use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::ChunkPos;
+use std::cmp::max;
 use std::sync::atomic::Ordering;
 
 // Just take the needed chunks from the ChunkReceiver and send them
 // calculating which chunks are required is figured out elsewhere
 // TODO: Respect chunks_per_tick limit
 pub fn handle(
-    mut query: Query<(Entity, &StreamWriter, &mut ChunkReceiver, &Position)>,
+    mut query: Query<(
+        Entity,
+        &StreamWriter,
+        &mut ChunkReceiver,
+        &Position,
+        &ClientInformationComponent,
+    )>,
     state: Res<GlobalStateResource>,
 ) {
-    for (eid, conn, mut chunk_receiver, pos) in query.iter_mut() {
+    for (eid, conn, mut chunk_receiver, pos, client_info) in query.iter_mut() {
         if !state.0.players.is_connected(eid) {
             continue; // Skip if the player is not connected
         }
+
+        chunk_receiver.loading.retain(|coord| {
+            let chunk_pos = IVec2::new(coord.0, coord.1);
+            let player_chunk_pos = IVec2::new(
+                pos.coords.x.floor() as i32 >> 4,
+                pos.coords.z.floor() as i32 >> 4,
+            );
+            let distance = chunk_pos.distance_squared(player_chunk_pos);
+            let view_distance = max(
+                client_info.view_distance as u32,
+                get_global_config().chunk_render_distance,
+            );
+            distance <= (view_distance * view_distance) as i32
+        });
+
+        let chunk_per_tick = max(chunk_receiver.loading.len() / 3, 16);
 
         if chunk_receiver.dirty.is_empty() && chunk_receiver.loading.is_empty() {
             continue;
@@ -39,7 +63,7 @@ pub fn handle(
         while let Some(coords) = &chunk_receiver.dirty.pop_front() {
             dirty_chunks.push(*coords);
             sent_chunks += 1;
-            if sent_chunks >= chunk_receiver.chunks_per_tick as usize {
+            if sent_chunks >= chunk_per_tick {
                 break;
             }
         }
@@ -51,7 +75,7 @@ pub fn handle(
             while let Some(coords) = chunk_receiver.loading.pop_front() {
                 needed_chunks.push(coords);
                 sent_chunks += 1;
-                if sent_chunks >= chunk_receiver.chunks_per_tick as usize {
+                if sent_chunks >= chunk_per_tick {
                     break;
                 };
             }
