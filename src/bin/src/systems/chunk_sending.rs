@@ -34,21 +34,14 @@ pub fn handle(
             continue; // Skip if the player is not connected
         }
 
-        chunk_receiver.loading.retain(|coord| {
-            let chunk_pos = IVec2::new(coord.0, coord.1);
-            let player_chunk_pos = IVec2::new(
-                pos.coords.x.floor() as i32 >> 4,
-                pos.coords.z.floor() as i32 >> 4,
-            );
-            let distance = chunk_pos.distance_squared(player_chunk_pos);
-            let view_distance = max(
-                client_info.view_distance as u32,
-                get_global_config().chunk_render_distance,
-            );
-            distance <= (view_distance * view_distance) as i32
-        });
-
-        let chunk_per_tick = max(chunk_receiver.loading.len() / 3, 16);
+        let chunk_per_tick = match get_global_config().performance.chunks_per_tick {
+            0 => max(
+                chunk_receiver.loading.len() / 3,
+                get_global_config().performance.chunks_per_tick_min as usize,
+            ),
+            -1 => usize::MAX,
+            hard_limit => hard_limit as usize,
+        };
 
         if chunk_receiver.dirty.is_empty() && chunk_receiver.loading.is_empty() {
             continue;
@@ -85,7 +78,7 @@ pub fn handle(
 
         if needed_chunks.is_empty() {
             continue;
-        }
+        };
 
         let mut batch = state.0.thread_pool.batch();
 
@@ -100,7 +93,23 @@ pub fn handle(
         })
         .expect("Failed to send SetCenterChunk");
 
-        for coordinates in needed_chunks.into_iter().map(|c| ChunkPos::new(c.0, c.1)) {
+        for coordinates in needed_chunks
+            .into_iter()
+            .filter(|coord| {
+                let chunk_pos = IVec2::new(coord.0, coord.1);
+                let player_chunk_pos = IVec2::new(
+                    pos.coords.x.floor() as i32 >> 4,
+                    pos.coords.z.floor() as i32 >> 4,
+                );
+                let distance = chunk_pos.distance_squared(player_chunk_pos);
+                let view_distance = max(
+                    client_info.view_distance as u32,
+                    get_global_config().chunk_render_distance,
+                );
+                distance <= (view_distance * view_distance) as i32
+            })
+            .map(|c| ChunkPos::new(c.0, c.1))
+        {
             chunk_receiver
                 .loaded
                 .insert((coordinates.x(), coordinates.z()));
