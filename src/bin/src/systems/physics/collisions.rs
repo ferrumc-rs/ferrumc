@@ -1,5 +1,5 @@
 use bevy_ecs::message::MessageWriter;
-use bevy_ecs::prelude::{DetectChanges, Entity, Query, Res, With};
+use bevy_ecs::prelude::{DetectChanges, Entity, Has, Query, Res, With};
 use bevy_ecs::world::Mut;
 use bevy_math::bounding::{Aabb3d, BoundingVolume};
 use bevy_math::{IVec3, Vec3A};
@@ -19,7 +19,7 @@ type CollisionQueryItem<'a> = (
     Mut<'a, Velocity>,
     Mut<'a, Position>,
     &'a EntityMetadata,
-    Option<&'a Baby>,
+    Has<Baby>,
     Mut<'a, OnGround>,
 );
 
@@ -32,7 +32,7 @@ pub fn handle(
     for (eid, mut vel, mut pos, metadata, baby, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
             // Get physical properties from registry
-            let is_baby = baby.is_some();
+            let is_baby = baby;
             let Some(physical) = registry.get(metadata.protocol_id(), is_baby) else {
                 continue;
             };
