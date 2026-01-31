@@ -1,3 +1,4 @@
+mod credits;
 pub mod echo;
 pub mod fly;
 pub mod gamemode;

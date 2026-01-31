@@ -1,0 +1,22 @@
+Ferrumc is a Minecraft server created and maintained by a dedicated team of developers and community members. 
+We would like to acknowledge the following individuals and groups for their contributions:
+
+Development Team:
+ReCore and Sweattypalms
+
+Financial Contributors:
+Pooka, alex_s168 and Sunny
+
+Other contributors, past and present:
+Asurar0, cookiejul, CrabbyDisk, DjPro, dylancode, elpupper, fayard, Ghal, giftidly, GStudiosX,
+Keyou, lex, Matteo, MisterQuestions, MSKatKing, NanCunChild, nicknotname, Nim, Outspending,
+Pooka, ProfFeuerstein, rad, Skullians, Sunny. Timespeed, Toungechaud and Verq.
+
+Other play testers:
+hajime_onodera, knbyte
+
+Additionally, special thanks to the Rust, Bevy and Minecraft protocol communities for their 
+invaluable resources and support.
+
+None of this would be possible without the collective effort and passion of everyone involved.
+Thank you all for being a part of the Ferrumc journey!
