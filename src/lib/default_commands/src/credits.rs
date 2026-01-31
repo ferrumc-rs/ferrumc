@@ -3,7 +3,8 @@ use ferrumc_commands::Sender;
 use ferrumc_macros::command;
 use ferrumc_nbt::NBT;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::packets::outgoing::show_dialog::{AdHocID, DialogBody, DialogContent, ShowDialog};
+use ferrumc_net::packets::outgoing::show_dialog::{DialogBody, DialogContent, ShowDialog};
+use ferrumc_net_codec::net_types::adhoc_id::AdHocID;
 use ferrumc_text::TextComponent;
 
 static CREDITS_TEXT: &str = include_str!("../../../../assets/data/credits.txt");

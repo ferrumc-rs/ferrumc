@@ -1,9 +1,7 @@
 use ferrumc_macros::{packet, NBTSerialize, NetEncode};
 use ferrumc_nbt::NBT;
-use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::net_types::adhoc_id::AdHocID;
 use ferrumc_text::TextComponent;
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "show_dialog", state = "play")]
