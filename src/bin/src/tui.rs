@@ -2,6 +2,7 @@ use crate::shutdown_handler;
 use crossterm::event;
 use ferrumc_state::GlobalState;
 use ratatui::{DefaultTerminal, Frame};
+use std::sync::atomic::Ordering::Relaxed;
 
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Style};
@@ -43,6 +44,9 @@ fn tui_main(
         terminal.draw(|frame| {
             render(frame, &input, &log_state);
         })?;
+        if state.shut_down.load(Relaxed) {
+            break;
+        }
 
         if event::poll(Duration::from_millis(10))? {
             let ev = event::read()?;

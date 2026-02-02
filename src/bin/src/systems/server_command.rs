@@ -23,7 +23,7 @@ pub fn handle(
         let resolved = resolve(command, sender, state.0.clone());
         match resolved {
             Err(err) => {
-                error!("Error resolving server command: {}", err);
+                error!("Error resolving server command: {}", err.to_plain_text());
             }
 
             Ok((command, ctx)) => {

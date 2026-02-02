@@ -16,6 +16,7 @@ ferrumc-net-codec = { workspace = true }
 lazy_static = { workspace = true }
 bimap = { workspace = true }
 ferrumc-nbt = { workspace = true }
+ferrumc-state = { workspace = true }
 
 ctor = { workspace = true }
 tracing = { workspace = true }

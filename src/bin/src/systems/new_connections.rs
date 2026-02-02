@@ -14,7 +14,7 @@ use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
-use tracing::{error, trace};
+use tracing::{error, info, trace};
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
@@ -101,7 +101,10 @@ pub fn accept_new_connections(
             ),
         );
 
-        trace!("Spawned entity for new connection: {:?}", entity_id);
+        info!(
+            "Player {} connected ({:?})",
+            new_connection.player_identity.username, new_connection.player_identity.uuid
+        );
 
         if let Err(err) = return_sender.send(entity_id) {
             error!(

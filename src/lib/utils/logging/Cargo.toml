@@ -17,6 +17,7 @@ ratatui = { workspace = true }
 unicode-width = { workspace = true }
 log = { workspace = true }
 ratatui-core = { workspace = true }
+regex = { workspace = true }
 
 [features]
 # Enable the tracy profiler client
