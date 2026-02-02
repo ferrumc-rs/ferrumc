@@ -1,0 +1,12 @@
+[package]
+name = "ferrumc-blocks-generated"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ferrumc-block-properties = { path = "../property" }
+
+[build-dependencies]
+ferrumc-blocks-build = { path = "../build" }
+heck = "0.5"
+quote = { workspace = true }

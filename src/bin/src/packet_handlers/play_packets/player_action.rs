@@ -1,9 +1,12 @@
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
+use bevy_ecs::system::ResMut;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_messages::player_digging::*;
 use ferrumc_messages::BlockBrokenEvent;
 
+use crate::packet_handlers::play_packets::place_block::CARDINAL_DIRECTIONS;
+use crate::systems::handle_block_updates::BlockUpdates;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
@@ -13,16 +16,24 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
 use tracing::{error, warn};
 
+#[allow(clippy::type_complexity)]
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
     broadcast_query: Query<(Entity, &StreamWriter)>,
     player_query: Query<&PlayerAbilities>,
-    (mut start_dig_events, mut cancel_dig_events, mut finish_dig_events, mut block_break_events): (
+    (
+        mut start_dig_events,
+        mut cancel_dig_events,
+        mut finish_dig_events,
+        mut block_break_events,
+        mut block_updates,
+    ): (
         MessageWriter<PlayerStartedDigging>,
         MessageWriter<PlayerCancelledDigging>,
         MessageWriter<PlayerFinishedDigging>,
         MessageWriter<BlockBrokenEvent>,
+        ResMut<BlockUpdates>,
     ),
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
@@ -52,6 +63,11 @@ pub fn handle(
 
                     // Send block broken event for un-grounding system
                     block_break_events.write(BlockBrokenEvent { position: pos });
+
+                    for offset in &CARDINAL_DIRECTIONS {
+                        let pos = pos + *offset;
+                        block_updates.queue_block_update(pos);
+                    }
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {
