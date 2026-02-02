@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_net::ChunkBatchAckReceiver;
 use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error, warn};
+use tracing::{error, warn};
 
 pub fn handle(
     receiver: Res<ChunkBatchAckReceiver>,
