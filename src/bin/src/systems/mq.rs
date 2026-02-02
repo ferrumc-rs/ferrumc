@@ -4,13 +4,13 @@ use ferrumc_net::{
     connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
 };
 use ferrumc_state::GlobalStateResource;
-use tracing::error;
+use tracing::{error, info};
 
 fn send(
     writer: &StreamWriter,
     receiver: Entity,
     state: &GlobalStateResource,
-    entry: ferrumc_core::mq::QueueEntry,
+    entry: mq::QueueEntry,
 ) {
     if !state.0.players.is_connected(receiver) {
         return;
@@ -42,6 +42,7 @@ pub fn process(query: Query<(Entity, &StreamWriter)>, state: Res<GlobalStateReso
                 for (receiver, writer) in query {
                     send(writer, receiver, &state, entry.clone());
                 }
+                info!("{}", entry.message.to_plain_text())
             }
         }
     }

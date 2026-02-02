@@ -18,6 +18,7 @@ use crate::systems::new_connections::accept_new_connections;
 use crate::systems::physics::register_physics;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
+use crate::tui;
 use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::{ApplyDeferred, ExecutorKind, IntoScheduleConfigs, Schedule};
 use crossbeam_channel::Sender;
@@ -45,7 +46,7 @@ use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 /// 2. Starts the TCP connection acceptor on a separate thread
 /// 3. Runs the main scheduler loop that executes timed schedules (tick, sync, etc.)
 /// 4. Handles graceful shutdown when the server is stopped
-pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
+pub fn start_game_loop(global_state: GlobalState, no_tui: bool) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 1: ECS World Setup
     // =========================================================================
@@ -72,6 +73,11 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let (shutdown_send, shutdown_recv) = tokio::sync::oneshot::channel();
     let (shutdown_response_send, shutdown_response_recv) = crossbeam_channel::unbounded();
 
+    let (server_command_tx, server_command_rx) = crossbeam_channel::unbounded::<String>();
+    if !no_tui {
+        tui::run_tui(global_state.clone(), server_command_tx);
+    }
+
     // =========================================================================
     // PHASE 3: Register ECS Systems and Resources
     // =========================================================================
@@ -86,7 +92,12 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     register_messages(&mut ecs_world);
 
     // Register shared resources (connection receiver, global state, etc.)
-    register_resources(&mut ecs_world, new_conn_recv, global_state_res);
+    register_resources(
+        &mut ecs_world,
+        new_conn_recv,
+        global_state_res,
+        server_command_rx,
+    );
 
     // Build the timed scheduler with all periodic schedules (tick, sync, keepalive)
     let mut timed = build_timed_scheduler();

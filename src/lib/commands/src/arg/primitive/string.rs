@@ -127,17 +127,19 @@ impl CommandArgument for QuotableString {
 impl CommandArgument for GreedyString {
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         let input = &mut ctx.input;
-        let mut result = String::new();
+        let mut result_parts = Vec::new();
 
         while input.has_remaining_input() {
             let string = input.read_string();
 
-            result.push_str(&string);
+            result_parts.push(string);
         }
 
-        if result.is_empty() {
+        if result_parts.is_empty() {
             return Err(parser_error("string cannot be empty"));
         }
+
+        let result = result_parts.join(" ");
 
         Ok(GreedyString(result))
     }

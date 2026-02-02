@@ -12,6 +12,12 @@ ferrumc-general-purpose = { workspace = true }
 thiserror = { workspace = true }
 tracing-tracy = { workspace = true, optional = true }
 tracy-client = { workspace = true, optional = true }
+tui-logger = { workspace = true }
+ratatui = { workspace = true }
+unicode-width = { workspace = true }
+log = { workspace = true }
+ratatui-core = { workspace = true }
+regex = { workspace = true }
 
 [features]
 # Enable the tracy profiler client

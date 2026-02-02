@@ -15,6 +15,7 @@ mod particles;
 pub mod physics;
 mod player_swimming;
 mod send_entity_updates;
+mod server_command;
 pub mod shutdown_systems;
 pub(crate) mod update_player_ping;
 pub mod world_sync;
@@ -37,6 +38,8 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(send_entity_updates::handle);
 
     schedule.add_systems(day_cycle::tick_daylight_cycle);
+
+    schedule.add_systems(server_command::handle);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
