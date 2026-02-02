@@ -10,7 +10,7 @@ use ferrumc_text::TextComponent;
 static CREDITS_TEXT: &str = include_str!("../../../../assets/data/credits.txt");
 
 #[command("credits")]
-fn test_command(#[sender] sender: Sender, query: Query<&StreamWriter>) {
+fn credits(#[sender] sender: Sender, query: Query<&StreamWriter>) {
     let conn = match sender {
         Sender::Server => {
             // Server cannot have credits
