@@ -226,6 +226,8 @@ heed = "0.22.1-nested-rtxns-6"
 clap = { version = "4.5.54", features = ["derive", "env"] }
 indicatif = "0.18.3"
 colored = "3.1.1"
+ratatui = "0.30.0"
+tui-logger = { version = "0.18.1", features = ["tracing-support", "crossterm"] }
 
 # Misc
 deepsize = "0.2.0"
@@ -242,6 +244,7 @@ once_cell = "1.21.3"
 include_dir = "0.7.4"
 mime_guess = "2.0.5"
 heck = "0.5.0"
+crossterm = "0.29.0"
 
 # I/O
 memmap2 = "0.9.9"
@@ -257,7 +260,7 @@ phf_codegen = { version = "0.11" }
 axum = { version = "0.8.8", features = ["tokio", "ws"] }
 
 # Stats
-sysinfo = { version = "0.37.2", default-features = false, features = ["system"] }
+sysinfo = { version = "0.38.0", default-features = false, features = ["system"] }
 dir-size = "0.1.1"
 
 [profile.dev.package.yazi]

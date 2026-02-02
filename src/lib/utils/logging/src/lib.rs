@@ -7,6 +7,7 @@ use tracing_appender::rolling::Rotation;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
+use tui_logger::TuiTracingSubscriberLayer;
 
 pub fn init_logging(trace_level: Level) {
     //let console = console_subscriber::spawn();
@@ -28,26 +29,27 @@ pub fn init_logging(trace_level: Level) {
         .build(get_root_path().join("logs"))
         .unwrap();
 
-    let fmt_layer = {
-        #[cfg(debug_assertions)]
-        {
-            tracing_subscriber::fmt::layer()
-                .with_file(true)
-                .with_line_number(true)
-                .with_level(true)
-                .with_target(false)
-        }
-        #[cfg(not(debug_assertions))]
-        {
-            tracing_subscriber::fmt::layer()
-                .with_thread_ids(false)
-                .with_thread_names(false)
-                .with_file(false)
-                .with_line_number(false)
-                .with_level(true)
-                .with_target(false)
-        }
-    };
+    tui_logger::init_logger(tui_logger::LevelFilter::Debug).unwrap();
+    // let fmt_layer = {
+    //     #[cfg(debug_assertions)]
+    //     {
+    //         tracing_subscriber::fmt::layer()
+    //             .with_file(true)
+    //             .with_line_number(true)
+    //             .with_level(true)
+    //             .with_target(false)
+    //     }
+    //     #[cfg(not(debug_assertions))]
+    //     {
+    //         tracing_subscriber::fmt::layer()
+    //             .with_thread_ids(false)
+    //             .with_thread_names(false)
+    //             .with_file(false)
+    //             .with_line_number(false)
+    //             .with_level(true)
+    //             .with_target(false)
+    //     }
+    // };
 
     let file_layer = tracing_subscriber::fmt::layer()
         .with_writer(file_appender)
@@ -59,7 +61,8 @@ pub fn init_logging(trace_level: Level) {
         .with(file_layer)
         .with(env_filter)
         .with(profiler_layer)
-        .with(fmt_layer);
+        // .with(fmt_layer)
+        .with(TuiTracingSubscriberLayer);
 
     #[cfg(not(feature = "tracy"))]
     {
