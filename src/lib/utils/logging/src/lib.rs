@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod tui_formatter;
 
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_profiling::ProfilerTracingLayer;

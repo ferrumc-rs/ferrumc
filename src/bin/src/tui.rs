@@ -34,10 +34,20 @@ fn tui_main(terminal: &mut DefaultTerminal, state: GlobalState) -> std::io::Resu
         }
         sleep(Duration::from_millis(50))
     }
+    ratatui::restore();
     Ok(())
 }
 
 fn render(frame: &mut Frame) {
     let area = frame.area();
-    frame.render_widget(tui_logger::TuiLoggerSmartWidget::default(), area)
+    let widget = tui_logger::TuiLoggerWidget::default()
+        .formatter(Box::new(
+            ferrumc_logging::tui_formatter::TuiTracingFormatter,
+        ))
+        .block(
+            ratatui::widgets::Block::default()
+                .title(" FerrumC (Press Ctrl+C to exit) ")
+                .borders(ratatui::widgets::Borders::ALL),
+        );
+    frame.render_widget(widget, area)
 }

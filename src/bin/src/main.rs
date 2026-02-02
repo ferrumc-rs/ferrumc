@@ -97,14 +97,6 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
     #[cfg(feature = "dashboard")]
     ferrumc_dashboard::start_dashboard(global_state.clone());
 
-    // ctrlc::set_handler({
-    //     let global_state = global_state.clone();
-    //     move || {
-    //
-    //     }
-    // })
-    // .expect("Error setting Ctrl-C handler");
-
     game_loop::start_game_loop(global_state.clone())?;
 
     Ok(())

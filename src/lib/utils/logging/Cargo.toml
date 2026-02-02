@@ -13,6 +13,8 @@ thiserror = { workspace = true }
 tracing-tracy = { workspace = true, optional = true }
 tracy-client = { workspace = true, optional = true }
 tui-logger = { workspace = true }
+ratatui-core = { workspace = true }
+log = { workspace = true }
 
 [features]
 # Enable the tracy profiler client
