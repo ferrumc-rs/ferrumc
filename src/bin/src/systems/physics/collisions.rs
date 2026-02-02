@@ -29,10 +29,9 @@ pub fn handle(
     state: Res<GlobalStateResource>,
     registry: Res<PhysicalRegistry>,
 ) {
-    for (eid, mut vel, mut pos, metadata, baby, mut grounded) in query {
+    for (eid, mut vel, mut pos, metadata, is_baby, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
             // Get physical properties from registry
-            let is_baby = baby;
             let Some(physical) = registry.get(metadata.protocol_id(), is_baby) else {
                 continue;
             };
