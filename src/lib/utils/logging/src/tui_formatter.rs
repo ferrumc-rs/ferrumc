@@ -56,8 +56,7 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
     let mut cur_spans: Vec<Span<'a>> = Vec::new();
     let mut cur_w: usize = 0;
 
-    // helper: push a styled token to current line (assuming it fits)
-    let mut push_token =
+    let push_token =
         |cur_spans: &mut Vec<Span<'a>>, cur_w: &mut usize, tok: String, style: Style| {
             if !tok.is_empty() {
                 *cur_w += UnicodeWidthStr::width(tok.as_str());
@@ -65,19 +64,17 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
             }
         };
 
-    // helper: flush current line
-    let mut flush_line =
+    let flush_line =
         |lines: &mut Vec<Line<'a>>, cur_spans: &mut Vec<Span<'a>>, cur_w: &mut usize| {
             lines.push(Line::from(std::mem::take(cur_spans)));
             *cur_w = 0;
         };
 
-    // helper: hard-split a too-long token (word) across lines
-    let mut split_long_token = |lines: &mut Vec<Line<'a>>,
-                                cur_spans: &mut Vec<Span<'a>>,
-                                cur_w: &mut usize,
-                                tok: &str,
-                                style: Style| {
+    let split_long_token = |lines: &mut Vec<Line<'a>>,
+                            cur_spans: &mut Vec<Span<'a>>,
+                            cur_w: &mut usize,
+                            tok: &str,
+                            style: Style| {
         let mut chunk = String::new();
         let mut chunk_w = 0usize;
 
@@ -106,7 +103,7 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
         let style = sp.style;
         let s = sp.content.as_ref();
 
-        // Fast path if whole span fits (common case)
+        // Fast path if whole span fits
         let span_w = UnicodeWidthStr::width(s);
         if cur_w + span_w <= width {
             cur_spans.push(sp);
@@ -118,11 +115,11 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
         let mut tok = String::new();
         let mut tok_is_ws: Option<bool> = None;
 
-        let mut flush_tok = |lines: &mut Vec<Line<'a>>,
-                             cur_spans: &mut Vec<Span<'a>>,
-                             cur_w: &mut usize,
-                             tok: &mut String,
-                             tok_is_ws: &mut Option<bool>| {
+        let flush_tok = |lines: &mut Vec<Line<'a>>,
+                         cur_spans: &mut Vec<Span<'a>>,
+                         cur_w: &mut usize,
+                         tok: &mut String,
+                         tok_is_ws: &mut Option<bool>| {
             if tok.is_empty() {
                 *tok_is_ws = None;
                 return;
@@ -138,7 +135,7 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
                 return;
             }
 
-            // If it's whitespace and doesn't fit, drop it (avoid leading spaces on next line)
+            // If it's whitespace and doesn't fit, drop it
             if is_ws {
                 tok.clear();
                 *tok_is_ws = None;
@@ -187,7 +184,6 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
                     tok.push(ch);
                 }
                 Some(_) => {
-                    // token boundary (word <-> whitespace)
                     flush_tok(
                         &mut lines,
                         &mut cur_spans,
@@ -200,7 +196,6 @@ fn wrap_spans<'a>(spans: Vec<Span<'a>>, width: usize) -> Vec<Line<'a>> {
                 }
             }
 
-            // Optional: early flush if token itself gets huge (keeps memory in check)
             if tok.len() > 4096 {
                 flush_tok(
                     &mut lines,

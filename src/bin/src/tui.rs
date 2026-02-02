@@ -48,7 +48,7 @@ fn tui_main(
             render(frame, &input, &log_state);
         })?;
 
-        if event::poll(Duration::from_millis(1))? {
+        if event::poll(Duration::from_millis(10))? {
             let ev = event::read()?;
 
             if let Some(key_event) = ev.as_key_press_event() {

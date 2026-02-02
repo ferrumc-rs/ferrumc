@@ -14,7 +14,7 @@ use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
-use tracing::{error, info, trace};
+use tracing::{error, info};
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);

@@ -4,7 +4,6 @@ use ferrumc_commands::Sender;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
 use ferrumc_macros::command;
-use ferrumc_nbt::NBT;
 use ferrumc_net::connection::StreamWriter;
 
 #[command("say")]

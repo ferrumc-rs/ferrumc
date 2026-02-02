@@ -18,7 +18,7 @@ use crate::systems::new_connections::accept_new_connections;
 use crate::systems::physics::register_physics;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
-use crate::{shutdown_handler, tui};
+use crate::tui;
 use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::{ApplyDeferred, ExecutorKind, IntoScheduleConfigs, Schedule};
 use crossbeam_channel::Sender;
