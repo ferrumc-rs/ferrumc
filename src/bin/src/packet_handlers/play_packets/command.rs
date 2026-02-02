@@ -6,10 +6,12 @@ use ferrumc_commands::{
     messages::{CommandDispatched, ResolvedCommandDispatched},
     Command, CommandContext, CommandInput, Sender,
 };
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
 use ferrumc_net::ChatCommandPacketReceiver;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
+use tracing::info;
 
 pub fn resolve(
     input: String,
@@ -46,6 +48,7 @@ pub fn handle(
     mut dispatch_msgs: MessageWriter<CommandDispatched>,
     mut resolved_dispatch_msgs: MessageWriter<ResolvedCommandDispatched>,
     state: Res<GlobalStateResource>,
+    query: Query<&PlayerIdentity>,
 ) {
     for (event, entity) in receiver.0.try_iter() {
         let sender = Sender::Player(entity);
@@ -54,13 +57,20 @@ pub fn handle(
             sender,
         });
 
-        let resolved = resolve(event.command, sender, state.0.clone());
+        let resolved = resolve(event.command.clone(), sender, state.0.clone());
         match resolved {
             Err(err) => {
                 mq::queue(*err, false, entity);
             }
 
             Ok((command, ctx)) => {
+                let Ok(player_id) = query.get(entity) else {
+                    continue;
+                };
+                info!(
+                    "Player {} executed command: /{}",
+                    player_id.username, event.command
+                );
                 resolved_dispatch_msgs.write(ResolvedCommandDispatched {
                     command,
                     ctx,

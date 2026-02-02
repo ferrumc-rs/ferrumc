@@ -2,6 +2,7 @@ use bevy_ecs::prelude::Query;
 use ferrumc_commands::arg::primitive::string::GreedyString;
 use ferrumc_commands::Sender;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_core::mq;
 use ferrumc_macros::command;
 use ferrumc_nbt::NBT;
 use ferrumc_net::connection::StreamWriter;
@@ -20,13 +21,5 @@ fn say_command(
         }
     };
 
-    let packet = ferrumc_net::packets::outgoing::system_message::SystemMessagePacket {
-        message: NBT::new(full_message.into()),
-        overlay: false,
-    };
-
-    for (conn, _) in query.iter() {
-        conn.send_packet_ref(&packet)
-            .expect("Failed to send packet");
-    }
+    mq::broadcast(full_message.into(), false);
 }
