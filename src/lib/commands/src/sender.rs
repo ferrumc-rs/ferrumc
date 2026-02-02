@@ -22,7 +22,7 @@ impl Sender {
         match self {
             Sender::Player(entity) => mq::queue(message, actionbar, *entity),
             Sender::Server => {
-                info!("{message}"); // TODO: serialize into ANSI?
+                info!("{}", message.to_plain_text()); // TODO: serialize into ANSI?
             }
         }
     }

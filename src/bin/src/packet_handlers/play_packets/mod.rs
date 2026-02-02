@@ -3,7 +3,7 @@ use bevy_ecs::schedule::Schedule;
 mod change_game_mode;
 mod chat_message;
 mod chunk_batch_ack;
-mod command;
+pub mod command;
 mod command_suggestions;
 mod confirm_player_teleport;
 mod keep_alive;

@@ -11,7 +11,7 @@ use ferrumc_net::ChatCommandPacketReceiver;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
 
-fn resolve(
+pub fn resolve(
     input: String,
     sender: Sender,
     state: GlobalState,

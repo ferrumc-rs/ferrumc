@@ -1,6 +1,5 @@
 use crate::shutdown_handler;
 use crossterm::event;
-use crossterm::event::Event;
 use ferrumc_state::GlobalState;
 use ratatui::{DefaultTerminal, Frame};
 
@@ -8,30 +7,36 @@ use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Style};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
+use bevy_ecs::prelude::Resource;
+use crossbeam_channel::Sender;
 use ratatui::prelude::{Line, Modifier, Span};
 use std::thread::sleep;
 use std::time::Duration;
-use tracing::debug;
-
+use tracing::info;
 use tui_input::backend::crossterm::EventHandler;
 use tui_input::Input;
 use tui_logger::{TuiWidgetEvent, TuiWidgetState};
 
-pub fn run_tui(state: GlobalState) {
+#[derive(Resource)]
+pub struct ServerCommandReceiver(pub crossbeam_channel::Receiver<String>);
+
+pub fn run_tui(state: GlobalState, sender: Sender<String>) {
     std::thread::Builder::new()
         .name("tui".into())
         .spawn(|| {
             ratatui::run(|term| {
-                tui_main(term, state).expect("TUI encountered an unrecoverable error")
+                tui_main(term, state, sender).expect("TUI encountered an unrecoverable error")
             });
         })
         .unwrap();
 }
 
-fn tui_main(terminal: &mut DefaultTerminal, state: GlobalState) -> std::io::Result<()> {
+fn tui_main(
+    terminal: &mut DefaultTerminal,
+    state: GlobalState,
+    sender: Sender<String>,
+) -> std::io::Result<()> {
     let mut input = Input::default();
-
-    // This enables scrollback + other tui-logger interactions
     let log_state = TuiWidgetState::new();
 
     loop {
@@ -42,8 +47,8 @@ fn tui_main(terminal: &mut DefaultTerminal, state: GlobalState) -> std::io::Resu
         if event::poll(Duration::from_millis(10))? {
             let ev = event::read()?;
 
-            if let Event::Key(key_event) = ev {
-                // Ctrl+C exits
+            if let Some(key_event) = ev.as_key_press_event() {
+                // Ctrl+C exits. Hopefully still works with other forms of program murder.
                 if key_event.code == event::KeyCode::Char('c')
                     && key_event.modifiers.contains(event::KeyModifiers::CONTROL)
                 {
@@ -72,7 +77,8 @@ fn tui_main(terminal: &mut DefaultTerminal, state: GlobalState) -> std::io::Resu
                 if key_event.code == event::KeyCode::Enter {
                     let cmd = input.value().trim().to_string();
                     if !cmd.is_empty() {
-                        debug!("Command ran: {}", cmd);
+                        info!("Command executed: {}", cmd);
+                        sender.send(cmd.clone()).unwrap();
                     }
                     input.reset();
                     continue;
@@ -83,7 +89,7 @@ fn tui_main(terminal: &mut DefaultTerminal, state: GlobalState) -> std::io::Resu
             }
         }
 
-        sleep(Duration::from_millis(50))
+        sleep(Duration::from_millis(10))
     }
 
     ratatui::restore();
@@ -112,6 +118,7 @@ fn render(frame: &mut Frame, input: &Input, log_state: &TuiWidgetState) {
         .formatter(Box::new(
             ferrumc_logging::tui_formatter::TuiTracingFormatter,
         ))
+        .output_target(false)
         .state(log_state);
 
     frame.render_widget(log_widget, chunks[0]);

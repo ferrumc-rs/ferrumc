@@ -63,6 +63,34 @@ impl TextComponent {
 
         format!("\x1b[0m{}\x1b[0m", to_ansi_inner(self))
     }
+
+    pub fn to_plain_text(self) -> String {
+        fn to_plain_text_inner(component: TextComponent) -> String {
+            let mut str = String::new();
+
+            str.push_str(
+                match component.content {
+                    TextContent::Text { text } => text,
+                    TextContent::Translate { with, .. } => format!(
+                        "Translate{:?}",
+                        with.into_iter()
+                            .map(to_plain_text_inner)
+                            .collect::<Vec<_>>()
+                    ),
+                    TextContent::Keybind { keybind } => format!("Keybind: {keybind}"),
+                }
+                .as_str(),
+            );
+
+            for component in component.extra.into_iter().map(to_plain_text_inner) {
+                str.push_str(&component);
+            }
+
+            str
+        }
+
+        to_plain_text_inner(self)
+    }
 }
 
 impl Color {

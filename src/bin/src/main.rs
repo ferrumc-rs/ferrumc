@@ -86,7 +86,6 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let global_state = Arc::new(state);
     create_whitelist();
 
-    tui::run_tui(global_state.clone());
     if !global_state
         .world
         .chunk_exists(ChunkPos::new(0, 0), "overworld")?
