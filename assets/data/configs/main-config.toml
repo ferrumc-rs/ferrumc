@@ -50,9 +50,18 @@ cache_ttl = 60
 # How big the cache can be in kb.
 cache_capacity = 20_000
 
-# Dashboard configuration (functional only if the dashboard feature is enabled)
+[performance]
+# This setting controls how many chunks are sent to clients each tick. Setting it to 0 sends chunks based on the size of
+# the queue, meaning if there are a lot of chunks to send, more will be sent. -1 Means no limit which leads to faster world
+# loading but more spikes in tick times. Anything else is a static number of chunks to send each tick.
+chunks_per_tick = 0
+# Chunks are queued up to be sent to client and only a portion of the queue is processed each tick to avoid spikes.
+# This setting controls the minimum number of chunks to send to clients each tick. Doesn't do anything if chunks_per_tick is
+# set to a static number or unlimited. Setting this to 0 disables the minimum.
+chunks_per_tick_min = 16
+
 [dashboard]
+# The port the dashboard will run on.
 port = 9000
-# Generated using:
-# python -c "import secret;print(secrets.token_urlsafe())"
-secret = "H4AiheIDL2-e2dM3mxSoHOhNRSyfGw1iGYlV3WcuaRw"
+# Randomly generated secret for accessing the dashboard.
+secret = "This will be replaced with a random string on first run, do not change this text. If you see this outside of the default config, something is wrong."
