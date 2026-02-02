@@ -246,6 +246,8 @@ mime_guess = "2.0.5"
 heck = "0.5.0"
 crossterm = "0.29.0"
 ratatui-core = "0.1.0"
+tui-input = "0.15.0"
+unicode-width = "0.2.2"
 
 # I/O
 memmap2 = "0.9.9"

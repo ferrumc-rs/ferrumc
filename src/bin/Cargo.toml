@@ -48,6 +48,7 @@ tracy-client = { workspace = true, optional = true }
 ratatui = { workspace = true }
 tui-logger = { workspace = true }
 crossterm = { workspace = true }
+tui-input = { workspace = true }
 
 tracing = { workspace = true }
 clap = { workspace = true }
