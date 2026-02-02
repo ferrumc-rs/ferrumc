@@ -19,6 +19,10 @@ pub struct CLIArgs {
     #[cfg_attr(debug_assertions, arg(default_value_t = LogLevel(Level::DEBUG)))]
     #[cfg_attr(not(debug_assertions), arg(default_value_t = LogLevel(Level::INFO)))]
     pub log: LogLevel,
+
+    /// Disable interactive TUI
+    #[arg(long, default_value_t = false)]
+    pub no_tui: bool,
 }
 
 /// Available CLI commands.

@@ -41,14 +41,14 @@ fn tui_main(
     let log_state = TuiWidgetState::new();
 
     loop {
-        terminal.draw(|frame| {
-            render(frame, &input, &log_state);
-        })?;
         if state.shut_down.load(Relaxed) {
             break;
         }
+        terminal.draw(|frame| {
+            render(frame, &input, &log_state);
+        })?;
 
-        if event::poll(Duration::from_millis(10))? {
+        if event::poll(Duration::from_millis(1))? {
             let ev = event::read()?;
 
             if let Some(key_event) = ev.as_key_press_event() {
@@ -95,8 +95,6 @@ fn tui_main(
 
         sleep(Duration::from_millis(10))
     }
-
-    ratatui::restore();
     Ok(())
 }
 

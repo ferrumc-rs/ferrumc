@@ -3,6 +3,7 @@ pub mod tui_formatter;
 
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_profiling::ProfilerTracingLayer;
+use log::LevelFilter::Debug;
 use tracing::Level;
 use tracing_appender::rolling::Rotation;
 use tracing_subscriber::layer::SubscriberExt;
@@ -10,7 +11,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 use tui_logger::TuiTracingSubscriberLayer;
 
-pub fn init_logging(trace_level: Level) {
+pub fn init_logging(trace_level: Level, no_tui: bool) {
     //let console = console_subscriber::spawn();
     let env_filter = EnvFilter::builder()
         .with_default_directive(trace_level.into())
@@ -30,28 +31,6 @@ pub fn init_logging(trace_level: Level) {
         .build(get_root_path().join("logs"))
         .unwrap();
 
-    tui_logger::init_logger(tui_logger::LevelFilter::Debug).unwrap();
-    // let fmt_layer = {
-    //     #[cfg(debug_assertions)]
-    //     {
-    //         tracing_subscriber::fmt::layer()
-    //             .with_file(true)
-    //             .with_line_number(true)
-    //             .with_level(true)
-    //             .with_target(false)
-    //     }
-    //     #[cfg(not(debug_assertions))]
-    //     {
-    //         tracing_subscriber::fmt::layer()
-    //             .with_thread_ids(false)
-    //             .with_thread_names(false)
-    //             .with_file(false)
-    //             .with_line_number(false)
-    //             .with_level(true)
-    //             .with_target(false)
-    //     }
-    // };
-
     let file_layer = tracing_subscriber::fmt::layer()
         .with_writer(file_appender)
         .with_ansi(false);
@@ -61,21 +40,39 @@ pub fn init_logging(trace_level: Level) {
     let registry = tracing_subscriber::registry()
         .with(file_layer)
         .with(env_filter)
-        .with(profiler_layer)
-        // .with(fmt_layer)
-        .with(TuiTracingSubscriberLayer);
-
-    #[cfg(not(feature = "tracy"))]
-    {
-        registry.init();
-    }
+        .with(profiler_layer);
 
     #[cfg(feature = "tracy")]
-    {
-        let tracy_layer = tracing_tracy::TracyLayer::default();
-        // Registry becomes a different type when a layer is added, so we need to
-        // shadow it here and initialize it separately.
-        let registry = registry.with(tracy_layer);
-        registry.init();
-    }
+    let tracy_layer = tracing_tracy::TracyLayer::default();
+    // Registry becomes a different type when a layer is added, so we need to
+    // shadow it here.
+    #[cfg(feature = "tracy")]
+    let registry = registry.with(tracy_layer);
+
+    if no_tui {
+        let layer = {
+            #[cfg(debug_assertions)]
+            {
+                tracing_subscriber::fmt::layer()
+                    .with_file(true)
+                    .with_line_number(true)
+                    .with_level(true)
+                    .with_target(false)
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                tracing_subscriber::fmt::layer()
+                    .with_thread_ids(false)
+                    .with_thread_names(false)
+                    .with_file(false)
+                    .with_line_number(false)
+                    .with_level(true)
+                    .with_target(false)
+            }
+        };
+        registry.with(layer).init();
+    } else {
+        tui_logger::init_logger(Debug).expect("Failed to initialize TUI logger");
+        registry.with(TuiTracingSubscriberLayer).init();
+    };
 }

@@ -36,7 +36,7 @@ fn main() {
     let start_time = Instant::now();
 
     let cli_args = CLIArgs::parse();
-    ferrumc_logging::init_logging(cli_args.log.into());
+    ferrumc_logging::init_logging(cli_args.log.into(), cli_args.no_tui);
 
     ferrumc_registry::init();
 
@@ -72,16 +72,17 @@ fn main() {
             } else {
                 info!("Server setup complete.");
             }
-            if let Err(e) = entry(start_time) {
+            if let Err(e) = entry(start_time, cli_args.no_tui) {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
                 info!("Server exited successfully.");
             }
         }
     }
+    crossterm::terminal::enable_raw_mode().expect("Failed to enable raw mode on exit");
 }
 
-fn entry(start_time: Instant) -> Result<(), BinaryError> {
+fn entry(start_time: Instant, no_tui: bool) -> Result<(), BinaryError> {
     let state = launch::create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
@@ -93,10 +94,24 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
         launch::generate_spawn_chunks(global_state.clone())?;
     }
 
+    if no_tui {
+        ctrlc::set_handler({
+            let global_state = global_state.clone();
+            move || {
+                shutdown_handler(global_state.clone());
+            }
+        })
+        .expect("Error setting Ctrl-C handler");
+    }
+
     #[cfg(feature = "dashboard")]
     ferrumc_dashboard::start_dashboard(global_state.clone());
 
-    game_loop::start_game_loop(global_state.clone())?;
+    game_loop::start_game_loop(global_state.clone(), no_tui)?;
+
+    if !no_tui {
+        ratatui::restore()
+    }
 
     Ok(())
 }
