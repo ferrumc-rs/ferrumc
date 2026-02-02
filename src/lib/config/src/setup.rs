@@ -37,7 +37,13 @@ pub fn setup() -> Result<(), SetupError> {
         return Ok(());
     }
     let mut config_file = File::create(get_root_path().join("configs").join("config.toml"))?;
-    config_file.write_all(DEFAULT_CONFIG.as_bytes())?;
+    let modified_config = DEFAULT_CONFIG.replace(
+        "This will be replaced with a random \
+    string on first run, do not change this text. If you see this outside of the default config, \
+    something is wrong.",
+        &generate_random_secret(),
+    );
+    config_file.write_all(modified_config.as_bytes())?;
     if !std::fs::exists(get_root_path().join("import"))? {
         std::fs::create_dir(get_root_path().join("import"))?;
     }
@@ -45,4 +51,21 @@ pub fn setup() -> Result<(), SetupError> {
         std::fs::create_dir(get_root_path().join("world"))?;
     }
     Ok(())
+}
+
+fn generate_random_secret() -> String {
+    use rand::Rng;
+    const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+        abcdefghijklmnopqrstuvwxyz\
+        0123456789)(*&^%$#@!~";
+    const SECRET_LEN: usize = 32;
+    let mut rng = rand::thread_rng();
+
+    let secret: String = (0..SECRET_LEN)
+        .map(|_| {
+            let idx = rng.gen_range(0..CHARSET.len());
+            CHARSET[idx] as char
+        })
+        .collect();
+    secret
 }

@@ -19,6 +19,7 @@ reqwest = { workspace = true }
 rayon = { workspace = true }
 once_cell = { workspace = true }
 figment = { workspace = true }
+rand = { workspace = true }
 
 [features]
 # Whether the dashboard options are enabled

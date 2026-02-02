@@ -67,7 +67,7 @@ pub fn start_dashboard(state: GlobalState) {
 }
 
 /// The HTTP protocol used by the dashboard.
-/// (i made this variable cuz rustrover was complaining about insecure url 💔😔)
+/// (I made this variable cuz rust rover was complaining about insecure url 💔😔)
 const PROTOCOL: &str = "http";
 
 /// This macro runs at COMPILE TIME.
