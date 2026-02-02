@@ -146,7 +146,6 @@ fn render(frame: &mut Frame, input: &Input, log_state: &TuiWidgetState) {
 
     let shown_text = if is_empty { "type a command…" } else { value };
 
-    // Handle horizontal scrolling for real input (not placeholder)
     let available_width = chunks[1].width.saturating_sub(prompt.len() as u16) as usize;
     let scroll = if is_empty {
         0
@@ -162,9 +161,7 @@ fn render(frame: &mut Frame, input: &Input, log_state: &TuiWidgetState) {
     let cmd_widget = Paragraph::new(line).scroll((0, scroll as u16));
     frame.render_widget(cmd_widget, chunks[1]);
 
-    // Cursor: keep it after prompt, and track scroll
     let cursor_x = if is_empty {
-        // just after "> "
         prompt.len() as u16
     } else {
         let cur = input.visual_cursor();
