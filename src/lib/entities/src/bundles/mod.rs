@@ -1,75 +1,80 @@
 // Entity bundles for spawning in Bevy ECS
-pub mod allay;
-pub mod armadillo;
-pub mod axolotl;
-pub mod bat;
-pub mod bee;
-pub mod camel;
-pub mod cat;
-pub mod chicken;
-pub mod cod;
-pub mod cow;
-pub mod dolphin;
-pub mod donkey;
-pub mod fox;
-pub mod frog;
-pub mod glow_squid;
-pub mod goat;
-pub mod horse;
-pub mod llama;
-pub mod mooshroom;
-pub mod mule;
-pub mod ocelot;
-pub mod panda;
-pub mod parrot;
-pub mod pig;
-pub mod polar_bear;
-pub mod pufferfish;
-pub mod rabbit;
-pub mod salmon;
-pub mod sheep;
-pub mod sniffer;
-pub mod squid;
-pub mod strider;
-pub mod tadpole;
-pub mod tropical_fish;
-pub mod turtle;
-pub mod wolf;
+// Organized by behavior category
 
-// Re-exports
-pub use allay::AllayBundle;
-pub use armadillo::ArmadilloBundle;
-pub use axolotl::AxolotlBundle;
-pub use bat::BatBundle;
-pub use bee::BeeBundle;
-pub use camel::CamelBundle;
-pub use cat::CatBundle;
-pub use chicken::ChickenBundle;
-pub use cod::CodBundle;
-pub use cow::CowBundle;
-pub use dolphin::DolphinBundle;
-pub use donkey::DonkeyBundle;
-pub use fox::FoxBundle;
-pub use frog::FrogBundle;
-pub use glow_squid::GlowSquidBundle;
-pub use goat::GoatBundle;
-pub use horse::HorseBundle;
-pub use llama::LlamaBundle;
-pub use mooshroom::MooshroomBundle;
-pub use mule::MuleBundle;
-pub use ocelot::OcelotBundle;
-pub use panda::PandaBundle;
-pub use parrot::ParrotBundle;
-pub use pig::PigBundle;
-pub use polar_bear::PolarBearBundle;
-pub use pufferfish::PufferfishBundle;
-pub use rabbit::RabbitBundle;
-pub use salmon::SalmonBundle;
-pub use sheep::SheepBundle;
-pub use sniffer::SnifferBundle;
-pub use squid::SquidBundle;
-pub use strider::StriderBundle;
-pub use tadpole::TadpoleBundle;
-pub use tropical_fish::TropicalFishBundle;
-pub use turtle::TurtleBundle;
-pub use wolf::WolfBundle;
+pub mod hostile;
+pub mod neutral;
+pub mod passive;
+
+// Re-export all bundles for convenience
+pub use hostile::*;
+pub use neutral::*;
+pub use passive::*;
+
+/// Macro to define an entity bundle with all standard components.
+///
+/// This macro generates a bundle struct with identity, metadata, combat properties,
+/// spawn properties, position, rotation, velocity, ground state, and last synced position.
+///
+/// Note: PhysicalProperties are NOT stored per-entity. Instead, they are looked up
+/// from the PhysicalRegistry resource using the entity's protocol_id.
+///
+/// # Usage
+/// ```ignore
+/// define_entity_bundle!(PigBundle, PIG);
+/// ```
+///
+/// This will create a `PigBundle` struct that uses `VanillaEntityType::PIG` for metadata.
+#[macro_export]
+macro_rules! define_entity_bundle {
+    ($bundle_name:ident, $vanilla_type:ident) => {
+        use bevy_ecs::prelude::Bundle;
+        use ferrumc_core::identity::entity_identity::EntityIdentity;
+        use ferrumc_core::transform::{
+            grounded::OnGround, position::Position, rotation::Rotation, velocity::Velocity,
+        };
+        use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
+
+        use $crate::components::{
+            CombatProperties, EntityMetadata, LastSyncedPosition, SpawnProperties,
+        };
+
+        #[derive(Bundle)]
+        pub struct $bundle_name {
+            pub identity: EntityIdentity,
+            pub metadata: EntityMetadata,
+            pub combat: CombatProperties,
+            pub spawn: SpawnProperties,
+            pub position: Position,
+            pub rotation: Rotation,
+            pub velocity: Velocity,
+            pub on_ground: OnGround,
+            pub last_synced_position: LastSyncedPosition,
+        }
+
+        impl $bundle_name {
+            pub fn new(position: Position) -> Self {
+                let metadata = EntityMetadata::from_vanilla(&VanillaEntityType::$vanilla_type);
+                let combat = CombatProperties::from_metadata(&metadata);
+                let spawn = SpawnProperties::from_metadata(&metadata);
+
+                Self {
+                    identity: EntityIdentity::new(),
+                    metadata,
+                    combat,
+                    spawn,
+                    rotation: Rotation::default(),
+                    velocity: Velocity::zero(),
+                    on_ground: OnGround(false),
+                    last_synced_position: LastSyncedPosition::from_position(&position),
+                    position,
+                }
+            }
+
+            pub fn with_rotation(position: Position, rotation: Rotation) -> Self {
+                let mut bundle = Self::new(position);
+                bundle.rotation = rotation;
+                bundle
+            }
+        }
+    };
+}

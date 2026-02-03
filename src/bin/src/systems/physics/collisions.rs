@@ -1,34 +1,41 @@
 use bevy_ecs::message::MessageWriter;
-use bevy_ecs::prelude::{DetectChanges, Entity, Query, Res, With};
+use bevy_ecs::prelude::{DetectChanges, Entity, Has, Query, Res, With};
+use bevy_ecs::world::Mut;
 use bevy_math::bounding::{Aabb3d, BoundingVolume};
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
+use ferrumc_entities::components::{Baby, EntityMetadata, PhysicalRegistry};
 use ferrumc_entities::markers::HasCollisions;
-use ferrumc_entities::PhysicalProperties;
 use ferrumc_macros::match_block;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
+type CollisionQueryItem<'a> = (
+    Entity,
+    Mut<'a, Velocity>,
+    Mut<'a, Position>,
+    &'a EntityMetadata,
+    Has<Baby>,
+    Mut<'a, OnGround>,
+);
+
 pub fn handle(
-    query: Query<
-        (
-            Entity,
-            &mut Velocity,
-            &mut Position,
-            &PhysicalProperties,
-            &mut OnGround,
-        ),
-        With<HasCollisions>,
-    >,
+    query: Query<CollisionQueryItem, With<HasCollisions>>,
     mut writer: MessageWriter<SendEntityUpdate>,
     state: Res<GlobalStateResource>,
+    registry: Res<PhysicalRegistry>,
 ) {
-    for (eid, mut vel, mut pos, physical, mut grounded) in query {
+    for (eid, mut vel, mut pos, metadata, is_baby, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
+            // Get physical properties from registry
+            let Some(physical) = registry.get(metadata.protocol_id(), is_baby) else {
+                continue;
+            };
+
             // Figure out where the entity is going to be next tick
             let next_pos = pos.coords.as_vec3a() + **vel;
             let mut collided = false;
