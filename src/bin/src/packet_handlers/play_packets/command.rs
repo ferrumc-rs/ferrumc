@@ -8,11 +8,13 @@ use ferrumc_commands::{
 };
 use ferrumc_core::mq;
 use ferrumc_net::ChatCommandPacketReceiver;
+use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
 
 fn resolve(
     input: String,
     sender: Sender,
+    state: GlobalState,
 ) -> Result<(Arc<Command>, CommandContext), Box<TextComponent>> {
     let command = infrastructure::find_command(&input);
     if command.is_none() {
@@ -33,6 +35,7 @@ fn resolve(
         input: input.clone(),
         command: command.clone(),
         sender,
+        state,
     };
 
     Ok((command, ctx))
@@ -42,6 +45,7 @@ pub fn handle(
     receiver: Res<ChatCommandPacketReceiver>,
     mut dispatch_msgs: MessageWriter<CommandDispatched>,
     mut resolved_dispatch_msgs: MessageWriter<ResolvedCommandDispatched>,
+    state: Res<GlobalStateResource>,
 ) {
     for (event, entity) in receiver.0.try_iter() {
         let sender = Sender::Player(entity);
@@ -50,7 +54,7 @@ pub fn handle(
             sender,
         });
 
-        let resolved = resolve(event.command, sender);
+        let resolved = resolve(event.command, sender, state.0.clone());
         match resolved {
             Err(err) => {
                 mq::queue(*err, false, entity);

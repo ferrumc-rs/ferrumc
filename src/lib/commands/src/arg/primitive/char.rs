@@ -1,6 +1,6 @@
 use crate::{
-    arg::{utils::parser_error, CommandArgument, ParserResult},
     CommandContext, Suggestion,
+    arg::{CommandArgument, ParserResult, utils::parser_error},
 };
 
 use super::PrimitiveArgument;

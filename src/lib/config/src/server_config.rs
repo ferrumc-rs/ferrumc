@@ -53,8 +53,8 @@ pub struct ServerConfig {
     pub whitelist: bool,
     pub chunk_render_distance: u32,
     pub default_gamemode: String,
-    #[cfg(feature = "dashboard")]
     pub dashboard: DashboardConfig,
+    pub performance: PerformanceConfig,
 }
 
 /// The database configuration section from [ServerConfig].
@@ -73,7 +73,6 @@ pub struct DatabaseConfig {
     pub map_size: u64,
 }
 
-#[cfg(feature = "dashboard")]
 /// The dashboard configuration section from [ServerConfig].
 ///
 /// Fields:
@@ -83,6 +82,12 @@ pub struct DatabaseConfig {
 pub struct DashboardConfig {
     pub port: u16,
     pub secret: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct PerformanceConfig {
+    pub chunks_per_tick_min: u32,
+    pub chunks_per_tick: i32,
 }
 
 fn create_config() -> ServerConfig {

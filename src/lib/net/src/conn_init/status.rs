@@ -99,6 +99,7 @@ pub(super) async fn status(
         LoginResult {
             player_identity: None,
             compression: false,
+            client_information_component: None,
         },
     ))
 }

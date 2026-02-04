@@ -2,18 +2,27 @@ use bevy_ecs::prelude::{Query, Res, With};
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
+use ferrumc_entities::components::{Baby, EntityMetadata, PhysicalRegistry};
 use ferrumc_entities::markers::HasWaterDrag;
-use ferrumc_entities::PhysicalProperties;
 use ferrumc_macros::match_block;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 pub fn handle(
-    mut query: Query<(&mut Velocity, &Position, &PhysicalProperties), With<HasWaterDrag>>,
+    mut query: Query<
+        (&mut Velocity, &Position, &EntityMetadata, Option<&Baby>),
+        With<HasWaterDrag>,
+    >,
     state: Res<GlobalStateResource>,
+    registry: Res<PhysicalRegistry>,
 ) {
-    for (mut vel, pos, physical) in query.iter_mut() {
+    for (mut vel, pos, metadata, baby) in query.iter_mut() {
+        // Get physical properties from registry
+        let is_baby = baby.is_some();
+        let Some(physical) = registry.get(metadata.protocol_id(), is_baby) else {
+            continue;
+        };
         let chunk_pos = ChunkPos::from(pos.coords);
         let chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
             .expect("Failed to load or generate chunk");

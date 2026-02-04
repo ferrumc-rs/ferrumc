@@ -4,7 +4,7 @@ use regex::Regex;
 
 use crate::{CommandContext, Suggestion};
 
-use super::{primitive::PrimitiveArgument, utils::parser_error, CommandArgument, ParserResult};
+use super::{CommandArgument, ParserResult, primitive::PrimitiveArgument, utils::parser_error};
 
 static PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("(([1-9][0-9]+|[1-9])[dhms])").unwrap());

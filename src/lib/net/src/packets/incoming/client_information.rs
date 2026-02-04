@@ -1,3 +1,4 @@
+use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -176,6 +177,26 @@ impl Display for ParticleStatus {
             ParticleStatus::All => write!(f, "All"),
             ParticleStatus::Decreased => write!(f, "Decreased"),
             ParticleStatus::Minimal => write!(f, "Minimal"),
+        }
+    }
+}
+
+impl From<ClientInformation> for ClientInformationComponent {
+    fn from(info: ClientInformation) -> Self {
+        ClientInformationComponent {
+            locale: info.locale,
+            view_distance: info.view_distance as u8,
+            chat_mode: match info.chat_mode {
+                ChatMode::Enabled => 0,
+                ChatMode::CommandsOnly => 1,
+                ChatMode::Hidden => 2,
+            },
+            chat_colors: info.chat_colors,
+            displayed_skin_parts: info.displayed_skin_parts,
+            main_hand: match info.main_hand {
+                MainHand::Left => 0,
+                MainHand::Right => 1,
+            },
         }
     }
 }

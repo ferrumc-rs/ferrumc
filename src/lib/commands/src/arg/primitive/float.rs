@@ -1,10 +1,10 @@
 use std::io::Write;
 
-use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, errors::NetEncodeError};
 use tokio::io::AsyncWrite;
 
 use crate::{
-    arg::{utils::error, CommandArgument, ParserResult},
+    arg::{CommandArgument, ParserResult, utils::error},
     ctx::CommandContext,
     wrapper,
 };

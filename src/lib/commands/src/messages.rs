@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use bevy_ecs::message::Message;
 
-use crate::{ctx::CommandContext, sender::Sender, Command};
+use crate::{Command, ctx::CommandContext, sender::Sender};
 
 /// A command has been dispatched
 #[derive(Message)]

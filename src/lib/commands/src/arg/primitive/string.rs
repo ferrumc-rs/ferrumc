@@ -2,13 +2,13 @@ use std::io::Write;
 
 use enum_ordinalize::Ordinalize;
 use ferrumc_net_codec::{
-    encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts},
+    encode::{NetEncode, NetEncodeOpts, errors::NetEncodeError},
     net_types::var_int::VarInt,
 };
 use tokio::io::AsyncWrite;
 
 use crate::{
-    arg::{utils::parser_error, CommandArgument, ParserResult},
+    arg::{CommandArgument, ParserResult, utils::parser_error},
     ctx::CommandContext,
     wrapper,
 };

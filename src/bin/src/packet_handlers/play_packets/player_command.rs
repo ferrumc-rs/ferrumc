@@ -6,7 +6,7 @@ use ferrumc_net::packets::incoming::player_command::PlayerCommandAction;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::PlayerCommandPacketReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use tracing::debug;
+use tracing::log::trace;
 
 /// Handles PlayerCommand packets (sprinting, leave bed, etc.)
 /// Note: Sneaking is handled via PlayerInput packet, NOT here
@@ -23,9 +23,11 @@ pub fn handle(
 
         let entity_id = VarInt::new(identity.short_uuid);
 
-        debug!(
+        trace!(
             "PlayerCommand: {:?} from {} (entity_id={})",
-            event.action, identity.username, identity.short_uuid
+            event.action,
+            identity.username,
+            identity.short_uuid
         );
 
         match event.action {
