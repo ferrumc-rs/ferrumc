@@ -62,3 +62,6 @@ pub mod set_health;
 pub mod update_time;
 
 pub mod synchronise_vehicle_position;
+
+pub mod open_screen;
+pub mod show_dialog;
