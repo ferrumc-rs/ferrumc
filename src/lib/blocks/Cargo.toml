@@ -15,13 +15,5 @@ bevy_math = { workspace = true }
 ferrumc-blocks-build = { path = "crates/build" }
 quote = { workspace = true }
 
-[dev-dependencies]
-criterion = { workspace = true }
-
-[[bench]]
-name = "blocks_bench"
-harness = false
-path = "benches/bench.rs"
-
 [lints]
 workspace = true
