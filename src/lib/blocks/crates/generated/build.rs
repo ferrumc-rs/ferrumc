@@ -6,7 +6,6 @@ use heck::ToSnakeCase;
 use std::fs;
 
 fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
 
     let build_config = get_build_config();
     let block_states = get_block_states();
