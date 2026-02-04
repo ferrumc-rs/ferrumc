@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::Query;
 use bevy_ecs::prelude::{MessageWriter, Res};
+use ferrumc_components::player::teleport_tracker::TeleportTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -11,10 +12,19 @@ pub fn handle(
     receiver: Res<SetPlayerPositionAndRotationPacketReceiver>,
     mut movement_messages: MessageWriter<Movement>,
     mut chunk_calc_messages: MessageWriter<ChunkCalc>,
-    mut query: Query<(&mut Position, &mut Rotation, &mut OnGround)>,
+    mut query: Query<(
+        &mut Position,
+        &mut Rotation,
+        &mut OnGround,
+        &mut TeleportTracker,
+    )>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        if let Ok((mut pos, mut rot, mut ground)) = query.get_mut(eid) {
+        if let Ok((mut pos, mut rot, mut ground, tracker)) = query.get_mut(eid) {
+            if tracker.waiting_for_confirm {
+                // Ignore position updates while waiting for teleport confirmation
+                continue;
+            }
             let new_pos = Position::new(event.x, event.feet_y, event.z);
             let new_rot = Rotation::new(event.yaw, event.pitch);
             let on_ground = event.flags & 0x01 != 0;

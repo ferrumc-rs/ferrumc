@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, LazyLock, RwLock},
 };
 
-use crate::{graph::CommandGraph, Command};
+use crate::{Command, graph::CommandGraph};
 
 static COMMANDS: LazyLock<DashMap<&'static str, Arc<Command>>> = LazyLock::new(DashMap::new);
 static COMMAND_GRAPH: LazyLock<RwLock<CommandGraph>> =
@@ -15,6 +15,7 @@ static COMMAND_GRAPH: LazyLock<RwLock<CommandGraph>> =
 
 thread_local! {
     static SYSTEMS_TO_BE_REGISTERED: RefCell<Vec<ScheduleConfigs<ScheduleSystem>>> = RefCell::new(Vec::new());
+    static EXCLUSIVE_SYSTEMS_TO_BE_REGISTERED: RefCell<Vec<ScheduleConfigs<ScheduleSystem>>> = RefCell::new(Vec::new());
 }
 
 /// Internal function. Adds a command system.

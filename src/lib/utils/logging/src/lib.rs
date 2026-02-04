@@ -17,6 +17,8 @@ pub fn init_logging(trace_level: Level) {
     // Disallow request and hyper-util debug prints since they spam the console
     let env_filter = env_filter
         .add_directive("reqwest=warn".parse().unwrap())
+        .add_directive("h2=warn".parse().unwrap())
+        .add_directive("rustls=warn".parse().unwrap())
         .add_directive("hyper_util=warn".parse().unwrap());
 
     let file_appender = tracing_appender::rolling::Builder::new()

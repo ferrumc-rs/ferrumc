@@ -212,7 +212,7 @@ FerrumC supports [Tracy](https://github.com/wolfpld/tracy) for profiling. To use
 1. Install and run the Tracy profiler application
 2. Build and run with the tracy feature:
    ```bash
-   cargo run --release --features ferrumc-logging/tracy
+   cargo run --release --features tracy
    ```
 
 ## ❔ FAQ
@@ -227,13 +227,7 @@ FerrumC supports [Tracy](https://github.com/wolfpld/tracy) for profiling. To use
 - **Paper/Spigot/Bukkit**: These are all great tools and have undoubtedly set the groundwork for projects like this to
   exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire
   server from the ground up, hopefully giving us a leg up.
-- **Pumpkin**: Pumpkin are a lot more focused on matching the vanilla server as close as possible, only improving the
-  performance.
-  We are trying to improve most aspects of the game, including ease of use, performance, memory usage and extensibility.
-  That being said, we are trying to achieve similar things, and it's not a competition, we are both aware of each
-  other's
-  progress and to be honest the Pumpkin team are doing really well. We won't tolerate any disrespect towards them as
-  they are also undertaking the same monumental task.
+- **Pumpkin**: Pumpkin aims to match the vanilla server as closely as possible, often sacrificing performance and referencing decompiled vanilla code to achieve 1:1 parity. FerrumC prioritizes performance and takes a clean-room approach, building systems from scratch using modern architecture like ECS rather than translating existing implementations.
 
 ### Will we be implementing terrain generation?
 

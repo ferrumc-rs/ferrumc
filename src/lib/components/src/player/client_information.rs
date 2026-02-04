@@ -2,7 +2,7 @@ use bevy_ecs::prelude::Component;
 
 /// Stores all client-sent settings (locale, skin, etc.)
 #[derive(Component, Debug, Clone, Default)]
-pub struct ClientInformation {
+pub struct ClientInformationComponent {
     pub locale: String,
     pub view_distance: u8,
     pub chat_mode: u8, // can use an enum for this later
