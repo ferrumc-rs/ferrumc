@@ -1,6 +1,7 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
+use ferrumc_entities::components::BlockInteractEvent;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
@@ -11,6 +12,7 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
+use crate::systems::interaction::BlockEntityIndex;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::mq;
 use ferrumc_inventories::hotbar::Hotbar;
@@ -42,6 +44,8 @@ pub fn handle(
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
+    block_index: Res<BlockEntityIndex>,
+    mut interact_writer: MessageWriter<BlockInteractEvent>,
 ) {
     'ev_loop: for (event, eid) in receiver.0.try_iter() {
         let Ok((entity, conn, inventory, hotbar, _)) = query.get(eid) else {
@@ -52,6 +56,38 @@ pub fn handle(
             trace!("Entity {:?} is not connected", entity);
             continue;
         }
+
+        // Convert network position to block position
+        let clicked_pos: BlockPos = event.position.clone().into();
+
+        // Check if the clicked block is an interactive block entity
+        // Only trigger interaction if player is NOT sneaking (sneaking = place block instead)
+        if let Some(block_entity) = block_index.get(&clicked_pos) {
+            // TODO: Check if player is sneaking (requires player state component)
+            // For now, always trigger interaction if block is interactive
+            debug!(
+                "Player {:?} interacted with block at ({}, {}, {})",
+                entity, clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z
+            );
+
+            interact_writer.write(BlockInteractEvent::new(
+                entity,
+                block_entity,
+                clicked_pos,
+                false, // sneaking - TODO: get from player state
+            ));
+
+            // Send ack to client so it doesn't desync
+            let ack_packet = BlockChangeAck {
+                sequence: event.sequence,
+            };
+            if let Err(err) = conn.send_packet_ref(&ack_packet) {
+                error!("Failed to send block change ack packet: {:?}", err);
+            }
+
+            continue 'ev_loop;
+        }
+
         match event.hand.0 {
             0 => {
                 let Ok(slot) = hotbar.get_selected_item(inventory) else {
