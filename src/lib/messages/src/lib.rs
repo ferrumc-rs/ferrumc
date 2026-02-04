@@ -28,6 +28,10 @@ pub mod particle;
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 
 pub mod block_break;
+pub mod block_interaction;
 pub mod teleport_player;
 
 pub use block_break::BlockBrokenEvent;
+pub use block_interaction::{
+    BlockInteractMessage, BlockState, BlockStateChangedMessage, ContainerAccessMessage,
+};
