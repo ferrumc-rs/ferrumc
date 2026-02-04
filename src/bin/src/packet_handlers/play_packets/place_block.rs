@@ -20,6 +20,8 @@ use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
+use bevy_ecs::message::MessageWriter;
+use ferrumc_messages::block_place::BlockPlaceEvent;
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -42,6 +44,7 @@ pub fn handle(
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
+    mut writer: MessageWriter<BlockPlaceEvent>,
 ) {
     'ev_loop: for (event, eid) in receiver.0.try_iter() {
         let Ok((entity, conn, inventory, hotbar, _)) = query.get(eid) else {
@@ -182,6 +185,12 @@ pub fn handle(
                             }
                         }
                     }
+
+                    writer.write(BlockPlaceEvent {
+                        position: offset_pos,
+                        old_id: block_clicked,
+                        new_id: *mapped_block_state_id,
+                    });
                 }
             }
             1 => {

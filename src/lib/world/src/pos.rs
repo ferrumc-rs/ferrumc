@@ -22,10 +22,26 @@ pub struct BlockPos {
 }
 
 impl BlockPos {
-    pub fn of(x: i32, y: i32, z: i32) -> Self {
+    pub const fn of(x: i32, y: i32, z: i32) -> Self {
         Self {
             pos: IVec3::new(x, y, z),
         }
+    }
+
+    pub fn offset(&self, pos: BlockPos) -> Self {
+        Self::of(self.x() + pos.x(), self.y() + pos.y(), self.z() + pos.z())
+    }
+
+    pub fn x(&self) -> i32 {
+        self.pos.x
+    }
+
+    pub fn y(&self) -> i32 {
+        self.pos.y
+    }
+
+    pub fn z(&self) -> i32 {
+        self.pos.z
     }
 
     pub fn column(&self) -> ColumnPos {
@@ -271,9 +287,21 @@ impl ChunkBlockPos {
         self.pos.z as _
     }
 
+    pub fn to_block_pos(&self, pos: &ChunkPos) -> BlockPos {
+        BlockPos::of(
+            (pos.x() << 4) + self.x() as i32,
+            self.y() as i32,
+            (pos.z() << 4) + self.z() as i32,
+        )
+    }
+
     pub fn section_block_pos(&self) -> SectionBlockPos {
         SectionBlockPos {
-            pos: self.pos.rem_euclid((16, 16, 16).into()).as_u8vec3(),
+            pos: U8Vec3::new(
+                self.pos.x as u8 & ((1 << 4) - 1),
+                self.pos.y as u8 & ((1 << 4) - 1),
+                self.pos.z as u8 & ((1 << 4) - 1),
+            ),
         }
     }
 
@@ -333,6 +361,12 @@ pub struct SectionBlockPos {
 }
 
 impl SectionBlockPos {
+    pub(crate) const fn new(x: u8, y: u8, z: u8) -> Self {
+        Self {
+            pos: U8Vec3::new(x, y, z),
+        }
+    }
+
     /// Packed representation (big endian): 0x0yzx
     /// So the max value is 0xfff or 4095
     pub fn pack(&self) -> u16 {

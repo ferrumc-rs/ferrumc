@@ -49,7 +49,7 @@ impl Chunk {
             sections: vec![ChunkSection::new_uniform(AIR); (height.height / 16) as usize]
                 .into_boxed_slice(),
             height,
-            heightmaps: None,
+            heightmaps: Some(Heightmaps::default()),
         }
     }
 
@@ -73,7 +73,7 @@ impl Chunk {
         Self {
             sections: sections.to_vec().into_boxed_slice(),
             height,
-            heightmaps: None,
+            heightmaps: Some(Heightmaps::default()),
         }
     }
 
@@ -146,6 +146,21 @@ impl Chunk {
         assert!(section as usize <= self.sections.len());
 
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
+    }
+
+    fn section_index(&self, pos: ChunkBlockPos) -> Option<usize> {
+        let idx = (pos.y() + -self.height.min_y) / 16;
+        (idx >= 0).then_some(idx as usize)
+    }
+
+    pub fn get_section(&self, pos: ChunkBlockPos) -> Option<&ChunkSection> {
+        self.section_index(pos)
+            .and_then(|idx| self.sections.get(idx))
+    }
+
+    pub fn get_section_mut(&mut self, pos: ChunkBlockPos) -> Option<&mut ChunkSection> {
+        self.section_index(pos)
+            .and_then(|idx| self.sections.get_mut(idx))
     }
 }
 
