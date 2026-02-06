@@ -45,6 +45,7 @@
 //!    `BlockToggledEvent` and queries for your marker component.
 
 pub mod block_entity_index;
+pub mod block_interactions;
 
 use bevy_ecs::message::MessageRegistry;
 use bevy_ecs::prelude::*;
