@@ -10,6 +10,7 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::BlockPos;
 use tracing::error;
+use ferrumc_components::player::client_information::ClientInformation;
 
 #[derive(Resource, Default)]
 pub struct BlockUpdates(Vec<BlockPos>);
@@ -23,7 +24,7 @@ impl BlockUpdates {
 pub fn handle_block_updates(
     state: ResMut<GlobalStateResource>,
     mut updates: ResMut<BlockUpdates>,
-    players: Query<(&StreamWriter, &Position)>,
+    players: Query<(&StreamWriter, &Position, &ClientInformation)>,
 ) {
     let mut packets = Vec::new();
 
@@ -61,8 +62,9 @@ pub fn handle_block_updates(
         }
     }
 
-    let render_distance = get_global_config().chunk_render_distance;
-    for (conn, player_pos) in players.iter() {
+    for (conn, player_pos, player_info) in players.iter() {
+        let render_distance = get_global_config().chunk_render_distance.min(player_info.view_distance as _);
+
         for (packet, update_pos) in packets.iter() {
             let update_chunk = update_pos.chunk();
             let player_chunk = player_pos.chunk();
