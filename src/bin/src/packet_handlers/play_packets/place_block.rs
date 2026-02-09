@@ -59,11 +59,8 @@ pub fn handle(
         let clicked_pos: BlockPos = event.position.clone().into();
 
         // Load the chunk containing the clicked block
-        let chunk_result = ferrumc_utils::world::load_or_generate_mut(
-            &state.0,
-            clicked_pos.chunk(),
-            "overworld",
-        );
+        let chunk_result =
+            ferrumc_utils::world::load_or_generate_mut(&state.0, clicked_pos.chunk(), "overworld");
 
         let mut chunk = match chunk_result {
             Ok(c) => c,
@@ -78,8 +75,11 @@ pub fn handle(
 
         debug!(
             "PlaceBlock event: pos=({}, {}, {}), clicked_block_state={} (raw: {})",
-            clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z,
-            clicked_block_state, clicked_block_state.raw()
+            clicked_pos.pos.x,
+            clicked_pos.pos.y,
+            clicked_pos.pos.z,
+            clicked_block_state,
+            clicked_block_state.raw()
         );
 
         // Try to interact with the block directly in the world
@@ -109,8 +109,11 @@ pub fn handle(
                                     };
                                     if y_offset != 0 {
                                         let other_pos = clicked_pos + (0, y_offset, 0);
-                                        let other_state = chunk.get_block(other_pos.chunk_block_pos());
-                                        if let InteractionResult::Toggled(other_new) = try_interact(other_state) {
+                                        let other_state =
+                                            chunk.get_block(other_pos.chunk_block_pos());
+                                        if let InteractionResult::Toggled(other_new) =
+                                            try_interact(other_state)
+                                        {
                                             chunk.set_block(other_pos.chunk_block_pos(), other_new);
                                             debug!(
                                                 "Also toggled other door half at ({}, {}, {}) -> {}",
@@ -178,12 +181,18 @@ pub fn handle(
             }
             InteractionResult::NotInteractive => {
                 // Block is not interactive, proceed with normal placement logic
-                trace!("Block at ({}, {}, {}) is not interactive",
-                    clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z);
+                trace!(
+                    "Block at ({}, {}, {}) is not interactive",
+                    clicked_pos.pos.x,
+                    clicked_pos.pos.y,
+                    clicked_pos.pos.z
+                );
             }
             InteractionResult::InvalidBlock => {
-                error!("Invalid block state at ({}, {}, {})",
-                    clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z);
+                error!(
+                    "Invalid block state at ({}, {}, {})",
+                    clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z
+                );
                 continue 'ev_loop;
             }
         }
@@ -307,7 +316,10 @@ pub fn handle(
                                     chunk.set_block(upper_pos.chunk_block_pos(), upper_state);
                                     debug!(
                                         "Also placed door upper half at ({}, {}, {}) -> {}",
-                                        upper_pos.pos.x, upper_pos.pos.y, upper_pos.pos.z, upper_state
+                                        upper_pos.pos.x,
+                                        upper_pos.pos.y,
+                                        upper_pos.pos.z,
+                                        upper_state
                                     );
                                     result = Some(BlockUpdate {
                                         location: NetworkPosition {

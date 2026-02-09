@@ -54,18 +54,21 @@ pub fn handle(
 
                     // Check if the block is a door before breaking it
                     let current_state = chunk.get_block(pos.chunk_block_pos());
-                    let other_half = door_other_half_y_offset(current_state).map(|y_off| {
-                        pos + (0, y_off, 0)
-                    });
+                    let other_half =
+                        door_other_half_y_offset(current_state).map(|y_off| pos + (0, y_off, 0));
 
                     chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
 
                     // Also break other door half
                     if let Some(other_pos) = other_half {
                         chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
-                        block_break_events.write(BlockBrokenEvent { position: other_pos });
-                        debug!("Also broke other door half at ({}, {}, {})",
-                            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z);
+                        block_break_events.write(BlockBrokenEvent {
+                            position: other_pos,
+                        });
+                        debug!(
+                            "Also broke other door half at ({}, {}, {})",
+                            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z
+                        );
                     }
 
                     // Send block broken event for un-grounding system

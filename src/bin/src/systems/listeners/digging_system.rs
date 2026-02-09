@@ -295,9 +295,13 @@ fn break_block(
     // Also break other door half
     if let Some(other_pos) = other_half {
         chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
-        block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: other_pos });
-        debug!("Also broke other door half at ({}, {}, {})",
-            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z);
+        block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
+            position: other_pos,
+        });
+        debug!(
+            "Also broke other door half at ({}, {}, {})",
+            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z
+        );
     }
 
     // Send block broken event for un-grounding system

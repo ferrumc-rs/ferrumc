@@ -18,15 +18,30 @@ pub use spawn::SpawnProperties;
 // Interaction components re-exports
 pub use interaction::{
     // Core components
-    BlockCoords, BlockPosition, InteractableBlock, InteractionCooldown,
-    // Capability components
-    Container, ContainerType, RedstoneEmitter, Toggleable,
-    // Block type markers
-    Button, Chest, Door, FenceGate, Furnace, Lever, Trapdoor,
+    BlockCoords,
     // Events
-    BlockInteractEvent, BlockToggledEvent, ContainerOpenedEvent,
+    BlockInteractEvent,
+    BlockPosition,
+    BlockToggledEvent,
+    // Block type markers
+    Button,
+    Chest,
+    // Capability components
+    Container,
+    ContainerOpenedEvent,
+    ContainerType,
+    Door,
+    FenceGate,
+    Furnace,
     // Aliases for backward compatibility
-    Interactable, Openable,
+    Interactable,
+    InteractableBlock,
+    InteractionCooldown,
+    Lever,
+    Openable,
+    RedstoneEmitter,
+    Toggleable,
+    Trapdoor,
 };
 
 // Marker component for baby entities

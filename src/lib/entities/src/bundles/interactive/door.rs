@@ -19,9 +19,7 @@
 use bevy_ecs::prelude::Bundle;
 use ferrumc_world::pos::BlockPos;
 
-use crate::components::{
-    BlockPosition, Door, InteractableBlock, InteractionCooldown, Toggleable,
-};
+use crate::components::{BlockPosition, Door, InteractableBlock, InteractionCooldown, Toggleable};
 
 /// Bundle for spawning a door block entity.
 ///

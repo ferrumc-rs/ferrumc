@@ -80,12 +80,15 @@ pub use block_entity_index::BlockEntityIndex;
 /// side-effect events and query for type marker components.
 pub fn handle_block_interaction(
     mut events: MessageReader<BlockInteractEvent>,
-    mut query: Query<(
-        &BlockPosition,
-        &mut InteractionCooldown,
-        Option<&mut Toggleable>,
-        Option<&Container>,
-    ), With<InteractableBlock>>,
+    mut query: Query<
+        (
+            &BlockPosition,
+            &mut InteractionCooldown,
+            Option<&mut Toggleable>,
+            Option<&Container>,
+        ),
+        With<InteractableBlock>,
+    >,
     mut toggle_writer: MessageWriter<BlockToggledEvent>,
     mut container_writer: MessageWriter<ContainerOpenedEvent>,
 ) {
@@ -163,7 +166,10 @@ pub fn handle_block_interaction(
 pub fn handle_block_toggled(
     mut events: MessageReader<BlockToggledEvent>,
     doors: Query<&ferrumc_entities::components::Door>,
-    levers: Query<(&ferrumc_entities::components::Lever, &ferrumc_entities::components::RedstoneEmitter)>,
+    levers: Query<(
+        &ferrumc_entities::components::Lever,
+        &ferrumc_entities::components::RedstoneEmitter,
+    )>,
 ) {
     for event in events.read() {
         let coords = &event.block_coords;
@@ -183,7 +189,11 @@ pub fn handle_block_toggled(
         // Check if it's a lever (note: levers need mutable access for redstone)
         // This would need to be in a separate system with mutable query
         if levers.contains(target) {
-            let state_str = if event.new_state { "activated" } else { "deactivated" };
+            let state_str = if event.new_state {
+                "activated"
+            } else {
+                "deactivated"
+            };
             debug!(
                 "Lever {} at ({}, {}, {})",
                 state_str, coords.x, coords.y, coords.z
@@ -197,9 +207,7 @@ pub fn handle_block_toggled(
 /// System that handles container open events.
 ///
 /// In production, the inventory system would handle this to open the UI.
-pub fn handle_container_opened(
-    mut events: MessageReader<ContainerOpenedEvent>,
-) {
+pub fn handle_container_opened(mut events: MessageReader<ContainerOpenedEvent>) {
     for event in events.read() {
         let coords = &event.block_coords;
 
@@ -243,10 +251,13 @@ pub fn register_interaction_messages(world: &mut World) {
 pub fn add_interaction_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     use bevy_ecs::schedule::IntoScheduleConfigs;
 
-    schedule.add_systems((
-        handle_block_interaction,
-        handle_block_toggled,
-        handle_container_opened,
-        block_entity_index::index_new_block_entities,
-    ).chain());
+    schedule.add_systems(
+        (
+            handle_block_interaction,
+            handle_block_toggled,
+            handle_container_opened,
+            block_entity_index::index_new_block_entities,
+        )
+            .chain(),
+    );
 }

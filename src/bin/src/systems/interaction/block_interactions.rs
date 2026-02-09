@@ -93,19 +93,32 @@ pub enum InteractionType {
 /// 3. Toggles the appropriate property
 /// 4. Returns the new BlockStateId
 pub fn try_interact(block_state_id: BlockStateId) -> InteractionResult {
-    debug!("try_interact called with block_state_id: {:?} (raw: {})", block_state_id, block_state_id.raw());
+    debug!(
+        "try_interact called with block_state_id: {:?} (raw: {})",
+        block_state_id,
+        block_state_id.raw()
+    );
 
     // Get the block data
     let Some(mut block_data) = block_state_id.to_block_data() else {
-        warn!("try_interact: InvalidBlock - could not convert {:?} to BlockData", block_state_id);
+        warn!(
+            "try_interact: InvalidBlock - could not convert {:?} to BlockData",
+            block_state_id
+        );
         return InteractionResult::InvalidBlock;
     };
 
-    debug!("try_interact: block_data name='{}', properties={:?}", block_data.name, block_data.properties);
+    debug!(
+        "try_interact: block_data name='{}', properties={:?}",
+        block_data.name, block_data.properties
+    );
 
     // Check if it's interactive
     let Some(interaction_type) = get_interaction_type(&block_data) else {
-        debug!("try_interact: block '{}' is not interactive", block_data.name);
+        debug!(
+            "try_interact: block '{}' is not interactive",
+            block_data.name
+        );
         return InteractionResult::NotInteractive;
     };
 
@@ -117,9 +130,19 @@ pub fn try_interact(block_state_id: BlockStateId) -> InteractionResult {
     match interaction_type {
         InteractionType::Toggleable(prop_name) => {
             // Toggle the property
-            let current_value = properties.get(prop_name).map(|s| s.as_str()).unwrap_or("false");
-            let new_value = if current_value == "true" { "false" } else { "true" };
-            debug!("try_interact: toggling '{}' from '{}' to '{}'", prop_name, current_value, new_value);
+            let current_value = properties
+                .get(prop_name)
+                .map(|s| s.as_str())
+                .unwrap_or("false");
+            let new_value = if current_value == "true" {
+                "false"
+            } else {
+                "true"
+            };
+            debug!(
+                "try_interact: toggling '{}' from '{}' to '{}'",
+                prop_name, current_value, new_value
+            );
             properties.insert(prop_name.to_string(), new_value.to_string());
         }
         InteractionType::Momentary(prop_name) => {
@@ -130,11 +153,18 @@ pub fn try_interact(block_state_id: BlockStateId) -> InteractionResult {
         }
     }
 
-    debug!("try_interact: modified block_data properties={:?}", block_data.properties);
+    debug!(
+        "try_interact: modified block_data properties={:?}",
+        block_data.properties
+    );
 
     // Convert back to BlockStateId
     let new_state_id = BlockStateId::from_block_data(&block_data);
-    debug!("try_interact: new_state_id={:?} (raw: {})", new_state_id, new_state_id.raw());
+    debug!(
+        "try_interact: new_state_id={:?} (raw: {})",
+        new_state_id,
+        new_state_id.raw()
+    );
 
     if new_state_id.raw() == 0 {
         warn!("try_interact: WARNING - new_state_id is 0 (air)! BlockData lookup failed for: name='{}', props={:?}",

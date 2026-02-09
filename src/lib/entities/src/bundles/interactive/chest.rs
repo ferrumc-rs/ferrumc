@@ -7,9 +7,7 @@
 use bevy_ecs::prelude::Bundle;
 use ferrumc_world::pos::BlockPos;
 
-use crate::components::{
-    BlockPosition, Chest, Container, InteractableBlock, InteractionCooldown,
-};
+use crate::components::{BlockPosition, Chest, Container, InteractableBlock, InteractionCooldown};
 
 /// Bundle for spawning a chest block entity.
 ///

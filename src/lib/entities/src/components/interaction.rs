@@ -60,7 +60,11 @@ pub struct BlockPosition(pub BlockPos);
 
 impl fmt::Debug for BlockPosition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "BlockPosition({}, {}, {})", self.0.pos.x, self.0.pos.y, self.0.pos.z)
+        write!(
+            f,
+            "BlockPosition({}, {}, {})",
+            self.0.pos.x, self.0.pos.y, self.0.pos.z
+        )
     }
 }
 
@@ -447,7 +451,12 @@ pub struct BlockToggledEvent {
 }
 
 impl BlockToggledEvent {
-    pub fn new(block_entity: Entity, block_pos: BlockPos, new_state: bool, triggered_by: Entity) -> Self {
+    pub fn new(
+        block_entity: Entity,
+        block_pos: BlockPos,
+        new_state: bool,
+        triggered_by: Entity,
+    ) -> Self {
         Self {
             block_entity,
             block_coords: BlockCoords::from_block_pos(block_pos),
@@ -477,7 +486,12 @@ pub struct ContainerOpenedEvent {
 }
 
 impl ContainerOpenedEvent {
-    pub fn new(block_entity: Entity, block_pos: BlockPos, player: Entity, container_type: ContainerType) -> Self {
+    pub fn new(
+        block_entity: Entity,
+        block_pos: BlockPos,
+        player: Entity,
+        container_type: ContainerType,
+    ) -> Self {
         Self {
             block_entity,
             block_coords: BlockCoords::from_block_pos(block_pos),
