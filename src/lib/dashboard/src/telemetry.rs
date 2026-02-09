@@ -60,7 +60,8 @@ pub async fn start_telemetry_loop(tx: Sender<DashboardEvent>, state: GlobalState
         };
 
         let config = get_global_config();
-        let mut world_path = PathBuf::from(&config.database.db_path);
+        let mut world_path = ferrumc_general_purpose::paths::get_root_path()
+            .join(PathBuf::from(&config.database.db_path));
         let storage_used = if world_path.exists() {
             world_path = world_path.canonicalize().unwrap_or(world_path);
             dir_size::get_size_in_bytes(&world_path).unwrap_or(0)

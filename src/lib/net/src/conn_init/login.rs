@@ -132,7 +132,7 @@ async fn setup_encryption_and_auth(
 
     // Generate verify token
     let mut verify_token = vec![0u8; 16];
-    rand::rng().fill_bytes(&mut verify_token);
+    rand::thread_rng().fill_bytes(&mut verify_token);
 
     // Send encryption request
     let encryption_packet = EncryptionRequest {
@@ -385,7 +385,7 @@ async fn sync_player_position(
     state: &GlobalState,
     player_identity: &PlayerIdentity,
     compressed: bool,
-) -> Result<(), NetError> {
+) -> Result<Position, NetError> {
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
 
     // Get spawn position from cache or use defaults
@@ -435,7 +435,7 @@ async fn sync_player_position(
     let _: SetPlayerPositionAndRotationPacket =
         wait_for_packet(conn_read, compressed, Play, expected_id).await?;
 
-    Ok(())
+    Ok(spawn_pos)
 }
 
 /// Sends player info and game event packets.
@@ -457,24 +457,26 @@ fn send_initial_chunks(
     config: &ServerConfig,
     client_view_distance: i8,
     compressed: bool,
+    pos: Position,
 ) -> Result<(), NetError> {
     // Send center chunk
-    conn_write.send_packet(SetCenterChunk::new(0, 0))?;
+    conn_write.send_packet(SetCenterChunk::new(pos.x as i32 >> 4, pos.z as i32 >> 4))?;
 
     // Calculate render distance
     let server_render_distance = config.chunk_render_distance as i32;
     let client_view_distance = client_view_distance as i32;
     let radius = server_render_distance.min(client_view_distance);
-
     // Generate/load chunks in parallel
     let mut batch = state.thread_pool.batch();
 
-    for x in -radius..=radius {
-        for z in -radius..=radius {
+    for rad_x in -radius..=radius {
+        for rad_z in -radius..=radius {
             batch.execute({
                 let state = state.clone();
                 move || -> Result<Vec<u8>, NetError> {
-                    let chunk = ferrumc_utils::world::load_or_generate_mut(&state, ChunkPos::new(x,z), "overworld").expect("Failed to load or generate chunk");
+                    let x = (pos.x as i32 >> 4) + rad_x;
+                    let z = (pos.z as i32 >> 4) + rad_z;
+                    let chunk = ferrumc_utils::world::load_or_generate_chunk(&state, ChunkPos::new(x,z), "overworld").expect("Failed to load or generate chunk");
                     let chunk_data =
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                         ChunkPos::new(x,z),
@@ -560,7 +562,8 @@ pub(super) async fn login(
 
     // Phase 3: Play State Setup
     send_initial_play_packets(conn_write, &state, &player_identity)?;
-    sync_player_position(conn_read, conn_write, &state, &player_identity, compressed).await?;
+    let pos =
+        sync_player_position(conn_read, conn_write, &state, &player_identity, compressed).await?;
     send_player_info(conn_write, &player_identity)?;
     send_initial_chunks(
         conn_write,
@@ -568,6 +571,7 @@ pub(super) async fn login(
         config,
         client_info.view_distance,
         compressed,
+        pos,
     )?;
     send_command_graph(conn_write)?;
 
@@ -577,6 +581,7 @@ pub(super) async fn login(
         LoginResult {
             player_identity: Some(player_identity),
             compression: compressed,
+            client_information_component: Some(client_info.into()),
         },
     ))
 }

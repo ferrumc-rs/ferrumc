@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{MessageWriter, Query, Res};
 
+use ferrumc_components::player::teleport_tracker::TeleportTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_messages::chunk_calc::ChunkCalc;
@@ -9,12 +10,16 @@ use tracing::trace;
 
 pub fn handle(
     receiver: Res<SetPlayerPositionPacketReceiver>,
-    mut query: Query<(&mut Position, &mut OnGround)>,
+    mut query: Query<(&mut Position, &mut OnGround, &TeleportTracker)>,
     mut movement_messages: MessageWriter<Movement>,
     mut chunk_calc_messages: MessageWriter<ChunkCalc>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        if let Ok((mut pos, mut ground)) = query.get_mut(eid) {
+        if let Ok((mut pos, mut ground, tracker)) = query.get_mut(eid) {
+            if tracker.waiting_for_confirm {
+                // Ignore position updates while waiting for teleport confirmation
+                continue;
+            }
             let new_pos = Position::new(event.x, event.feet_y, event.z);
 
             // Check if chunk changed

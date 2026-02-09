@@ -22,6 +22,11 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
+#[cfg(all(feature = "tracy", not(feature = "dhat")))]
+#[global_allocator]
+static GLOBAL: tracy_client::ProfiledAllocator<std::alloc::System> =
+    tracy_client::ProfiledAllocator::new(std::alloc::System, 100);
+
 fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
@@ -77,7 +82,6 @@ fn main() {
 fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = launch::create_state(start_time)?;
     let global_state = Arc::new(state);
-
     create_whitelist();
     if !global_state
         .world

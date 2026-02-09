@@ -1,5 +1,5 @@
 use ferrumc_config::server_config::get_global_config;
-use rand::prelude::IndexedRandom;
+use rand::prelude::SliceRandom;
 use std::net::{Ipv4Addr, SocketAddrV4};
 use tokio::net::UdpSocket;
 use tracing::error;
@@ -22,7 +22,7 @@ impl LanPinger {
 
     pub fn announcement(&self) -> String {
         let cfg = get_global_config();
-        let motd = cfg.motd.choose(&mut rand::rng()).unwrap();
+        let motd = cfg.motd.choose(&mut rand::thread_rng()).unwrap();
         let port = cfg.port;
 
         format!("[MOTD]{motd}[/MOTD][AD]{port}[/AD]")

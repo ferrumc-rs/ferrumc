@@ -2,7 +2,6 @@ pub mod errors;
 
 use crate::errors::AnvilError;
 use memmap2::Mmap;
-use std::io::Read;
 use std::path::PathBuf;
 use tracing::error;
 use yazi::Adler32;
@@ -168,10 +167,7 @@ impl LoadedAnvilFile {
 
         match compression_type {
             1 => {
-                let mut decompressed_data = Vec::new();
-                let mut decoder = flate2::read::GzDecoder::new(chunk_compressed_data);
-                decoder.read_to_end(&mut decompressed_data).unwrap();
-                Ok(Some(decompressed_data))
+                panic!("Gzip compression is not yet supported");
             }
             2 => {
                 let out = yazi::decompress(chunk_compressed_data, yazi::Format::Zlib).ok();
@@ -191,9 +187,7 @@ impl LoadedAnvilFile {
             }
             3 => Ok(Some(chunk_compressed_data.to_vec())),
             4 => {
-                let mut decompressed_data = vec![];
-                lzzzz::lz4::decompress(chunk_compressed_data, &mut decompressed_data)?;
-                Ok(Some(decompressed_data))
+                panic!("LZ4 compression is not yet supported");
             }
             _ => {
                 error!("Unknown compression type: {}", compression_type);
@@ -227,18 +221,27 @@ impl LoadedAnvilFile {
 mod tests {
     use super::*;
     use fastanvil::Region;
-    use ferrumc_utils::root;
     use rayon::prelude::*;
     use std::fs::File;
     use std::io::Read;
 
+    fn get_test_file_path(file_name: &str) -> PathBuf {
+        let dir = std::env::current_dir()
+            .unwrap()
+            .ancestors()
+            .nth(4)
+            .unwrap()
+            .to_path_buf();
+        dir.join(".etc").join(file_name)
+    }
+
     #[test]
     fn test_load_anvil_file() {
-        let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
+        let file_path = get_test_file_path("r.0.0.mca");
         let result = load_anvil_file(file_path);
         assert!(result.is_ok());
         let loaded_file = result.unwrap();
-        let mut file = File::open(root!(".etc/r.0.0.mca")).unwrap();
+        let mut file = File::open(get_test_file_path("r.0.0.mca")).unwrap();
         let mut buf: [u8; 4096] = [0; 4096];
         file.read_exact(&mut buf).unwrap();
         assert_eq!(loaded_file.table, buf);
@@ -246,14 +249,14 @@ mod tests {
 
     #[test]
     fn test_bad_load_fails() {
-        let file_path = PathBuf::from(root!(".etc/should_not_exist.mca"));
+        let file_path = get_test_file_path("should_not_exist.mca");
         let result = load_anvil_file(file_path);
         assert!(result.is_err());
     }
 
     #[test]
     fn invalid_read_fails() {
-        let file_path = PathBuf::from(root!(".etc/codec.nbt"));
+        let file_path = get_test_file_path("codec.nbt");
         let loaded_file = load_anvil_file(file_path).unwrap();
         let chunk = loaded_file.get_chunk(15, 3);
         assert!(chunk.is_err());
@@ -261,10 +264,10 @@ mod tests {
 
     #[test]
     fn test_get_chunk() {
-        let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
+        let file_path = get_test_file_path("r.0.0.mca");
         let loaded_file = load_anvil_file(file_path).unwrap();
         let chunk = loaded_file.get_chunk(0, 0);
-        let fast_chunk = Region::from_stream(File::open(root!(".etc/r.0.0.mca")).unwrap())
+        let fast_chunk = Region::from_stream(File::open(get_test_file_path("r.0.0.mca")).unwrap())
             .unwrap()
             .read_chunk(0, 0)
             .unwrap();
@@ -277,7 +280,7 @@ mod tests {
 
     #[test]
     fn test_get_chunk_from_location() {
-        let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
+        let file_path = get_test_file_path("r.0.0.mca");
         let loaded_file = load_anvil_file(file_path).unwrap();
         let locations = loaded_file.get_locations();
         locations.chunks(96).par_bridge().for_each(|chunk| {

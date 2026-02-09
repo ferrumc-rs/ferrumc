@@ -8,6 +8,7 @@ use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::handshake::Handshake;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::login_disconnect::LoginDisconnectPacket;
+use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -26,6 +27,7 @@ use tracing::{error, trace};
 pub(crate) struct LoginResult {
     pub player_identity: Option<PlayerIdentity>,
     pub compression: bool,
+    pub client_information_component: Option<ClientInformationComponent>,
 }
 
 /// Protocol version supported by this server implementation (Minecraft 1.21.8).

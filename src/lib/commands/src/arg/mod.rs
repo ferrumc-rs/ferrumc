@@ -3,10 +3,12 @@
 use ferrumc_text::TextComponent;
 use primitive::PrimitiveArgument;
 
-use crate::{ctx::CommandContext, Suggestion};
+use crate::{Suggestion, ctx::CommandContext};
 
 pub mod duration;
+pub mod entities;
 pub mod gamemode;
+pub mod position;
 pub mod primitive;
 
 pub type ParserResult<T> = Result<T, Box<TextComponent>>;
