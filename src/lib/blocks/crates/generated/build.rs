@@ -6,7 +6,6 @@ use heck::ToSnakeCase;
 use std::fs;
 
 fn main() {
-
     let build_config = get_build_config();
     let block_states = get_block_states();
 

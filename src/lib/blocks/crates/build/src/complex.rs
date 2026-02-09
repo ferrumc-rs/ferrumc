@@ -1,10 +1,10 @@
 use crate::config::{BuildConfig, SingleOrMultiple};
 use ferrumc_block_properties::{PropertyDescriptor, TYPES};
+use fxhash::FxHashMap;
 use heck::{ToPascalCase, ToShoutySnakeCase, ToSnakeCase};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use std::collections::HashMap;
-use fxhash::FxHashMap;
 
 struct BlockStateConfiguration<'a> {
     name: &'a str,
@@ -397,7 +397,9 @@ fn dedup_blocks<'a>(
         .iter()
         .map(|(id, block)| (block.name.as_str(), (*id, &block.properties)))
         .fold(FxHashMap::default(), |mut acc, (k, v)| {
-            acc.entry(k).or_insert_with(FxHashMap::default).insert(v.0, v.1);
+            acc.entry(k)
+                .or_insert_with(FxHashMap::default)
+                .insert(v.0, v.1);
             acc
         });
 

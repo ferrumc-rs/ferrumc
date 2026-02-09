@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{Query, ResMut, Resource};
 use ferrumc_blocks::BLOCK_MAPPINGS;
+use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
@@ -10,7 +11,6 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::BlockPos;
 use tracing::error;
-use ferrumc_components::player::client_information::ClientInformationComponent;
 
 #[derive(Resource, Default)]
 pub struct BlockUpdates(Vec<BlockPos>);
@@ -63,7 +63,9 @@ pub fn handle_block_updates(
     }
 
     for (conn, player_pos, player_info) in players.iter() {
-        let render_distance = get_global_config().chunk_render_distance.min(player_info.view_distance as _);
+        let render_distance = get_global_config()
+            .chunk_render_distance
+            .min(player_info.view_distance as _);
 
         for (packet, update_pos) in packets.iter() {
             let update_chunk = update_pos.chunk();

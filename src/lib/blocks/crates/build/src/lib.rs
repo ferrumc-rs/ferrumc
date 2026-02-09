@@ -1,8 +1,8 @@
 use crate::complex::ComplexBlock;
+use fxhash::FxHashMap;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::io::Write;
-use fxhash::FxHashMap;
 
 pub mod complex;
 pub mod config;
