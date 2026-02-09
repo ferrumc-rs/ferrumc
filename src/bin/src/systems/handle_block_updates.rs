@@ -10,7 +10,7 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::BlockPos;
 use tracing::error;
-use ferrumc_components::player::client_information::ClientInformation;
+use ferrumc_components::player::client_information::ClientInformationComponent;
 
 #[derive(Resource, Default)]
 pub struct BlockUpdates(Vec<BlockPos>);
@@ -24,7 +24,7 @@ impl BlockUpdates {
 pub fn handle_block_updates(
     state: ResMut<GlobalStateResource>,
     mut updates: ResMut<BlockUpdates>,
-    players: Query<(&StreamWriter, &Position, &ClientInformation)>,
+    players: Query<(&StreamWriter, &Position, &ClientInformationComponent)>,
 ) {
     let mut packets = Vec::new();
 
