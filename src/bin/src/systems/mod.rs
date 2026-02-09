@@ -39,17 +39,6 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
 
     schedule.add_systems(day_cycle::tick_daylight_cycle);
 
-    // Block interaction systems
-    schedule.add_systems(
-        (
-            interaction::handle_block_interaction,
-            interaction::handle_block_toggled,
-            interaction::handle_container_opened,
-            interaction::block_entity_index::index_new_block_entities,
-        )
-            .chain(),
-    );
-
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
     schedule.add_systems(particles::handle);

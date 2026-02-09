@@ -191,15 +191,17 @@ pub fn door_other_half_y_offset(block_state_id: BlockStateId) -> Option<i32> {
 }
 
 /// Checks if a block is interactive without modifying it.
+#[allow(dead_code)]
 pub fn is_interactive(block_state_id: BlockStateId) -> bool {
     block_state_id
         .to_block_data()
         .as_ref()
-        .and_then(|data| get_interaction_type(data))
+        .and_then(get_interaction_type)
         .is_some()
 }
 
 /// Gets the "open" state of a door/trapdoor/fence gate.
+#[allow(dead_code)]
 pub fn is_open(block_state_id: BlockStateId) -> Option<bool> {
     let block_data = block_state_id.to_block_data()?;
     let properties = block_data.properties.as_ref()?;
@@ -208,6 +210,7 @@ pub fn is_open(block_state_id: BlockStateId) -> Option<bool> {
 }
 
 /// Gets the "powered" state of a lever/button.
+#[allow(dead_code)]
 pub fn is_powered(block_state_id: BlockStateId) -> Option<bool> {
     let block_data = block_state_id.to_block_data()?;
     let properties = block_data.properties.as_ref()?;

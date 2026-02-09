@@ -2,7 +2,6 @@ use bevy_ecs::message::MessageRegistry;
 use bevy_ecs::prelude::World;
 use ferrumc_commands::messages::{CommandDispatched, ResolvedCommandDispatched};
 use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecount;
-use ferrumc_entities::components::{BlockInteractEvent, BlockToggledEvent, ContainerOpenedEvent};
 use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_messages::particle::SendParticle;
@@ -38,9 +37,4 @@ pub fn register_messages(world: &mut World) {
     MessageRegistry::register_message::<SendParticle>(world);
     MessageRegistry::register_message::<BlockBrokenEvent>(world);
     MessageRegistry::register_message::<TeleportPlayer>(world);
-
-    // Block interaction messages
-    MessageRegistry::register_message::<BlockInteractEvent>(world);
-    MessageRegistry::register_message::<BlockToggledEvent>(world);
-    MessageRegistry::register_message::<ContainerOpenedEvent>(world);
 }
