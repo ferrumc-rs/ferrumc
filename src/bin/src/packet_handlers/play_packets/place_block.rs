@@ -18,6 +18,7 @@ use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_text::{Color, NamedColor, TextComponentBuilder};
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::vanilla_chunk_format::BlockData;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -94,6 +95,44 @@ pub fn handle(
                 // Update the block in the chunk
                 chunk.set_block(clicked_pos.chunk_block_pos(), new_state);
 
+                // If it's a door, also toggle the other half
+                let other_half_update = {
+                    let mut result = None;
+                    if let Some(data) = new_state.to_block_data() {
+                        if data.name.ends_with("_door") {
+                            if let Some(props) = data.properties.as_ref() {
+                                if let Some(half) = props.get("half") {
+                                    let y_offset: i32 = match half.as_str() {
+                                        "lower" => 1,
+                                        "upper" => -1,
+                                        _ => 0,
+                                    };
+                                    if y_offset != 0 {
+                                        let other_pos = clicked_pos + (0, y_offset, 0);
+                                        let other_state = chunk.get_block(other_pos.chunk_block_pos());
+                                        if let InteractionResult::Toggled(other_new) = try_interact(other_state) {
+                                            chunk.set_block(other_pos.chunk_block_pos(), other_new);
+                                            debug!(
+                                                "Also toggled other door half at ({}, {}, {}) -> {}",
+                                                other_pos.pos.x, other_pos.pos.y, other_pos.pos.z, other_new
+                                            );
+                                            result = Some(BlockUpdate {
+                                                location: NetworkPosition {
+                                                    x: other_pos.pos.x,
+                                                    y: other_pos.pos.y as i16,
+                                                    z: other_pos.pos.z,
+                                                },
+                                                block_state_id: VarInt::from(other_new),
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    result
+                };
+
                 // Send ack to the player who clicked
                 let ack_packet = BlockChangeAck {
                     sequence: event.sequence,
@@ -126,6 +165,11 @@ pub fn handle(
                     {
                         if let Err(err) = player_conn.send_packet_ref(&block_update) {
                             error!("Failed to send block update packet: {:?}", err);
+                        }
+                        if let Some(ref other_update) = other_half_update {
+                            if let Err(err) = player_conn.send_packet_ref(other_update) {
+                                error!("Failed to send block update packet: {:?}", err);
+                            }
                         }
                     }
                 }
@@ -245,6 +289,40 @@ pub fn handle(
                     }
 
                     chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
+
+                    // If it's a door, also place the upper half
+                    let upper_half_update = {
+                        let mut result = None;
+                        if let Some(data) = mapped_block_state_id.to_block_data() {
+                            if data.name.ends_with("_door") {
+                                if let Some(props) = &data.properties {
+                                    let mut upper_props = props.clone();
+                                    upper_props.insert("half".to_string(), "upper".to_string());
+                                    let upper_data = BlockData {
+                                        name: data.name.clone(),
+                                        properties: Some(upper_props),
+                                    };
+                                    let upper_state = BlockStateId::from_block_data(&upper_data);
+                                    let upper_pos = offset_pos + (0, 1, 0);
+                                    chunk.set_block(upper_pos.chunk_block_pos(), upper_state);
+                                    debug!(
+                                        "Also placed door upper half at ({}, {}, {}) -> {}",
+                                        upper_pos.pos.x, upper_pos.pos.y, upper_pos.pos.z, upper_state
+                                    );
+                                    result = Some(BlockUpdate {
+                                        location: NetworkPosition {
+                                            x: upper_pos.pos.x,
+                                            y: upper_pos.pos.y as i16,
+                                            z: upper_pos.pos.z,
+                                        },
+                                        block_state_id: VarInt::from(upper_state),
+                                    });
+                                }
+                            }
+                        }
+                        result
+                    };
+
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
@@ -276,6 +354,11 @@ pub fn handle(
                         {
                             if let Err(err) = conn.send_packet_ref(&chunk_packet) {
                                 error!("Failed to send block update packet: {:?}", err);
+                            }
+                            if let Some(ref upper_update) = upper_half_update {
+                                if let Err(err) = conn.send_packet_ref(upper_update) {
+                                    error!("Failed to send block update packet: {:?}", err);
+                                }
                             }
                         }
                     }

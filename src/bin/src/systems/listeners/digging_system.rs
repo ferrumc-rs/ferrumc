@@ -9,10 +9,13 @@ use ferrumc_data::blocks::types::Block;
 use ferrumc_messages::player_digging::*;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_update::BlockUpdate};
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use tracing::{debug, error, warn};
+
+use crate::systems::interaction::block_interactions::door_other_half_y_offset;
 
 // A query for just the components needed to acknowledge a dig packet
 type DiggingPlayerQuery<'a> = (Entity, &'a StreamWriter, Option<&'a PlayerDigging>);
@@ -55,16 +58,18 @@ pub fn handle_start_digging(
         };
 
         // --- 3. Get Hardness ---
-        // Get Hardness directly using the ID
-        let Some(block_data) = Block::by_id(block_state_id.raw()) else {
-            warn!(
-                "Could not find block data for BlockStateId: {}",
-                block_state_id
-            );
-            continue;
+        // Note: Block::by_id expects a block ID, not a state ID.
+        // Fall back to a default hardness if the lookup fails.
+        let hardness = match Block::by_id(block_state_id.raw()) {
+            Some(block_data) => block_data.hardness,
+            None => {
+                debug!(
+                    "Could not find block data for BlockStateId: {}, using default hardness",
+                    block_state_id
+                );
+                1.5 // Default hardness for unknown blocks
+            }
         };
-
-        let hardness = block_data.hardness;
 
         // --- 4. Check for unbreakable block ---
         if hardness < 0.0 {
@@ -280,7 +285,20 @@ fn break_block(
     let pos: BlockPos = position.clone().into();
     let mut chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
         .expect("Failed to load or generate chunk");
+
+    // Check if the block is a door before breaking it
+    let current_state = chunk.get_block(pos.chunk_block_pos());
+    let other_half = door_other_half_y_offset(current_state).map(|y_off| pos + (0, y_off, 0));
+
     chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+
+    // Also break other door half
+    if let Some(other_pos) = other_half {
+        chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
+        block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: other_pos });
+        debug!("Also broke other door half at ({}, {}, {})",
+            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z);
+    }
 
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
@@ -297,6 +315,20 @@ fn break_block(
         }
         conn.send_packet_ref(&block_update_packet)
             .map_err(BinaryError::Net)?;
+
+        // Also broadcast other door half removal
+        if let Some(ref other_pos) = other_half {
+            let other_update = BlockUpdate {
+                location: NetworkPosition {
+                    x: other_pos.pos.x,
+                    y: other_pos.pos.y as i16,
+                    z: other_pos.pos.z,
+                },
+                block_state_id: VarInt::from(BlockStateId::default()),
+            };
+            conn.send_packet_ref(&other_update)
+                .map_err(BinaryError::Net)?;
+        }
     }
     Ok(())
 }

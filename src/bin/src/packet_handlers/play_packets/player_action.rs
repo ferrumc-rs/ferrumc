@@ -8,10 +8,13 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
-use tracing::{error, warn};
+use tracing::{debug, error, warn};
+
+use crate::systems::interaction::block_interactions::door_other_half_y_offset;
 
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
@@ -48,7 +51,22 @@ pub fn handle(
                         "overworld",
                     )
                     .expect("Failed to load or generate chunk");
+
+                    // Check if the block is a door before breaking it
+                    let current_state = chunk.get_block(pos.chunk_block_pos());
+                    let other_half = door_other_half_y_offset(current_state).map(|y_off| {
+                        pos + (0, y_off, 0)
+                    });
+
                     chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+
+                    // Also break other door half
+                    if let Some(other_pos) = other_half {
+                        chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
+                        block_break_events.write(BlockBrokenEvent { position: other_pos });
+                        debug!("Also broke other door half at ({}, {}, {})",
+                            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z);
+                    }
 
                     // Send block broken event for un-grounding system
                     block_break_events.write(BlockBrokenEvent { position: pos });
@@ -65,6 +83,20 @@ pub fn handle(
                         };
                         conn.send_packet_ref(&block_update_packet)
                             .map_err(BinaryError::Net)?;
+
+                        // Also broadcast other door half removal
+                        if let Some(ref other_pos) = other_half {
+                            let other_update = BlockUpdate {
+                                location: NetworkPosition {
+                                    x: other_pos.pos.x,
+                                    y: other_pos.pos.y as i16,
+                                    z: other_pos.pos.z,
+                                },
+                                block_state_id: VarInt::from(BlockStateId::default()),
+                            };
+                            conn.send_packet_ref(&other_update)
+                                .map_err(BinaryError::Net)?;
+                        }
 
                         if eid == trigger_eid {
                             // Send ACK to the creative player

@@ -144,6 +144,22 @@ pub fn try_interact(block_state_id: BlockStateId) -> InteractionResult {
     InteractionResult::Toggled(new_state_id)
 }
 
+/// Given a block state, if it's a door, returns the Y offset to the other half.
+/// Lower half -> +1, upper half -> -1, not a door -> None.
+pub fn door_other_half_y_offset(block_state_id: BlockStateId) -> Option<i32> {
+    let data = block_state_id.to_block_data()?;
+    if !data.name.ends_with("_door") {
+        return None;
+    }
+    let props = data.properties.as_ref()?;
+    let half = props.get("half")?;
+    match half.as_str() {
+        "lower" => Some(1),
+        "upper" => Some(-1),
+        _ => None,
+    }
+}
+
 /// Checks if a block is interactive without modifying it.
 pub fn is_interactive(block_state_id: BlockStateId) -> bool {
     block_state_id
