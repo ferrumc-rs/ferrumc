@@ -2,6 +2,7 @@ use crate::complex::ComplexBlock;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::io::Write;
+use fxhash::FxHashMap;
 
 pub mod complex;
 pub mod config;
@@ -26,7 +27,7 @@ pub fn separate_blocks(
                 id,
                 ComplexBlock {
                     name: state.name,
-                    properties,
+                    properties: FxHashMap::from_iter(properties.into_iter()),
                 },
             )),
             None => simple_blocks.push((id, state.name)),

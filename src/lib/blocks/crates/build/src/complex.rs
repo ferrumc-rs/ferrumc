@@ -4,23 +4,24 @@ use heck::{ToPascalCase, ToShoutySnakeCase, ToSnakeCase};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 struct BlockStateConfiguration<'a> {
     name: &'a str,
     properties: Vec<(&'a str, &'a str)>,
-    values: HashMap<u32, &'a HashMap<String, String>>,
+    values: FxHashMap<u32, &'a FxHashMap<String, String>>,
 }
 
 pub struct ComplexBlock {
     pub name: String,
-    pub properties: HashMap<String, String>,
+    pub properties: FxHashMap<String, String>,
 }
 
 #[allow(clippy::type_complexity)]
 pub struct FinalizedConfiguration<'a> {
     name: String,
     properties: &'a [(&'a str, &'a str)],
-    associated_blocks: Vec<(&'a str, &'a HashMap<u32, &'a HashMap<String, String>>)>,
+    associated_blocks: Vec<(&'a str, &'a FxHashMap<u32, &'a FxHashMap<String, String>>)>,
 }
 
 pub fn fill_complex_block_mappings(
@@ -245,7 +246,7 @@ fn generate_trait_impls(
     struct_name: &Ident,
     enum_name: Option<(&Ident, &[Ident])>,
     properties: &[(&str, &str)],
-    values: &[(&str, &HashMap<u32, &HashMap<String, String>>)],
+    values: &[(&str, &FxHashMap<u32, &FxHashMap<String, String>>)],
 ) -> TokenStream {
     let (from_match_arms, into_match_arms): (Vec<TokenStream>, Vec<TokenStream>) = match enum_name {
         Some((enum_name, enum_variants)) => {
@@ -392,11 +393,11 @@ fn dedup_blocks<'a>(
         panic!("Missing types for {:?}", missing_types);
     }
 
-    let configurations: HashMap<&str, HashMap<u32, &HashMap<String, String>>> = block_states
+    let configurations: FxHashMap<&str, FxHashMap<u32, &FxHashMap<String, String>>> = block_states
         .iter()
         .map(|(id, block)| (block.name.as_str(), (*id, &block.properties)))
-        .fold(HashMap::new(), |mut acc, (k, v)| {
-            acc.entry(k).or_insert_with(HashMap::new).insert(v.0, v.1);
+        .fold(FxHashMap::default(), |mut acc, (k, v)| {
+            acc.entry(k).or_insert_with(FxHashMap::default).insert(v.0, v.1);
             acc
         });
 
