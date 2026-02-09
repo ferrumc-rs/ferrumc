@@ -3,7 +3,6 @@ use ferrumc_blocks_build::config::{get_block_states, get_build_config};
 use ferrumc_blocks_build::simple::generate_simple_block_enum;
 use ferrumc_blocks_build::{format_code, separate_blocks};
 use heck::ToSnakeCase;
-use quote::quote;
 use std::fs;
 
 fn main() {
@@ -17,34 +16,25 @@ fn main() {
 
     let out_dir = std::env::var("OUT_DIR").unwrap();
 
-    if fs::exists("src/blocks").unwrap_or(false) {
-        fs::remove_dir_all("src/blocks").unwrap();
-    }
-
-    fs::create_dir_all("src/blocks").unwrap();
-
     let enum_impl = quote::quote! {
         use crate::SimpleBlock;
 
         #enum_impl
     };
 
-    fs::write("src/blocks.rs", format_code(&block_mod.to_string())).unwrap();
-    fs::write("src/simple.rs", format_code(&simple_enum.to_string())).unwrap();
-    fs::write("src/simple_impl.rs", format_code(&enum_impl.to_string())).unwrap();
-
-    let lib_generated = quote! {
-        mod blocks;
-        mod simple;
-        mod simple_impl;
-
-        pub use blocks::*;
-        pub use simple::*;
-    };
-
     fs::write(
-        format!("{}/lib_generated.rs", out_dir),
-        lib_generated.to_string(),
+        format!("{}/blocks.rs", out_dir),
+        format_code(&block_mod.to_string()),
+    )
+    .unwrap();
+    fs::write(
+        format!("{}/simple.rs", out_dir),
+        format_code(&simple_enum.to_string()),
+    )
+    .unwrap();
+    fs::write(
+        format!("{}/simple_impl.rs", out_dir),
+        format_code(&enum_impl.to_string()),
     )
     .unwrap();
 
@@ -54,12 +44,12 @@ fn main() {
             let mod_name = name.to_string().to_snake_case();
 
             fs::write(
-                format!("src/blocks/{}.rs", mod_name),
+                format!("{}/{}.rs", out_dir, mod_name),
                 format_code(&structure.to_string()),
             )
             .unwrap();
             fs::write(
-                format!("src/blocks/{}_impl.rs", mod_name),
+                format!("{}/{}_impl.rs", out_dir, mod_name),
                 format_code(&struct_impl.to_string()),
             )
             .unwrap();
