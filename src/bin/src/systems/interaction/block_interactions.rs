@@ -20,7 +20,9 @@
 //! - Levers - toggles "powered" property
 //! - Buttons - activates temporarily (TODO: timer system)
 
+use ferrumc_messages::BlockBrokenEvent;
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::pos::BlockPos;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::collections::BTreeMap;
 use tracing::{debug, warn};
@@ -191,7 +193,6 @@ pub fn door_other_half_y_offset(block_state_id: BlockStateId) -> Option<i32> {
 }
 
 /// Checks if a block is interactive without modifying it.
-#[allow(dead_code)]
 pub fn is_interactive(block_state_id: BlockStateId) -> bool {
     block_state_id
         .to_block_data()
@@ -216,6 +217,38 @@ pub fn is_powered(block_state_id: BlockStateId) -> Option<bool> {
     let properties = block_data.properties.as_ref()?;
     let powered_value = properties.get("powered")?;
     Some(powered_value == "true")
+}
+
+/// Breaks a block and its door-pair (if applicable).
+/// Sets both positions to air and emits `BlockBrokenEvent` for each.
+/// Returns the list of all positions that were broken (always includes `pos`,
+/// and may include the other door half).
+pub fn break_block_with_door_half(
+    chunk: &mut ferrumc_world::MutChunk,
+    pos: BlockPos,
+    block_break_writer: &mut bevy_ecs::prelude::MessageWriter<BlockBrokenEvent>,
+) -> Vec<BlockPos> {
+    let current_state = chunk.get_block(pos.chunk_block_pos());
+    let other_half = door_other_half_y_offset(current_state).map(|y_off| pos + (0, y_off, 0));
+
+    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
+    block_break_writer.write(BlockBrokenEvent { position: pos });
+
+    let mut broken = vec![pos];
+
+    if let Some(other_pos) = other_half {
+        chunk.set_block(other_pos.chunk_block_pos(), BlockStateId::default());
+        block_break_writer.write(BlockBrokenEvent {
+            position: other_pos,
+        });
+        debug!(
+            "Also broke other door half at ({}, {}, {})",
+            other_pos.pos.x, other_pos.pos.y, other_pos.pos.z
+        );
+        broken.push(other_pos);
+    }
+
+    broken
 }
 
 #[cfg(test)]

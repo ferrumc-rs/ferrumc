@@ -1,6 +1,8 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
+use ferrumc_components::player::sneak::SneakState;
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
+use ferrumc_messages::{BlockCoords, BlockInteractMessage};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
@@ -11,7 +13,7 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
-use crate::systems::interaction::block_interactions::{try_interact, InteractionResult};
+use crate::systems::interaction::block_interactions::is_interactive;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::mq;
 use ferrumc_inventories::hotbar::Hotbar;
@@ -42,11 +44,12 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, BlockStateId>> = Lazy::new(|| {
 pub fn handle(
     receiver: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
-    query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
+    query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position, &SneakState)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
+    mut interact_writer: MessageWriter<BlockInteractMessage>,
 ) {
     'ev_loop: for (event, eid) in receiver.0.try_iter() {
-        let Ok((entity, conn, inventory, hotbar, _)) = query.get(eid) else {
+        let Ok((entity, conn, inventory, hotbar, _, sneak_state)) = query.get(eid) else {
             debug!("Could not get connection for entity {:?}", eid);
             continue;
         };
@@ -58,148 +61,45 @@ pub fn handle(
         // Convert network position to block position (the block that was clicked)
         let clicked_pos: BlockPos = event.position.clone().into();
 
-        // Load the chunk containing the clicked block
-        let chunk_result =
-            ferrumc_utils::world::load_or_generate_mut(&state.0, clicked_pos.chunk(), "overworld");
-
-        let mut chunk = match chunk_result {
-            Ok(c) => c,
-            Err(e) => {
-                error!("Failed to load chunk for interaction: {:?}", e);
-                continue 'ev_loop;
-            }
-        };
-
-        // Get the block that was clicked
-        let clicked_block_state = chunk.get_block(clicked_pos.chunk_block_pos());
-
-        debug!(
-            "PlaceBlock event: pos=({}, {}, {}), clicked_block_state={} (raw: {})",
-            clicked_pos.pos.x,
-            clicked_pos.pos.y,
-            clicked_pos.pos.z,
-            clicked_block_state,
-            clicked_block_state.raw()
-        );
-
-        // Try to interact with the block directly in the world
-        // TODO: Check if player is sneaking - if sneaking, skip interaction and place block
-        match try_interact(clicked_block_state) {
-            InteractionResult::Toggled(new_state) => {
-                // Block was toggled! Update the chunk and broadcast to players
-                debug!(
-                    "Player {:?} toggled block at ({}, {}, {}) -> new state: {}",
-                    entity, clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z, new_state
-                );
-
-                // Update the block in the chunk
-                chunk.set_block(clicked_pos.chunk_block_pos(), new_state);
-
-                // If it's a door, also toggle the other half
-                let other_half_update = {
-                    let mut result = None;
-                    if let Some(data) = new_state.to_block_data() {
-                        if data.name.ends_with("_door") {
-                            if let Some(props) = data.properties.as_ref() {
-                                if let Some(half) = props.get("half") {
-                                    let y_offset: i32 = match half.as_str() {
-                                        "lower" => 1,
-                                        "upper" => -1,
-                                        _ => 0,
-                                    };
-                                    if y_offset != 0 {
-                                        let other_pos = clicked_pos + (0, y_offset, 0);
-                                        let other_state =
-                                            chunk.get_block(other_pos.chunk_block_pos());
-                                        if let InteractionResult::Toggled(other_new) =
-                                            try_interact(other_state)
-                                        {
-                                            chunk.set_block(other_pos.chunk_block_pos(), other_new);
-                                            debug!(
-                                                "Also toggled other door half at ({}, {}, {}) -> {}",
-                                                other_pos.pos.x, other_pos.pos.y, other_pos.pos.z, other_new
-                                            );
-                                            result = Some(BlockUpdate {
-                                                location: NetworkPosition {
-                                                    x: other_pos.pos.x,
-                                                    y: other_pos.pos.y as i16,
-                                                    z: other_pos.pos.z,
-                                                },
-                                                block_state_id: VarInt::from(other_new),
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    result
-                };
-
-                // Send ack to the player who clicked
-                let ack_packet = BlockChangeAck {
-                    sequence: event.sequence,
-                };
-                if let Err(err) = conn.send_packet_ref(&ack_packet) {
-                    error!("Failed to send block change ack packet: {:?}", err);
+        // Check if the clicked block is interactive and the player is NOT sneaking
+        {
+            let chunk_result = ferrumc_utils::world::load_or_generate_mut(
+                &state.0,
+                clicked_pos.chunk(),
+                "overworld",
+            );
+            let chunk = match chunk_result {
+                Ok(c) => c,
+                Err(e) => {
+                    error!("Failed to load chunk for interaction check: {:?}", e);
+                    continue 'ev_loop;
                 }
+            };
 
-                // Broadcast block update to all nearby players
-                let block_update = BlockUpdate {
-                    location: NetworkPosition {
+            let clicked_block_state = chunk.get_block(clicked_pos.chunk_block_pos());
+
+            debug!(
+                "PlaceBlock event: pos=({}, {}, {}), clicked_block_state={} (raw: {})",
+                clicked_pos.pos.x,
+                clicked_pos.pos.y,
+                clicked_pos.pos.z,
+                clicked_block_state,
+                clicked_block_state.raw()
+            );
+
+            if !sneak_state.is_sneaking && is_interactive(clicked_block_state) {
+                interact_writer.write(BlockInteractMessage {
+                    player: entity,
+                    position: BlockCoords {
                         x: clicked_pos.pos.x,
-                        y: clicked_pos.pos.y as i16,
+                        y: clicked_pos.pos.y,
                         z: clicked_pos.pos.z,
                     },
-                    block_state_id: VarInt::from(new_state),
-                };
-
-                let clicked_chunk = clicked_pos.chunk();
-                let (clicked_chunk_x, clicked_chunk_z) = (clicked_chunk.x(), clicked_chunk.z());
-                let render_distance = get_global_config().chunk_render_distance as i32;
-
-                for (_, player_conn, _, _, player_pos) in query.iter() {
-                    let player_chunk = player_pos.chunk();
-                    let (player_chunk_x, player_chunk_z) = (player_chunk.x, player_chunk.y);
-
-                    // Send update if player is within render distance
-                    if (clicked_chunk_x - player_chunk_x).abs() <= render_distance
-                        && (clicked_chunk_z - player_chunk_z).abs() <= render_distance
-                    {
-                        if let Err(err) = player_conn.send_packet_ref(&block_update) {
-                            error!("Failed to send block update packet: {:?}", err);
-                        }
-                        if let Some(ref other_update) = other_half_update {
-                            if let Err(err) = player_conn.send_packet_ref(other_update) {
-                                error!("Failed to send block update packet: {:?}", err);
-                            }
-                        }
-                    }
-                }
-
-                continue 'ev_loop;
-            }
-            InteractionResult::NotInteractive => {
-                // Block is not interactive, proceed with normal placement logic
-                trace!(
-                    "Block at ({}, {}, {}) is not interactive",
-                    clicked_pos.pos.x,
-                    clicked_pos.pos.y,
-                    clicked_pos.pos.z
-                );
-            }
-            InteractionResult::InvalidBlock => {
-                error!(
-                    "Invalid block state at ({}, {}, {})",
-                    clicked_pos.pos.x, clicked_pos.pos.y, clicked_pos.pos.z
-                );
+                    sequence: event.sequence,
+                });
                 continue 'ev_loop;
             }
         }
-
-        // Drop the chunk lock before proceeding with placement
-        // (placement needs to load chunk again with offset position)
-        drop(chunk);
 
         // Normal block placement logic
         match event.hand.0 {
@@ -356,11 +256,10 @@ pub fn handle(
                     let offset_chunk = offset_pos.chunk();
                     let (offset_chunk_x, offset_chunk_z) = (offset_chunk.x(), offset_chunk.z());
                     let render_distance = get_global_config().chunk_render_distance as i32;
-                    for (_, conn, _, _, pos) in query.iter() {
+                    for (_, conn, _, _, pos, _) in query.iter() {
                         let chunk = pos.chunk();
                         let (chunk_x, chunk_z) = (chunk.x, chunk.y);
 
-                        // Only send block update if the player is within the render distance of the block being updated
                         if (offset_chunk_x - chunk_x).abs() <= render_distance
                             && (offset_chunk_z - chunk_z).abs() <= render_distance
                         {
