@@ -2,50 +2,56 @@ use crate::PlacementContext;
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::World;
 
-macro_rules! ptr_ret_ty {
-    (mut) => {
-        u32
-    };
-    () => {
-        ()
-    };
-    (mut $ret:ty) => {
-        (u32, $ret)
-    };
-    ($ret:ty) => {
-        $ret
-    };
-}
-
-macro_rules! lambda_ret_ty {
-    (mut; $data:expr;) => {
-        $data
-            .try_into()
-            .unwrap_or_else(|_| panic!("Failed to convert block data back into id"))
-    };
-    () => {
-        ()
-    };
-    (mut; $data:expr; $ret:ty) => {
-        (
-            $data
-                .try_into()
-                .unwrap_or_else(|_| panic!("Failed to convert block data back into id")),
-            _ret,
-        )
-    };
-    ($ret:ty) => {
-        _ret
-    };
-}
-
 /// Macro to autogenerate the `BlockBehavior` trait and associated VTable structs.
 ///
-/// This macro simple exists to make adding methods to blocks easier.
+/// This macro simply exists to make adding methods to blocks easier. It should NOT be used anywhere except in this file, and should also only be used once.
+/// See below this macro for where to add functions.
 ///
 /// The syntax for this macro is as follows: `fn <name>([mut]; <arguments>) [-> <return type>; <default return value>]`
+/// - `name`: The name of the method
+/// - `mut`: Optional, whether the function takes a mutable reference to the block or not
+/// - `arguments`: Any additional arguments to the method
+/// - `return type`: Optional, what the function returns
+/// - `default return value`: Optional, required if return type is set, the default expression to use for blocks that do not implement this method.
 macro_rules! block_behavior_trait {
     ($(fn $name:ident($($mut_meta:ident)?; $($argument:ident: $ty:ty),*) $(-> $ret:ty; $default:expr)?),* $(,)?) => {
+        macro_rules! ptr_ret_ty {
+            (mut) => {
+                u32
+            };
+            () => {
+                ()
+            };
+            (mut $ret:ty) => {
+                (u32, $ret)
+            };
+            ($ret:ty) => {
+                $ret
+            };
+        }
+
+        macro_rules! lambda_ret_ty {
+            (mut; $data:expr;) => {
+                $data
+                    .try_into()
+                    .unwrap_or_else(|_| panic!("Failed to convert block data back into id"))
+            };
+            () => {
+                ()
+            };
+            (mut; $data:expr; $ret:ty) => {
+                (
+                    $data
+                        .try_into()
+                        .unwrap_or_else(|_| panic!("Failed to convert block data back into id")),
+                    _ret,
+                )
+            };
+            ($ret:ty) => {
+                _ret
+            };
+        }
+
         pub trait BlockBehavior:
             TryInto<u32, Error = ()> + TryFrom<u32, Error = ()> + Clone + std::fmt::Debug
         {
@@ -103,6 +109,9 @@ macro_rules! block_behavior_trait {
     };
 }
 
+/// This is where methods are defined for blocks. See the macro above for the syntax.
+///
+/// This is the only place where the `block_behavior_trait!` macro should be used.
 block_behavior_trait!(
     fn get_placement_state(mut; _context: PlacementContext, _world: &World, _pos: BlockPos),
     fn update(mut; _world: &World, _pos: BlockPos),
