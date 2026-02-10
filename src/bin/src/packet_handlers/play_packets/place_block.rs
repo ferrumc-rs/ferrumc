@@ -44,7 +44,14 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, BlockStateId>> = Lazy::new(|| {
 pub fn handle(
     receiver: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
-    query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position, &SneakState)>,
+    query: Query<(
+        Entity,
+        &StreamWriter,
+        &Inventory,
+        &Hotbar,
+        &Position,
+        &SneakState,
+    )>,
     pos_q: Query<(&Position, &CollisionBounds)>,
     mut interact_writer: MessageWriter<BlockInteractMessage>,
 ) {
