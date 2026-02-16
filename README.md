@@ -1,4 +1,6 @@
-<img style="width: 100%" src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/header.svg?raw=true" alt="FerrumC Header">
+<p align="center">
+    <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/banner.png?raw=true" alt="FerrumC Banner">
+</p>
 <div align="center">
     <img src="https://img.shields.io/github/license/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="License">
     <img src="https://img.shields.io/github/languages/code-size/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="Code Size">
