@@ -66,6 +66,8 @@ default = [
     "dashboard"
 ]
 tracy = ["ferrumc-logging/tracy", "dep:tracy-client"]
+# All features suitable for release builds (excludes profiling tools like tracy and dhat)
+release = ["dashboard"]
 
 [dev-dependencies]
 tempfile = { workspace = true }
