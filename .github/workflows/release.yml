@@ -68,9 +68,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: Compress-Archive -Path target/${{ matrix.target }}/production/ferrumc.exe -DestinationPath ferrumc-${{ github.ref_name }}-${{ matrix.target }}.zip
-      - name: Checksum (Linux/macOS)
-        if: runner.os != 'Windows'
+      - name: Checksum (Linux)
+        if: runner.os == 'Linux'
         run: sha256sum ferrumc-${{ github.ref_name }}-${{ matrix.target }}.tar.gz > ferrumc-${{ github.ref_name }}-${{ matrix.target }}.tar.gz.sha256
+      - name: Checksum (macOS)
+        if: runner.os == 'macOS'
+        run: shasum -a 256 ferrumc-${{ github.ref_name }}-${{ matrix.target }}.tar.gz > ferrumc-${{ github.ref_name }}-${{ matrix.target }}.tar.gz.sha256
       - name: Checksum (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
