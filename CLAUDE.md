@@ -136,4 +136,5 @@ See `docs/` for the full documentation index.
 ## Rules for Generated Code
 
 - Comments must be appropriate for an open source project with multiple contributors — they must NOT be aimed at any individual and must be timeless.
+- **Documentation and comments must use impersonal language.** No "you", "your", "we", or "our" — write for a general audience, not a specific person. Use passive voice or third person where needed (e.g., "Not all stages are required" instead of "You don't need to use all stages").
 - Never co-author commits with Claude.
