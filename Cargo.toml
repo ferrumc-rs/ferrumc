@@ -169,7 +169,7 @@ rusty_pool = "0.7.0"
 crossbeam-queue = "0.3.12"
 
 # Network
-reqwest = { version = "0.13.1", features = ["json", "native-tls", "blocking", "http2"], default-features = false }
+reqwest = { version = "0.13.1", features = ["json", "rustls-tls", "blocking", "http2"], default-features = false }
 
 # Error handling
 thiserror = "2.0.18"
