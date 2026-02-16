@@ -64,6 +64,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y musl-tools
       - name: Build
         run: cargo build --profile production --target ${{ matrix.target }} --all-features
+        env:
+          CC: ${{ runner.os == 'Linux' && 'musl-gcc' || '' }}
+          CXX: ${{ runner.os == 'Linux' && 'g++' || '' }}
       - name: Package (Linux/macOS)
         if: runner.os != 'Windows'
         run: tar -czf ferrumc-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/production ferrumc
