@@ -27,8 +27,6 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "ferrumc"
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
       - name: Run Clippy
@@ -50,8 +48,6 @@ jobs:
         with:
           targets: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "ferrumc"
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:
