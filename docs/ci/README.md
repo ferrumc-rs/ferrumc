@@ -31,8 +31,8 @@ Both jobs run in parallel with no dependency between them.
 
 | OS | Target | Archive Format |
 |---|---|---|
-| `ubuntu-latest` | `x86_64-unknown-linux-musl` | `.tar.gz` |
-| `ubuntu-24.04-arm` | `aarch64-unknown-linux-musl` | `.tar.gz` |
+| `ubuntu-latest` | `x86_64-unknown-linux-gnu` | `.tar.gz` |
+| `ubuntu-24.04-arm` | `aarch64-unknown-linux-gnu` | `.tar.gz` |
 | `windows-latest` | `x86_64-pc-windows-msvc` | `.zip` |
 | `macos-14` | `aarch64-apple-darwin` | `.tar.gz` |
 
@@ -41,9 +41,7 @@ Both jobs run in parallel with no dependency between them.
 Archives: `ferrumc-{tag}-{target}.tar.gz` (or `.zip` for Windows)
 Checksums: `ferrumc-{tag}-{target}.tar.gz.sha256` (or `.zip.sha256`)
 
-Example: `ferrumc-v1.0.0-x86_64-unknown-linux-musl.tar.gz`
-
-Linux binaries are statically linked via musl libc, so they run on any Linux distribution regardless of glibc version. The `musl-tools` package is installed during CI builds. The project uses `rustls-tls` (pure Rust) instead of `native-tls` (OpenSSL) to avoid native library dependencies.
+Example: `ferrumc-v1.0.0-x86_64-unknown-linux-gnu.tar.gz`
 
 #### Platform-Specific Packaging
 
