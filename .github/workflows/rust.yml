@@ -48,6 +48,8 @@ jobs:
         with:
           targets: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "ferrumc-test"
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:

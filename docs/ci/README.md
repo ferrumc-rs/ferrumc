@@ -57,9 +57,14 @@ The `production` profile is used by the release workflow. It's similar to `hyper
 
 ## Caching
 
-Each job in `rust.yml` uses `Swatinem/rust-cache@v2` with **separate cache keys per job** (the default). This is intentional — the formatting job compiles to `target/debug/` while the test job compiles to `target/x86_64-unknown-linux-gnu/debug/` (due to the explicit `--target` flag). Sharing a cache key between them causes the test job to always miss, since GitHub Actions cache is immutable (first write wins).
+Jobs use `Swatinem/rust-cache@v2`. Cache keys are set up intentionally:
 
-The release workflow uses `shared-key: "ferrumc"` across its jobs since the validate and build jobs can benefit from shared artifacts.
+- **`rust.yml` formatting job**: default key (job-name based). Compiles to `target/debug/` (no `--target` flag).
+- **`rust.yml` test job**: `shared-key: "ferrumc-test"`. Compiles to `target/x86_64-unknown-linux-gnu/debug/` (explicit `--target` flag).
+- **`release.yml` validate job**: `shared-key: "ferrumc-test"`. Reuses the test job's cache from `rust.yml`, since both compile with the same target and features. Clippy does a small incremental rebuild for `target/debug/`, but all dependencies are already cached.
+- **`release.yml` build-release jobs**: `shared-key: "ferrumc"`. Separate from CI caches since these use `--profile production` on different platforms.
+
+The formatting and test jobs in `rust.yml` must NOT share a cache key — they compile to different target directories, and GitHub Actions cache is immutable (first write wins). Sharing a key causes whichever job saves second to permanently lose its artifacts.
 
 ### Cache performance
 
