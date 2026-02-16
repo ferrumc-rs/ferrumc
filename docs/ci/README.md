@@ -43,6 +43,16 @@ Checksums: `ferrumc-{tag}-{target}.tar.gz.sha256` (or `.zip.sha256`)
 
 Example: `ferrumc-v1.0.0-x86_64-unknown-linux-gnu.tar.gz`
 
+#### Platform-Specific Packaging
+
+| Platform | Archive tool | Checksum tool |
+|---|---|---|
+| Linux | `tar -czf` | `sha256sum` |
+| macOS | `tar -czf` | `shasum -a 256` (macOS lacks `sha256sum`) |
+| Windows | PowerShell `Compress-Archive` (runs under `shell: pwsh`) | PowerShell `Get-FileHash` |
+
+Windows steps use `shell: pwsh` explicitly since the workflow default shell is `bash`.
+
 ## Build Profiles
 
 | Profile | Use case | Key settings |
