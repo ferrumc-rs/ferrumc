@@ -120,6 +120,10 @@ Follow existing `#[packet(...)]` macro patterns in `ferrumc-net`.
 - Tokio for async I/O (networking runs on a separate single-threaded Tokio runtime).
 - crossbeam channels for thread-to-ECS communication (new connections, etc.).
 
+## Git Worktrees
+
+This repo uses git worktrees. `gh pr create` cannot auto-detect the current branch in a worktree — always pass `--head <branch-name>` explicitly.
+
 ## Branch Naming
 
 - `feature/feature-name`, `fix/fixed-thing`, `rework/refactored-thing`, `housekeeping`, `docs`
