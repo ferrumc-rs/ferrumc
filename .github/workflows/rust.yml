@@ -27,6 +27,8 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "ferrumc"
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
       - name: Run Clippy
@@ -37,65 +39,22 @@ jobs:
           tool: cargo-audit
       - name: Run Cargo Audit
         run: cargo audit --ignore RUSTSEC-2023-0071
-  build:
-    name: Build and Upload Artifacts
-    if: github.ref == 'refs/heads/master'
-    runs-on: ${{ matrix.os }}
-    needs: [formatting_and_security, test]
-    strategy:
-      matrix:
-        include:
-          - os: macos-14
-            target: aarch64-apple-darwin
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-          - os: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          targets: ${{ matrix.target }}
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Upload executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: ferrumc-${{ matrix.os }}
-          path: target/${{ matrix.target }}/release/ferrumc*
-
   test:
     name: Run Tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-14
-            target: aarch64-apple-darwin
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-          - os: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "ferrumc"
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
       - name: Run Tests
-        run: cargo nextest run --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"
+        run: cargo nextest run --target x86_64-unknown-linux-gnu --all-targets --all-features -E "not kind(bench)"

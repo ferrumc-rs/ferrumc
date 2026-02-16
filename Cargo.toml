@@ -95,6 +95,13 @@ overflow-checks = false
 panic = "abort"
 codegen-units = 1
 
+[profile.production]
+inherits = "release"
+strip = "symbols"
+lto = true
+opt-level = 3
+codegen-units = 1
+
 [profile.bench]
 debug = true
 
