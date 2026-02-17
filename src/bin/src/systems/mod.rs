@@ -5,6 +5,7 @@ pub mod chunk_unloader;
 pub mod connection_killer;
 pub mod day_cycle;
 pub mod emit_player_joined;
+pub mod interaction;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;

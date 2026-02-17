@@ -9,3 +9,4 @@ bevy_math = { workspace = true }
 
 ferrumc-core = { workspace = true }
 ferrumc-data = { workspace = true }
+ferrumc-world = { workspace = true }

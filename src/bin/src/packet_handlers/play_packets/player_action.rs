@@ -8,10 +8,13 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
 use tracing::{error, warn};
+
+use crate::systems::interaction::block_interactions::break_block_with_door_half;
 
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
@@ -48,10 +51,9 @@ pub fn handle(
                         "overworld",
                     )
                     .expect("Failed to load or generate chunk");
-                    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
 
-                    // Send block broken event for un-grounding system
-                    block_break_events.write(BlockBrokenEvent { position: pos });
+                    let broken_positions =
+                        break_block_with_door_half(&mut chunk, pos, &mut block_break_events);
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {
@@ -59,15 +61,19 @@ pub fn handle(
                             continue;
                         }
 
-                        let block_update_packet = BlockUpdate {
-                            location: event.location.clone(),
-                            block_state_id: VarInt::from(BlockStateId::default()),
-                        };
-                        conn.send_packet_ref(&block_update_packet)
-                            .map_err(BinaryError::Net)?;
+                        for broken_pos in &broken_positions {
+                            let update = BlockUpdate {
+                                location: NetworkPosition {
+                                    x: broken_pos.pos.x,
+                                    y: broken_pos.pos.y as i16,
+                                    z: broken_pos.pos.z,
+                                },
+                                block_state_id: VarInt::from(BlockStateId::default()),
+                            };
+                            conn.send_packet_ref(&update).map_err(BinaryError::Net)?;
+                        }
 
                         if eid == trigger_eid {
-                            // Send ACK to the creative player
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence,
                             };
