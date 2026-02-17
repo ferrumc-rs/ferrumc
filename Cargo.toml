@@ -82,7 +82,7 @@ inherits = "release"
 debug = true
 
 [profile.release]
-#debug = true
+debug = true
 
 [profile.hyper]
 inherits = "release"

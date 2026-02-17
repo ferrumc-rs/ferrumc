@@ -1,3 +1,4 @@
+pub mod adhoc_id;
 pub mod angle;
 pub mod bitset;
 pub mod byte_array;
