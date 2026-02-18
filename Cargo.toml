@@ -46,6 +46,10 @@ members = [
     "src/lib/performance",
     "src/lib/dashboard",
     "src/lib/particles",
+    "src/lib/blocks",
+    "src/lib/blocks/crates/property",
+    "src/lib/blocks/crates/generated",
+    "src/lib/blocks/crates/build",
 ]
 
 [workspace.package]
@@ -140,6 +144,8 @@ ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-entities = { path = "src/lib/entities" }
 ferrumc-physics = { path = "src/lib/physics" }
 ferrumc-particles = { path = "src/lib/particles" }
+ferrumc-blocks = { path = "src/lib/blocks" }
+ferrumc-block-properties = { path = "src/lib/blocks/crates/property" }
 
 # Asynchronous
 tokio = { version = "1.49.0", features = [

@@ -5,6 +5,7 @@ pub mod chunk_unloader;
 pub mod connection_killer;
 pub mod day_cycle;
 pub mod emit_player_joined;
+pub mod handle_block_updates;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
@@ -35,6 +36,7 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(player_swimming::detect_player_swimming);
 
     schedule.add_systems(send_entity_updates::handle);
+    schedule.add_systems(handle_block_updates::handle_block_updates);
 
     schedule.add_systems(day_cycle::tick_daylight_cycle);
 

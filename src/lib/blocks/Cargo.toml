@@ -1,0 +1,19 @@
+[package]
+name = "ferrumc-blocks"
+edition.workspace = true
+version = "0.0.1"
+
+[dependencies]
+ferrumc-world = { workspace = true }
+ferrumc-block-properties = { workspace = true }
+ferrumc-blocks-generated = { path = "crates/generated" }
+ferrumc-core = { workspace = true }
+ferrumc-macros = { workspace = true }
+bevy_math = { workspace = true }
+
+[build-dependencies]
+ferrumc-blocks-build = { path = "crates/build" }
+quote = { workspace = true }
+
+[lints]
+workspace = true

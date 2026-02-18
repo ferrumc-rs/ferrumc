@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::prelude::{Entity, Query, Res, ResMut};
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
@@ -11,6 +11,9 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
+use crate::systems::handle_block_updates::BlockUpdates;
+use bevy_math::DVec2;
+use ferrumc_blocks::PlacementContext;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::mq;
 use ferrumc_inventories::hotbar::Hotbar;
@@ -37,9 +40,19 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, BlockStateId>> = Lazy::new(|| {
         .collect()
 });
 
+pub const CARDINAL_DIRECTIONS: [(i32, i32, i32); 6] = [
+    (0, 0, 1),
+    (0, 0, -1),
+    (0, 1, 0),
+    (0, -1, 0),
+    (1, 0, 0),
+    (-1, 0, 0),
+];
+
 pub fn handle(
     receiver: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
+    mut block_updates: ResMut<BlockUpdates>,
     query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
@@ -68,10 +81,7 @@ pub fn handle(
                         error!("No block mapping found for item ID: {}", item_id.0);
                         continue 'ev_loop;
                     };
-                    debug!(
-                        "Placing block with item ID: {}, mapped to block state ID: {}",
-                        item_id.0, mapped_block_state_id
-                    );
+
                     let pos: BlockPos = event.position.into();
                     if pos.pos.y >= 319 {
                         mq::queue(
@@ -100,54 +110,68 @@ pub fn handle(
                         trace!("Block placement out of bounds: {}", pos);
                         continue 'ev_loop;
                     }
-                    let offset_pos = pos
-                        + match event.face.0 {
-                            0 => (0, -1, 0),
-                            1 => (0, 1, 0),
-                            2 => (0, 0, -1),
-                            3 => (0, 0, 1),
-                            4 => (-1, 0, 0),
-                            5 => (1, 0, 0),
-                            _ => (0, 0, 0),
+                    let offset_pos = pos + event.face.translation_vec().into();
+
+                    let placement_block_id = ferrumc_blocks::BLOCK_MAPPINGS
+                        [mapped_block_state_id.raw() as usize]
+                        .get_placement_state(
+                            PlacementContext {
+                                face: event.face,
+                                cursor: DVec2::new(event.cursor_x as _, event.cursor_y as _),
+                            },
+                            &state.0.world,
+                            offset_pos,
+                        );
+
+                    debug!(
+                        "Placing block with item ID: {}, mapped to block state ID: {}",
+                        item_id.0, placement_block_id
+                    );
+
+                    {
+                        let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                            &state.0,
+                            offset_pos.chunk(),
+                            "overworld",
+                        )
+                        .expect("Failed to load or generate chunk");
+
+                        let block_clicked = chunk.get_block(offset_pos.chunk_block_pos());
+                        trace!("Block clicked: {:?}", block_clicked);
+
+                        // Check if the block collides with any entities
+                        let does_collide = {
+                            pos_q.into_iter().any(|(pos, bounds)| {
+                                bounds.collides(
+                                    (pos.x, pos.y, pos.z),
+                                    &CollisionBounds {
+                                        x_offset_start: 0.0,
+                                        x_offset_end: 1.0,
+                                        y_offset_start: 0.0,
+                                        y_offset_end: 1.0,
+                                        z_offset_start: 0.0,
+                                        z_offset_end: 1.0,
+                                    },
+                                    (
+                                        offset_pos.pos.x as f64,
+                                        offset_pos.pos.y as f64,
+                                        offset_pos.pos.z as f64,
+                                    ),
+                                )
+                            })
                         };
 
-                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
-                        &state.0,
-                        offset_pos.chunk(),
-                        "overworld",
-                    )
-                    .expect("Failed to load or generate chunk");
-                    let block_clicked = chunk.get_block(offset_pos.chunk_block_pos());
-                    trace!("Block clicked: {:?}", block_clicked);
+                        if does_collide {
+                            trace!("Block placement collided with entity");
+                            continue 'ev_loop;
+                        }
 
-                    // Check if the block collides with any entities
-                    let does_collide = {
-                        pos_q.into_iter().any(|(pos, bounds)| {
-                            bounds.collides(
-                                (pos.x, pos.y, pos.z),
-                                &CollisionBounds {
-                                    x_offset_start: 0.0,
-                                    x_offset_end: 1.0,
-                                    y_offset_start: 0.0,
-                                    y_offset_end: 1.0,
-                                    z_offset_start: 0.0,
-                                    z_offset_end: 1.0,
-                                },
-                                (
-                                    offset_pos.pos.x as f64,
-                                    offset_pos.pos.y as f64,
-                                    offset_pos.pos.z as f64,
-                                ),
-                            )
-                        })
-                    };
-
-                    if does_collide {
-                        trace!("Block placement collided with entity");
-                        continue 'ev_loop;
+                        chunk.set_block(
+                            offset_pos.chunk_block_pos(),
+                            BlockStateId::new(placement_block_id),
+                        );
                     }
 
-                    chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
@@ -158,7 +182,7 @@ pub fn handle(
                             y: offset_pos.pos.y as i16,
                             z: offset_pos.pos.z,
                         },
-                        block_state_id: VarInt::from(*mapped_block_state_id),
+                        block_state_id: VarInt::new(placement_block_id as _),
                     };
 
                     if let Err(err) = conn.send_packet_ref(&ack_packet) {
@@ -181,6 +205,11 @@ pub fn handle(
                                 error!("Failed to send block update packet: {:?}", err);
                             }
                         }
+                    }
+
+                    for offset in &CARDINAL_DIRECTIONS {
+                        let pos = offset_pos + *offset;
+                        block_updates.queue_block_update(pos);
                     }
                 }
             }
