@@ -1,6 +1,7 @@
 use bevy_ecs::schedule::IntoScheduleConfigs;
 pub mod collisions;
 pub mod drag;
+pub mod friction;
 pub mod gravity;
 pub mod unground;
 pub mod velocity;
@@ -11,6 +12,7 @@ pub fn register_physics(schedule: &mut bevy_ecs::schedule::Schedule) {
             unground::handle,
             gravity::handle,
             drag::handle,
+            friction::handle,
             velocity::handle,
             collisions::handle,
         )

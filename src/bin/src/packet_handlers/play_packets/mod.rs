@@ -6,6 +6,7 @@ mod chunk_batch_ack;
 mod command;
 mod command_suggestions;
 mod confirm_player_teleport;
+mod interact;
 mod keep_alive;
 mod pick_item_from_block;
 mod place_block;
@@ -22,6 +23,7 @@ mod swing_arm;
 pub fn register_packet_handlers(schedule: &mut Schedule) {
     // Added separately so if we mess up the signature of one of the systems we can know exactly
     // which one
+    schedule.add_systems(interact::handle);
     schedule.add_systems(chunk_batch_ack::handle);
     schedule.add_systems(confirm_player_teleport::handle);
     schedule.add_systems(keep_alive::handle);
