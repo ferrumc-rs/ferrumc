@@ -24,19 +24,14 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::dimension::Dimension;
 use ferrumc_world::fluid::is_fluid;
 use ferrumc_world::fluid::spread::{compute_fluid_tick, BlockView, FluidChange};
-use ferrumc_world::fluid::fluid_state;
+use ferrumc_world::fluid::{fluid_state, FluidKind, FluidRules};
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::scheduler::{BlockTickScheduler, ScheduledTick, TickKind};
 use std::collections::HashMap;
 use tracing::{error, trace};
-
-/// Tick delay before a seeded or re-scheduled fluid block is evaluated.
-///
-/// Vanilla water updates every 5 ticks; lava is slower, but the simplified model uses a single
-/// delay for now. Kept here (rather than in the algorithm) because timing is a scheduling concern.
-pub const FLUID_TICK_DELAY: u64 = 5;
 
 /// Minimum number of due ticks in a batch before the parallel evaluation path is used.
 ///
@@ -45,9 +40,33 @@ pub const FLUID_TICK_DELAY: u64 = 5;
 /// placed bucket) stay on the fast serial path; large flows fan out across cores.
 pub const PARALLEL_THRESHOLD: usize = 64;
 
-/// The dimension fluids are simulated in. The world currently only models the overworld; this
-/// constant marks the call sites that will need revisiting once multiple dimensions exist.
-const DIMENSION: &str = "overworld";
+/// The dimension the fluid system simulates against.
+///
+/// The world currently only tracks the overworld; this resource is the single seam that lets
+/// [`FluidRules`] pick the right per-dimension parameters (overworld lava is slow and short-range,
+/// Nether lava is fast and long-range, etc.). Once multi-dimension support lands, this can become
+/// a per-world value, or the systems can iterate dimensions, without changing the algorithm.
+#[derive(Resource, Clone, Copy, Debug)]
+pub struct ActiveDimension(pub Dimension);
+
+impl Default for ActiveDimension {
+    fn default() -> Self {
+        Self(Dimension::Overworld)
+    }
+}
+
+impl ActiveDimension {
+    #[inline]
+    fn name(self) -> &'static str {
+        self.0.as_str()
+    }
+}
+
+/// Looks up the fluid rules for the block at `pos`, if any. Returns `None` for non-fluid blocks.
+#[inline]
+fn rules_for_block(block: BlockStateId, dim: Dimension) -> Option<FluidRules> {
+    fluid_state(block).map(|s| FluidRules::for_kind(s.kind, dim))
+}
 
 /// ECS resource wrapping the per-chunk block tick scheduler.
 ///
@@ -63,11 +82,12 @@ pub struct FluidScheduler(pub BlockTickScheduler);
 /// which is safe to perform concurrently from multiple threads.
 struct WorldBlockView {
     state: GlobalState,
+    dim: ActiveDimension,
 }
 
 impl BlockView for WorldBlockView {
     fn block_at(&self, pos: BlockPos) -> BlockStateId {
-        match ferrumc_utils::world::load_or_generate_chunk(&self.state, pos.chunk(), DIMENSION) {
+        match ferrumc_utils::world::load_or_generate_chunk(&self.state, pos.chunk(), self.dim.name()) {
             Ok(chunk) => chunk.get_block(pos.chunk_block_pos()),
             Err(err) => {
                 // A failed chunk load is treated as air so the algorithm degrades gracefully
@@ -81,20 +101,27 @@ impl BlockView for WorldBlockView {
 
 /// Schedules a fluid tick for `pos` if it currently contains fluid.
 ///
+/// The delay comes from [`FluidRules::for_kind`] for whatever fluid is at `pos`, so water and
+/// lava (and Nether vs overworld lava) tick at their own cadences.
+///
 /// Intended to be called from block placement/break handlers (and from neighbour updates) to kick
 /// off or continue spreading. No-op for non-fluid blocks.
 pub fn seed_fluid_tick(
     scheduler: &mut BlockTickScheduler,
     state: &GlobalState,
+    dim: ActiveDimension,
     current_tick: u64,
     pos: BlockPos,
 ) {
-    let block = match ferrumc_utils::world::load_or_generate_chunk(state, pos.chunk(), DIMENSION) {
+    let block = match ferrumc_utils::world::load_or_generate_chunk(state, pos.chunk(), dim.name()) {
         Ok(chunk) => chunk.get_block(pos.chunk_block_pos()),
         Err(_) => return,
     };
-    if is_fluid(block) {
-        scheduler.schedule(pos, TickKind::FluidSpread, current_tick, FLUID_TICK_DELAY);
+    if let Some(rules) = rules_for_block(block, dim.0) {
+        scheduler.schedule(pos, TickKind::FluidSpread, current_tick, rules.tick_delay);
+    } else {
+        // Keep the early exit on non-fluid blocks for callers that pass arbitrary positions.
+        debug_assert!(!is_fluid(block), "rules_for_block disagreed with is_fluid");
     }
 }
 
@@ -120,21 +147,23 @@ pub fn seed_on_block_break(
     mut scheduler: ResMut<FluidScheduler>,
     tick: Res<TickCounter>,
     state: Res<GlobalStateResource>,
+    dim: Res<ActiveDimension>,
 ) {
     let current = tick.get();
+    let dim = *dim;
     for event in events.read() {
         let pos = event.position;
         // The broken position itself (in case it is now exposed to a fluid) and its neighbours.
-        seed_fluid_tick(&mut scheduler.0, &state.0, current, pos);
+        seed_fluid_tick(&mut scheduler.0, &state.0, dim, current, pos);
         for neighbour in neighbours(pos) {
-            seed_fluid_tick(&mut scheduler.0, &state.0, current, neighbour);
+            seed_fluid_tick(&mut scheduler.0, &state.0, dim, current, neighbour);
         }
     }
 }
 
 /// Writes a single block change back to the world. Returns true on success.
-fn apply_change(state: &GlobalState, change: &FluidChange) -> bool {
-    match ferrumc_utils::world::load_or_generate_mut(state, change.pos.chunk(), DIMENSION) {
+fn apply_change(state: &GlobalState, dim: ActiveDimension, change: &FluidChange) -> bool {
+    match ferrumc_utils::world::load_or_generate_mut(state, change.pos.chunk(), dim.name()) {
         Ok(mut chunk) => {
             chunk.set_block(change.pos.chunk_block_pos(), change.new_block);
             true
@@ -228,7 +257,11 @@ fn change_priority(change: &FluidChange) -> (u8, i32, u32) {
 /// When the batch is large enough the evaluation (a pure read over the world) is fanned out across
 /// the thread pool; otherwise it runs serially. Either way the result is identical because the read
 /// phase never mutates the world, so no tick observes another tick's changes within the batch.
-fn evaluate_batch(state: &GlobalState, due: &[(ferrumc_world::pos::ChunkPos, Vec<ScheduledTick>)]) -> Vec<FluidChange> {
+fn evaluate_batch(
+    state: &GlobalState,
+    dim: ActiveDimension,
+    due: &[(ferrumc_world::pos::ChunkPos, Vec<ScheduledTick>)],
+) -> Vec<FluidChange> {
     // Flatten the per-chunk groups into a single list of positions to evaluate.
     let positions: Vec<BlockPos> = due
         .iter()
@@ -236,20 +269,34 @@ fn evaluate_batch(state: &GlobalState, due: &[(ferrumc_world::pos::ChunkPos, Vec
         .collect();
 
     if positions.len() < PARALLEL_THRESHOLD {
-        evaluate_serial(state, &positions)
+        evaluate_serial(state, dim, &positions)
     } else {
-        evaluate_parallel(state, &positions)
+        evaluate_parallel(state, dim, &positions)
     }
 }
 
+/// Evaluates a single ticking position against the world, picking the right [`FluidRules`] from
+/// whatever fluid currently sits there. Non-fluid positions produce no changes (the block was
+/// removed or replaced between scheduling and now).
+#[inline]
+fn evaluate_position<V: BlockView>(view: &V, dim: Dimension, pos: BlockPos) -> Vec<FluidChange> {
+    let block = view.block_at(pos);
+    let Some(state) = fluid_state(block) else {
+        return Vec::new();
+    };
+    let rules = FluidRules::for_kind(state.kind, dim);
+    compute_fluid_tick(pos, view, rules)
+}
+
 /// Serial evaluation: computes changes for every position on the calling thread.
-fn evaluate_serial(state: &GlobalState, positions: &[BlockPos]) -> Vec<FluidChange> {
+fn evaluate_serial(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) -> Vec<FluidChange> {
     let view = WorldBlockView {
         state: state.clone(),
+        dim,
     };
     let mut changes = Vec::new();
     for &pos in positions {
-        changes.extend(compute_fluid_tick(pos, &view));
+        changes.extend(evaluate_position(&view, dim.0, pos));
     }
     reduce_changes(changes)
 }
@@ -267,8 +314,8 @@ fn evaluate_serial(state: &GlobalState, positions: &[BlockPos]) -> Vec<FluidChan
 /// is missing, which is not safe to do concurrently (it would contend on the LMDB writer and the
 /// DashMap shard). Pre-warming guarantees the parallel phase only ever hits cached chunks, making
 /// it a genuine read-only phase.
-fn evaluate_parallel(state: &GlobalState, positions: &[BlockPos]) -> Vec<FluidChange> {
-    prewarm_chunks(state, positions);
+fn evaluate_parallel(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) -> Vec<FluidChange> {
+    prewarm_chunks(state, dim, positions);
 
     let worker_count = std::thread::available_parallelism()
         .map(|n| n.get())
@@ -279,10 +326,13 @@ fn evaluate_parallel(state: &GlobalState, positions: &[BlockPos]) -> Vec<FluidCh
         let slice = slice.to_vec();
         let task_state = state.clone();
         batch.execute(move || {
-            let view = WorldBlockView { state: task_state };
+            let view = WorldBlockView {
+                state: task_state,
+                dim,
+            };
             let mut changes = Vec::new();
             for pos in slice {
-                changes.extend(compute_fluid_tick(pos, &view));
+                changes.extend(evaluate_position(&view, dim.0, pos));
             }
             changes
         });
@@ -300,7 +350,7 @@ fn evaluate_parallel(state: &GlobalState, positions: &[BlockPos]) -> Vec<FluidCh
 /// A fluid tick reads the ticking block and its six axis-aligned neighbours, so the set of chunks
 /// touched is each position's chunk plus the chunks of its neighbours. Doing this serially up front
 /// removes all chunk generation/insertion from the parallel phase, leaving only cache reads there.
-fn prewarm_chunks(state: &GlobalState, positions: &[BlockPos]) {
+fn prewarm_chunks(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) {
     use std::collections::HashSet;
     let mut chunks = HashSet::new();
     for &pos in positions {
@@ -312,7 +362,7 @@ fn prewarm_chunks(state: &GlobalState, positions: &[BlockPos]) {
     for chunk_pos in chunks {
         // The result is intentionally discarded; the call's side effect (populating the cache) is
         // what matters. Errors are ignored here and surfaced later when the block is read.
-        let _ = ferrumc_utils::world::load_or_generate_chunk(state, chunk_pos, DIMENSION);
+        let _ = ferrumc_utils::world::load_or_generate_chunk(state, chunk_pos, dim.name());
     }
 }
 
@@ -321,20 +371,33 @@ fn prewarm_chunks(state: &GlobalState, positions: &[BlockPos]) {
 /// Shared by the serial and parallel processing paths so both behave identically once changes have
 /// been computed. Runs on the calling (main) thread, so writes are serial and need no locking
 /// beyond the per-chunk guard taken inside [`apply_change`].
+///
+/// Re-scheduling reads the [`FluidRules`] for the *new* block at each change, so a freshly placed
+/// lava cell gets lava's cadence, even if the original tick that produced the change was scheduled
+/// at the water cadence (e.g. a water tick removing itself adjacent to lava).
 fn apply_changes(
     changes: &[FluidChange],
     scheduler: &mut BlockTickScheduler,
     state: &GlobalState,
+    dim: ActiveDimension,
     current: u64,
     players: &Query<(Entity, &StreamWriter, &Position)>,
 ) {
+    // Fallback delay for changes that turn a fluid into a non-fluid (e.g. drying up). In
+    // practice such changes set `reschedule = false`, but if a future change ever asks to be
+    // rescheduled we still need a defensible delay; water's cadence is the conservative choice.
+    let fallback_delay = FluidRules::for_kind(FluidKind::Water, dim.0).tick_delay;
+
     for change in changes {
-        if !apply_change(state, change) {
+        if !apply_change(state, dim, change) {
             continue;
         }
         broadcast_change(change, state, players);
         if change.reschedule {
-            scheduler.schedule(change.pos, TickKind::FluidSpread, current, FLUID_TICK_DELAY);
+            let delay = rules_for_block(change.new_block, dim.0)
+                .map(|r| r.tick_delay)
+                .unwrap_or(fallback_delay);
+            scheduler.schedule(change.pos, TickKind::FluidSpread, current, delay);
         }
     }
 }
@@ -349,6 +412,7 @@ pub fn process_fluid_ticks(
     mut scheduler: ResMut<FluidScheduler>,
     tick: Res<TickCounter>,
     state: Res<GlobalStateResource>,
+    dim: Res<ActiveDimension>,
     players: Query<(Entity, &StreamWriter, &Position)>,
 ) {
     let current = tick.get();
@@ -358,7 +422,8 @@ pub fn process_fluid_ticks(
     }
 
     let global = &state.0;
-    let changes = evaluate_batch(global, &due);
+    let dim = *dim;
+    let changes = evaluate_batch(global, dim, &due);
     if changes.is_empty() {
         return;
     }
@@ -370,7 +435,7 @@ pub fn process_fluid_ticks(
         changes.len(),
     );
 
-    apply_changes(&changes, &mut scheduler.0, global, current, &players);
+    apply_changes(&changes, &mut scheduler.0, global, dim, current, &players);
 }
 
 #[cfg(test)]
@@ -381,6 +446,13 @@ mod tests {
     use ferrumc_state::create_test_state;
     use ferrumc_world::fluid::{fluid_block, fluid_state, FluidKind};
     use ferrumc_world::pos::BlockPos;
+
+    /// All tests in this module simulate the overworld; this constant keeps the test bodies short
+    /// while still exercising the dimension-aware code path.
+    const TEST_DIM: ActiveDimension = ActiveDimension(Dimension::Overworld);
+    const TEST_DIM_NAME: &str = "overworld";
+    /// Water's overworld cadence — what every test here seeds with.
+    const TEST_DELAY: u64 = 5;
 
     /// Drives the fluid system end-to-end through the ECS, mirroring the real tick schedule
     /// (advance tick counter, then process fluid ticks). Verifies that a seeded water source
@@ -399,7 +471,7 @@ mod tests {
                     let mut chunk = ferrumc_utils::world::load_or_generate_mut(
                         global,
                         BlockPos::of(x, 63, z).chunk(),
-                        DIMENSION,
+                        TEST_DIM_NAME,
                     )
                     .expect("load chunk");
                     chunk.set_block(BlockPos::of(x, 63, z).chunk_block_pos(), block!("stone"));
@@ -407,18 +479,19 @@ mod tests {
             }
             // Place the water source.
             let mut chunk =
-                ferrumc_utils::world::load_or_generate_mut(global, source.chunk(), DIMENSION)
+                ferrumc_utils::world::load_or_generate_mut(global, source.chunk(), TEST_DIM_NAME)
                     .expect("load chunk");
             chunk.set_block(source.chunk_block_pos(), fluid_block(FluidKind::Water, 0));
         }
 
         world.insert_resource(state.clone());
         world.insert_resource(TickCounter::new());
+        world.insert_resource(TEST_DIM);
         let mut sched = FluidScheduler::default();
 
         // Seed the source as the placement handler would.
         let source = BlockPos::of(0, 64, 0);
-        seed_fluid_tick(&mut sched.0, &state.0, 0, source);
+        seed_fluid_tick(&mut sched.0, &state.0, TEST_DIM, 0, source);
         world.insert_resource(sched);
 
         // Build a schedule that mimics the tick: advance counter, then process fluids.
@@ -426,14 +499,14 @@ mod tests {
         schedule.add_systems(crate::systems::tick_counter::handle);
         schedule.add_systems(process_fluid_ticks);
 
-        // Run enough ticks for the source to spread to its neighbours (delay is 5 ticks).
+        // Run enough ticks for the source to spread to its neighbours (water cadence is 5 ticks).
         for _ in 0..30 {
             schedule.run(&mut world);
         }
 
         // Verify a horizontal neighbour now holds flowing water in the live world.
         let neighbour = BlockPos::of(1, 64, 0);
-        let block = ferrumc_utils::world::load_or_generate_chunk(&state.0, neighbour.chunk(), DIMENSION)
+        let block = ferrumc_utils::world::load_or_generate_chunk(&state.0, neighbour.chunk(), TEST_DIM_NAME)
             .expect("load chunk")
             .get_block(neighbour.chunk_block_pos());
         let fluid = fluid_state(block).expect("neighbour should contain water after spreading");
@@ -469,13 +542,19 @@ mod tests {
                 .flat_map(|(_, ticks)| ticks.iter().map(|t| t.pos))
                 .collect();
             let changes = match mode {
-                EvalMode::Serial => evaluate_serial(state, &positions),
-                EvalMode::Parallel => evaluate_parallel(state, &positions),
+                EvalMode::Serial => evaluate_serial(state, TEST_DIM, &positions),
+                EvalMode::Parallel => evaluate_parallel(state, TEST_DIM, &positions),
             };
             for change in &changes {
-                apply_change(state, change);
+                apply_change(state, TEST_DIM, change);
                 if change.reschedule {
-                    scheduler.schedule(change.pos, TickKind::FluidSpread, tick, FLUID_TICK_DELAY);
+                    // Look up the cadence per change, the same way `apply_changes` does in
+                    // production. For the all-water tests in this module this resolves to the
+                    // water delay.
+                    let delay = rules_for_block(change.new_block, TEST_DIM.0)
+                        .map(|r| r.tick_delay)
+                        .unwrap_or(TEST_DELAY);
+                    scheduler.schedule(change.pos, TickKind::FluidSpread, tick, delay);
                 }
             }
         }
@@ -497,7 +576,7 @@ mod tests {
                     let chunk_pos = BlockPos::of(x, 64, z).chunk();
                     if seen.insert((chunk_pos.x(), chunk_pos.z())) {
                         let _ = ferrumc_utils::world::load_or_generate_chunk(
-                            global, chunk_pos, DIMENSION,
+                            global, chunk_pos, TEST_DIM_NAME,
                         )
                         .expect("generate chunk");
                     }
@@ -511,12 +590,12 @@ mod tests {
                 for z in -radius..=radius {
                     global
                         .world
-                        .set_block_and_fetch(BlockPos::of(x, 63, z), DIMENSION, block!("stone"))
+                        .set_block_and_fetch(BlockPos::of(x, 63, z), TEST_DIM_NAME, block!("stone"))
                         .expect("set floor");
                     if x.abs() == radius || z.abs() == radius {
                         global
                             .world
-                            .set_block_and_fetch(BlockPos::of(x, 64, z), DIMENSION, block!("stone"))
+                            .set_block_and_fetch(BlockPos::of(x, 64, z), TEST_DIM_NAME, block!("stone"))
                             .expect("set wall");
                     }
                 }
@@ -525,13 +604,13 @@ mod tests {
                 .world
                 .set_block_and_fetch(
                     BlockPos::of(0, 64, 0),
-                    DIMENSION,
+                    TEST_DIM_NAME,
                     fluid_block(FluidKind::Water, 0),
                 )
                 .expect("set source");
         }
         let mut scheduler = BlockTickScheduler::new();
-        seed_fluid_tick(&mut scheduler, &state.0, 0, BlockPos::of(0, 64, 0));
+        seed_fluid_tick(&mut scheduler, &state.0, TEST_DIM, 0, BlockPos::of(0, 64, 0));
         (state, temp_dir, scheduler)
     }
 
@@ -543,7 +622,7 @@ mod tests {
                 for z in -radius..=radius {
                     let pos = BlockPos::of(x, y, z);
                     let block =
-                        ferrumc_utils::world::load_or_generate_chunk(state, pos.chunk(), DIMENSION)
+                        ferrumc_utils::world::load_or_generate_chunk(state, pos.chunk(), TEST_DIM_NAME)
                             .expect("load chunk")
                             .get_block(pos.chunk_block_pos());
                     out.push((x, y, z, block.raw()));
@@ -629,7 +708,7 @@ mod tests {
                 let pos = BlockPos::of(x, 64, z);
                 global
                     .world
-                    .set_block_and_fetch(pos, DIMENSION, fluid_block(FluidKind::Water, 1))
+                    .set_block_and_fetch(pos, TEST_DIM_NAME, fluid_block(FluidKind::Water, 1))
                     .expect("fill water");
                 positions.push(pos);
             }
@@ -637,19 +716,19 @@ mod tests {
         println!("batch size: {} positions", positions.len());
 
         // Warm the cache once so neither path pays generation cost during timing.
-        prewarm_chunks(global, &positions);
+        prewarm_chunks(global, TEST_DIM, &positions);
 
         let iterations = 20;
 
         let t0 = Instant::now();
         for _ in 0..iterations {
-            let _ = evaluate_serial(global, &positions);
+            let _ = evaluate_serial(global, TEST_DIM, &positions);
         }
         let serial = t0.elapsed() / iterations;
 
         let t1 = Instant::now();
         for _ in 0..iterations {
-            let _ = evaluate_parallel(global, &positions);
+            let _ = evaluate_parallel(global, TEST_DIM, &positions);
         }
         let parallel = t1.elapsed() / iterations;
 

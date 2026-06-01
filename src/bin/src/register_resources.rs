@@ -1,4 +1,4 @@
-use crate::systems::fluids::FluidScheduler;
+use crate::systems::fluids::{ActiveDimension, FluidScheduler};
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Receiver;
@@ -24,6 +24,7 @@ pub fn register_resources(
     world.insert_resource(WorldTime::default());
     world.insert_resource(TickCounter::new());
     world.insert_resource(FluidScheduler::default());
+    world.insert_resource(ActiveDimension::default());
     world.insert_resource(ServerPerformance::new(get_global_config().tps));
     world.insert_resource(PhysicalRegistry::new());
 }

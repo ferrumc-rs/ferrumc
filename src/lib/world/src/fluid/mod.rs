@@ -13,6 +13,7 @@
 //! to revise later.
 
 use crate::block_state_id::{BlockStateId, ID2BLOCK};
+use crate::dimension::Dimension;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
@@ -38,6 +39,53 @@ impl FluidKind {
         match self {
             FluidKind::Water => "minecraft:water",
             FluidKind::Lava => "minecraft:lava",
+        }
+    }
+}
+
+/// Per-fluid, per-dimension behaviour parameters.
+///
+/// Vanilla differentiates water and lava on two axes (how fast they tick, how far they spread)
+/// and lava additionally behaves differently in the Nether (faster + further). Encoding this as
+/// a small struct keeps the spreading algorithm dimension-agnostic: callers look up the rules
+/// once with [`FluidRules::for_kind`] and pass the struct in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FluidRules {
+    /// How much the fluid `level` increases for each horizontal step away from a source.
+    /// Vanilla water = 1 (spreads 7 blocks), overworld lava = 2 (spreads 3 blocks),
+    /// Nether lava = 1 (spreads 7 blocks).
+    pub level_step: u8,
+    /// Maximum `level` that still spreads horizontally. A flowing block at `level >
+    /// max_spread_level` stops spreading. Combined with `level_step`, this defines the maximum
+    /// reach: `floor(max_spread_level / level_step)` blocks from a source on flat ground.
+    pub max_spread_level: u8,
+    /// Number of game ticks between scheduled updates of a flowing block of this fluid.
+    /// Vanilla water = 5, overworld lava = 30, Nether lava = 10.
+    pub tick_delay: u64,
+}
+
+impl FluidRules {
+    /// Returns the rules vanilla uses for `(kind, dimension)`.
+    ///
+    /// `Dimension::End` falls back to overworld parameters because vanilla treats the End the
+    /// same as the overworld for fluid behaviour.
+    pub const fn for_kind(kind: FluidKind, dimension: Dimension) -> Self {
+        match (kind, dimension) {
+            (FluidKind::Water, _) => Self {
+                level_step: 1,
+                max_spread_level: 7,
+                tick_delay: 5,
+            },
+            (FluidKind::Lava, Dimension::Nether) => Self {
+                level_step: 1,
+                max_spread_level: 7,
+                tick_delay: 10,
+            },
+            (FluidKind::Lava, Dimension::Overworld | Dimension::End) => Self {
+                level_step: 2,
+                max_spread_level: 7,
+                tick_delay: 30,
+            },
         }
     }
 }

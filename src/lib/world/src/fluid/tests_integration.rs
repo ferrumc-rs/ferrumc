@@ -7,8 +7,9 @@
 //! unit tests cannot show on their own.
 
 use crate::block_state_id::BlockStateId;
+use crate::dimension::Dimension;
 use crate::fluid::spread::{compute_fluid_tick, BlockView};
-use crate::fluid::{fluid_block, fluid_state, FluidKind};
+use crate::fluid::{fluid_block, fluid_state, FluidKind, FluidRules};
 use crate::pos::BlockPos;
 use crate::scheduler::{BlockTickScheduler, TickKind};
 use ferrumc_macros::block;
@@ -49,9 +50,12 @@ fn p(x: i32, y: i32, z: i32) -> BlockPos {
 }
 
 /// Runs the full scheduler-driven fluid loop for `ticks` game ticks, returning the number of block
-/// changes applied across the whole run. Mirrors the server's `process_fluid_ticks`.
+/// changes applied across the whole run. Mirrors the server's `process_fluid_ticks`: each due tick
+/// looks up the rules for the fluid currently at that position and feeds them to the algorithm.
 fn run(world: &mut MapWorld, scheduler: &mut BlockTickScheduler, start_tick: u64, ticks: u64) -> usize {
-    const DELAY: u64 = 5;
+    // All integration tests in this file run in the overworld, where water and lava use their
+    // own rules. The reschedule delay mirrors whichever fluid produced the change.
+    const DIM: Dimension = Dimension::Overworld;
     let mut total_changes = 0;
 
     for offset in 0..ticks {
@@ -65,16 +69,27 @@ fn run(world: &mut MapWorld, scheduler: &mut BlockTickScheduler, start_tick: u64
         let mut changes = Vec::new();
         for (_chunk, scheduled) in &due {
             for tick in scheduled {
-                changes.extend(compute_fluid_tick(tick.pos, &&*world));
+                let block = world.get(tick.pos);
+                let Some(state) = fluid_state(block) else {
+                    continue;
+                };
+                let rules = FluidRules::for_kind(state.kind, DIM);
+                changes.extend(compute_fluid_tick(tick.pos, &&*world, rules));
             }
         }
 
-        // Write phase: apply changes and re-schedule.
+        // Write phase: apply changes and re-schedule, using the rules for whatever the new block
+        // is (the changed block, not the source position, drives the follow-up cadence).
         for change in &changes {
             world.set(change.pos, change.new_block);
             total_changes += 1;
             if change.reschedule {
-                scheduler.schedule(change.pos, TickKind::FluidSpread, current, DELAY);
+                let delay = fluid_state(change.new_block)
+                    .map(|s| FluidRules::for_kind(s.kind, DIM).tick_delay)
+                    // Fallback for non-fluid changes (drying up): use the water cadence as a safe
+                    // default. In practice non-fluid changes set reschedule = false.
+                    .unwrap_or_else(|| FluidRules::for_kind(FluidKind::Water, DIM).tick_delay);
+                scheduler.schedule(change.pos, TickKind::FluidSpread, current, delay);
             }
         }
     }

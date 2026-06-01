@@ -1,6 +1,7 @@
 pub mod block_state_id;
 pub mod chunk;
 mod db_functions;
+pub mod dimension;
 pub mod errors;
 pub mod fluid;
 mod importing;

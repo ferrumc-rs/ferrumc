@@ -12,7 +12,7 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
-use crate::systems::fluids::{seed_fluid_tick, FluidScheduler};
+use crate::systems::fluids::{seed_fluid_tick, ActiveDimension, FluidScheduler};
 
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::mq;
@@ -46,6 +46,7 @@ pub fn handle(
     query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
     mut fluid_scheduler: ResMut<FluidScheduler>,
+    dim: Res<ActiveDimension>,
     tick: Res<TickCounter>,
 ) {
     'ev_loop: for (event, eid) in receiver.0.try_iter() {
@@ -158,7 +159,7 @@ pub fn handle(
                     // DashMap RefMut holding the shard lock; because it implements Drop it would
                     // otherwise stay alive until the end of this scope. `seed_fluid_tick` loads
                     // the same chunk again, which would re-enter the same shard lock and deadlock
-                    // the tick thread.
+                    // the tick thread. Multi-thread is so hard :3
                     drop(chunk);
 
                     let ack_packet = BlockChangeAck {
@@ -202,7 +203,8 @@ pub fn handle(
                     // released before seeding because seeding loads chunks itself.
                     let current_tick = tick.get();
                     let scheduler = &mut fluid_scheduler.0;
-                    seed_fluid_tick(scheduler, &state.0, current_tick, offset_pos);
+                    let dim = *dim;
+                    seed_fluid_tick(scheduler, &state.0, dim, current_tick, offset_pos);
                     for neighbour in [
                         offset_pos + (0, 1, 0),
                         offset_pos + (0, -1, 0),
@@ -211,7 +213,7 @@ pub fn handle(
                         offset_pos + (0, 0, 1),
                         offset_pos + (0, 0, -1),
                     ] {
-                        seed_fluid_tick(scheduler, &state.0, current_tick, neighbour);
+                        seed_fluid_tick(scheduler, &state.0, dim, current_tick, neighbour);
                     }
                 }
             }
