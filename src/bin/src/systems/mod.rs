@@ -5,6 +5,7 @@ pub mod chunk_unloader;
 pub mod connection_killer;
 pub mod day_cycle;
 pub mod emit_player_joined;
+pub mod fluids;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
@@ -16,6 +17,7 @@ pub mod physics;
 mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
+pub mod tick_counter;
 pub(crate) mod update_player_ping;
 pub mod world_sync;
 
@@ -33,6 +35,10 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     );
     schedule.add_systems(mq::process);
     schedule.add_systems(player_swimming::detect_player_swimming);
+
+    // Process scheduled fluid ticks: evaluate spreading, apply, broadcast, re-schedule.
+    schedule.add_systems(fluids::seed_on_block_break);
+    schedule.add_systems(fluids::process_fluid_ticks);
 
     schedule.add_systems(send_entity_updates::handle);
 

@@ -249,6 +249,7 @@ fn build_timed_scheduler() -> Scheduler {
     // Uses Burst behavior to catch up if ticks are missed (up to 5 at a time).
     let build_tick = |s: &mut Schedule| {
         s.set_executor_kind(ExecutorKind::SingleThreaded);
+        s.add_systems(crate::systems::tick_counter::handle); // Advance the global tick counter
         register_packet_handlers(s); // Handle incoming packets from players
         register_player_systems(s); // Update player state (position, inventory, etc.)
         register_command_systems(s); // Process queued commands

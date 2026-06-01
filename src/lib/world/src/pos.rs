@@ -15,7 +15,7 @@ use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct BlockPos {
     /// (i26, i12, i26)
     pub pos: IVec3,

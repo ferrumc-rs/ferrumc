@@ -1,5 +1,6 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::prelude::{Entity, Query, Res, ResMut};
 use ferrumc_core::collisions::bounds::CollisionBounds;
+use ferrumc_core::tick::TickCounter;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
@@ -10,6 +11,8 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
+
+use crate::systems::fluids::{seed_fluid_tick, FluidScheduler};
 
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::mq;
@@ -42,6 +45,8 @@ pub fn handle(
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
+    mut fluid_scheduler: ResMut<FluidScheduler>,
+    tick: Res<TickCounter>,
 ) {
     'ev_loop: for (event, eid) in receiver.0.try_iter() {
         let Ok((entity, conn, inventory, hotbar, _)) = query.get(eid) else {
@@ -148,6 +153,14 @@ pub fn handle(
                     }
 
                     chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
+
+                    // Release the chunk write guard before seeding fluid ticks. `chunk` is a
+                    // DashMap RefMut holding the shard lock; because it implements Drop it would
+                    // otherwise stay alive until the end of this scope. `seed_fluid_tick` loads
+                    // the same chunk again, which would re-enter the same shard lock and deadlock
+                    // the tick thread.
+                    drop(chunk);
+
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
@@ -181,6 +194,24 @@ pub fn handle(
                                 error!("Failed to send block update packet: {:?}", err);
                             }
                         }
+                    }
+
+                    // Seed fluid simulation. If the placed block is itself a fluid it will begin
+                    // to spread; in all cases, neighbouring fluids may need to react to the new
+                    // block (e.g. flow around or be blocked by it). The chunk borrow above is
+                    // released before seeding because seeding loads chunks itself.
+                    let current_tick = tick.get();
+                    let scheduler = &mut fluid_scheduler.0;
+                    seed_fluid_tick(scheduler, &state.0, current_tick, offset_pos);
+                    for neighbour in [
+                        offset_pos + (0, 1, 0),
+                        offset_pos + (0, -1, 0),
+                        offset_pos + (1, 0, 0),
+                        offset_pos + (-1, 0, 0),
+                        offset_pos + (0, 0, 1),
+                        offset_pos + (0, 0, -1),
+                    ] {
+                        seed_fluid_tick(scheduler, &state.0, current_tick, neighbour);
                     }
                 }
             }

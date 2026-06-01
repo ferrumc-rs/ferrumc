@@ -2,9 +2,11 @@ pub mod block_state_id;
 pub mod chunk;
 mod db_functions;
 pub mod errors;
+pub mod fluid;
 mod importing;
 mod player;
 pub mod pos;
+pub mod scheduler;
 pub mod vanilla_chunk_format;
 
 use crate::chunk::Chunk;
