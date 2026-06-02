@@ -307,5 +307,9 @@ fn removing_source_drains_entire_flow() {
         remaining
     );
     // And the scheduler should be idle again.
-    assert_eq!(scheduler.pending_count(), 0, "scheduler should settle after draining");
+    assert_eq!(
+        scheduler.pending_count(),
+        0,
+        "scheduler should settle after draining"
+    );
 }

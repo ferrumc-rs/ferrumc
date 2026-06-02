@@ -145,7 +145,11 @@ fn lava_harden_in_place(lava: FluidState) -> BlockStateId {
 /// Mirrors vanilla: lava checks the five cells `{above, N, S, E, W}` (deliberately excluding the
 /// cell directly below) for water. Water below is handled by the down-flow path instead, so that a
 /// lava-above/water-below column solidifies the lower (water) cell into stone, not the upper lava.
-fn lava_harden_check<V: BlockView>(pos: BlockPos, lava: FluidState, view: &V) -> Option<BlockStateId> {
+fn lava_harden_check<V: BlockView>(
+    pos: BlockPos,
+    lava: FluidState,
+    view: &V,
+) -> Option<BlockStateId> {
     let touches_water = std::iter::once(above(pos))
         .chain(HORIZONTAL.iter().map(|&o| pos + o))
         .any(|n| matches!(fluid_state(view.block_at(n)), Some(s) if s.kind == FluidKind::Water));
@@ -401,7 +405,11 @@ mod tests {
             .iter()
             .filter(|c| c.new_block == fluid_block(FluidKind::Water, 3))
             .collect();
-        assert_eq!(spread.len(), 3, "should spread at level 3 into 3 open neighbours");
+        assert_eq!(
+            spread.len(),
+            3,
+            "should spread at level 3 into 3 open neighbours"
+        );
         // The feeder is never overwritten.
         assert!(changes.iter().all(|c| c.pos != p(-1, 64, 0)));
     }
@@ -586,7 +594,12 @@ mod tests {
         view.set(p(0, 63, 0), block!("stone"));
 
         let changes = compute_fluid_tick(p(0, 64, 0), &view, water_rules());
-        assert_eq!(changes.len(), 1, "only the ticking block changes: {:?}", changes);
+        assert_eq!(
+            changes.len(),
+            1,
+            "only the ticking block changes: {:?}",
+            changes
+        );
         assert_eq!(changes[0].pos, p(0, 64, 0));
         assert_eq!(
             changes[0].new_block,
@@ -632,7 +645,10 @@ mod tests {
         let changes = compute_fluid_tick(p(0, 64, 0), &view, lava);
         let self_change = changes.iter().find(|c| c.pos == p(0, 64, 0)).unwrap();
         assert_eq!(self_change.new_block, block!("obsidian"));
-        assert!(self_change.fizz, "solidification should flag the fizz effect");
+        assert!(
+            self_change.fizz,
+            "solidification should flag the fizz effect"
+        );
     }
 
     #[test]

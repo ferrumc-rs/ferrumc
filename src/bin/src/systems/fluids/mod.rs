@@ -842,9 +842,10 @@ mod tests {
         scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
         run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
 
-        let result = ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
-            .expect("load chunk")
-            .get_block(lava_pos.chunk_block_pos());
+        let result =
+            ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
+                .expect("load chunk")
+                .get_block(lava_pos.chunk_block_pos());
         assert_eq!(
             result,
             block!("stone"),
