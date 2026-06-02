@@ -12,8 +12,8 @@
 //! The algorithm itself knows nothing about chunks, the ECS, or networking; this module provides
 //! the world-access glue ([`WorldBlockView`]) and side effects.
 
-use bevy_ecs::prelude::{Entity, Query, Res, ResMut, Resource};
 use bevy_ecs::prelude::MessageReader;
+use bevy_ecs::prelude::{Entity, Query, Res, ResMut, Resource};
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::tick::TickCounter;
 use ferrumc_core::transform::position::Position;
@@ -87,7 +87,11 @@ struct WorldBlockView {
 
 impl BlockView for WorldBlockView {
     fn block_at(&self, pos: BlockPos) -> BlockStateId {
-        match ferrumc_utils::world::load_or_generate_chunk(&self.state, pos.chunk(), self.dim.name()) {
+        match ferrumc_utils::world::load_or_generate_chunk(
+            &self.state,
+            pos.chunk(),
+            self.dim.name(),
+        ) {
             Ok(chunk) => chunk.get_block(pos.chunk_block_pos()),
             Err(err) => {
                 // A failed chunk load is treated as air so the algorithm degrades gracefully
@@ -289,7 +293,11 @@ fn evaluate_position<V: BlockView>(view: &V, dim: Dimension, pos: BlockPos) -> V
 }
 
 /// Serial evaluation: computes changes for every position on the calling thread.
-fn evaluate_serial(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) -> Vec<FluidChange> {
+fn evaluate_serial(
+    state: &GlobalState,
+    dim: ActiveDimension,
+    positions: &[BlockPos],
+) -> Vec<FluidChange> {
     let view = WorldBlockView {
         state: state.clone(),
         dim,
@@ -314,7 +322,11 @@ fn evaluate_serial(state: &GlobalState, dim: ActiveDimension, positions: &[Block
 /// is missing, which is not safe to do concurrently (it would contend on the LMDB writer and the
 /// DashMap shard). Pre-warming guarantees the parallel phase only ever hits cached chunks, making
 /// it a genuine read-only phase.
-fn evaluate_parallel(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) -> Vec<FluidChange> {
+fn evaluate_parallel(
+    state: &GlobalState,
+    dim: ActiveDimension,
+    positions: &[BlockPos],
+) -> Vec<FluidChange> {
     prewarm_chunks(state, dim, positions);
 
     let worker_count = std::thread::available_parallelism()
@@ -506,12 +518,19 @@ mod tests {
 
         // Verify a horizontal neighbour now holds flowing water in the live world.
         let neighbour = BlockPos::of(1, 64, 0);
-        let block = ferrumc_utils::world::load_or_generate_chunk(&state.0, neighbour.chunk(), TEST_DIM_NAME)
-            .expect("load chunk")
-            .get_block(neighbour.chunk_block_pos());
+        let block = ferrumc_utils::world::load_or_generate_chunk(
+            &state.0,
+            neighbour.chunk(),
+            TEST_DIM_NAME,
+        )
+        .expect("load chunk")
+        .get_block(neighbour.chunk_block_pos());
         let fluid = fluid_state(block).expect("neighbour should contain water after spreading");
         assert_eq!(fluid.kind, FluidKind::Water);
-        assert!(!fluid.is_source(), "spread block should be flowing, not a source");
+        assert!(
+            !fluid.is_source(),
+            "spread block should be flowing, not a source"
+        );
     }
 
     /// Whether to force the serial or parallel evaluator in [`run_to_steady_state`].
@@ -576,7 +595,9 @@ mod tests {
                     let chunk_pos = BlockPos::of(x, 64, z).chunk();
                     if seen.insert((chunk_pos.x(), chunk_pos.z())) {
                         let _ = ferrumc_utils::world::load_or_generate_chunk(
-                            global, chunk_pos, TEST_DIM_NAME,
+                            global,
+                            chunk_pos,
+                            TEST_DIM_NAME,
                         )
                         .expect("generate chunk");
                     }
@@ -595,7 +616,11 @@ mod tests {
                     if x.abs() == radius || z.abs() == radius {
                         global
                             .world
-                            .set_block_and_fetch(BlockPos::of(x, 64, z), TEST_DIM_NAME, block!("stone"))
+                            .set_block_and_fetch(
+                                BlockPos::of(x, 64, z),
+                                TEST_DIM_NAME,
+                                block!("stone"),
+                            )
                             .expect("set wall");
                     }
                 }
@@ -610,21 +635,35 @@ mod tests {
                 .expect("set source");
         }
         let mut scheduler = BlockTickScheduler::new();
-        seed_fluid_tick(&mut scheduler, &state.0, TEST_DIM, 0, BlockPos::of(0, 64, 0));
+        seed_fluid_tick(
+            &mut scheduler,
+            &state.0,
+            TEST_DIM,
+            0,
+            BlockPos::of(0, 64, 0),
+        );
         (state, temp_dir, scheduler)
     }
 
     /// Snapshots the block states across a cuboid so two worlds can be compared exactly.
-    fn snapshot(state: &GlobalState, radius: i32, y_lo: i32, y_hi: i32) -> Vec<(i32, i32, i32, u32)> {
+    fn snapshot(
+        state: &GlobalState,
+        radius: i32,
+        y_lo: i32,
+        y_hi: i32,
+    ) -> Vec<(i32, i32, i32, u32)> {
         let mut out = Vec::new();
         for x in -radius..=radius {
             for y in y_lo..=y_hi {
                 for z in -radius..=radius {
                     let pos = BlockPos::of(x, y, z);
-                    let block =
-                        ferrumc_utils::world::load_or_generate_chunk(state, pos.chunk(), TEST_DIM_NAME)
-                            .expect("load chunk")
-                            .get_block(pos.chunk_block_pos());
+                    let block = ferrumc_utils::world::load_or_generate_chunk(
+                        state,
+                        pos.chunk(),
+                        TEST_DIM_NAME,
+                    )
+                    .expect("load chunk")
+                    .get_block(pos.chunk_block_pos());
                     out.push((x, y, z, block.raw()));
                 }
             }

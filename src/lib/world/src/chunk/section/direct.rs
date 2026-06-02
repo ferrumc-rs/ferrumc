@@ -106,10 +106,10 @@ mod tests {
             (0, 1),
             (1, 2),
             (2, 3),
-            (3, 4),       // first long
-            (4, 100),     // second long, low entry
-            (7, 0xFFFF),  // second long, high entry (max representable)
-            (4095, 7),    // last cell
+            (3, 4),      // first long
+            (4, 100),    // second long, low entry
+            (7, 0xFFFF), // second long, high entry (max representable)
+            (4095, 7),   // last cell
         ];
         for &(idx, id) in samples {
             section.set_block(idx, BlockStateId::new(id));

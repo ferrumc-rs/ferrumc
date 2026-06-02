@@ -277,7 +277,10 @@ mod tests {
         // spread.
         let rules = water_rules();
         view.set(p(0, 65, 0), fluid_block(FluidKind::Water, 0));
-        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, rules.max_spread_level));
+        view.set(
+            p(0, 64, 0),
+            fluid_block(FluidKind::Water, rules.max_spread_level),
+        );
         view.set(p(0, 63, 0), block!("stone"));
 
         let changes = compute_fluid_tick(p(0, 64, 0), &view, rules);

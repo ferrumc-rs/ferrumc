@@ -3,7 +3,6 @@ use std::cmp::max;
 use std::sync::Arc;
 use std::time::Duration;
 
-
 /// A thread pool for managing and executing tasks concurrently.
 pub struct ThreadPool {
     pool: Arc<rusty_pool::ThreadPool>,

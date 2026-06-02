@@ -186,7 +186,10 @@ mod tests {
         // fluids apart for rendering and physics.
         let lava = find_tag(fluid, "minecraft:lava");
         let lava_ids: Vec<i32> = lava.entries.data.iter().map(|v| v.0).collect();
-        assert!(lava_ids.contains(&4), "lava tag must include lava fluid id 4");
+        assert!(
+            lava_ids.contains(&4),
+            "lava tag must include lava fluid id 4"
+        );
         assert!(
             lava_ids.contains(&3),
             "lava tag must include flowing_lava fluid id 3"
@@ -194,7 +197,10 @@ mod tests {
 
         let water = find_tag(fluid, "minecraft:water");
         let water_ids: Vec<i32> = water.entries.data.iter().map(|v| v.0).collect();
-        assert!(water_ids.contains(&2), "water tag must include water fluid id 2");
+        assert!(
+            water_ids.contains(&2),
+            "water tag must include water fluid id 2"
+        );
         assert!(
             water_ids.contains(&1),
             "water tag must include flowing_water fluid id 1"
