@@ -120,7 +120,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             if let Type::Path(path) = *refr.clone().elem {
                 println!("path reference: {:?}", path.path.segments.clone());
                 let is_bevy = path.path.segments.iter().any(|seg| {
-                    println!("{}", &seg.ident.to_string());
+                    println!("{}", seg.ident);
                     &seg.ident.to_string() == "bevy_ecs"
                 });
                 println!("is bevy? {is_bevy}");

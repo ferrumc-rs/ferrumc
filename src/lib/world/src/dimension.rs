@@ -7,15 +7,16 @@
 //! decisions, and a stringly-typed value at every match site is fragile.
 //!
 //! [`Dimension`] is the small typed projection the gameplay side uses. It converts to/from the
-//! string form via [`Dimension::as_str`] / [`Dimension::from_str`] when crossing into the storage
+//! string form via [`Dimension::as_str`] / [`Dimension::from_name`] when crossing into the storage
 //! layer. New dimensions added to the world should be added here so the compiler points out the
 //! match sites that need to learn about them.
 
 /// The vanilla dimensions. Custom dimensions are not modelled yet; if a chunk's dimension
-/// string is unrecognised, callers receive `None` from [`Dimension::from_str`] and should fall
+/// string is unrecognised, callers receive `None` from [`Dimension::from_name`] and should fall
 /// back to overworld behaviour.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Dimension {
+    #[default]
     Overworld,
     Nether,
     End,
@@ -35,7 +36,7 @@ impl Dimension {
     ///
     /// Accepts both the bare form (`"overworld"`) and the namespaced form
     /// (`"minecraft:overworld"`) so callers do not need to strip the namespace themselves.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn from_name(s: &str) -> Option<Self> {
         let bare = s.strip_prefix("minecraft:").unwrap_or(s);
         match bare {
             "overworld" => Some(Self::Overworld),
@@ -46,12 +47,6 @@ impl Dimension {
     }
 }
 
-impl Default for Dimension {
-    fn default() -> Self {
-        Dimension::Overworld
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,20 +54,20 @@ mod tests {
     #[test]
     fn round_trip_known_dimensions() {
         for dim in [Dimension::Overworld, Dimension::Nether, Dimension::End] {
-            assert_eq!(Dimension::from_str(dim.as_str()), Some(dim));
+            assert_eq!(Dimension::from_name(dim.as_str()), Some(dim));
         }
     }
 
     #[test]
     fn accepts_namespaced_form() {
         assert_eq!(
-            Dimension::from_str("minecraft:the_nether"),
+            Dimension::from_name("minecraft:the_nether"),
             Some(Dimension::Nether)
         );
     }
 
     #[test]
     fn unknown_dimension_is_none() {
-        assert_eq!(Dimension::from_str("custom:moon"), None);
+        assert_eq!(Dimension::from_name("custom:moon"), None);
     }
 }

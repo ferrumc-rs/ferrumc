@@ -3274,7 +3274,10 @@ impl EntityType {
         self.mob
     }
     pub const fn is_attackable(&self) -> bool {
-        self.attackable.unwrap_or(false)
+        match self.attackable {
+            Some(val) => val,
+            None => false,
+        }
     }
     pub const fn can_summon(&self) -> bool {
         self.summonable

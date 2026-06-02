@@ -120,7 +120,7 @@ mod tests {
 
         // Manually decode each long (4 entries of 16 bits, lowest index in the low bits) and
         // compare against the section's stored ids.
-        for long_idx in 0..longs.len() {
+        for (long_idx, _) in longs.iter().enumerate() {
             for entry in 0..4 {
                 let block_idx = long_idx * 4 + entry;
                 let decoded = ((longs[long_idx] >> (entry * 16)) & 0xFFFF) as u32;
