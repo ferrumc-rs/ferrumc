@@ -1,8 +1,10 @@
+use crate::systems::fluids::{ActiveDimension, FluidScheduler};
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Receiver;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
+use ferrumc_core::tick::TickCounter;
 use ferrumc_core::time::WorldTime;
 use ferrumc_entities::components::PhysicalRegistry;
 use ferrumc_net::connection::NewConnection;
@@ -20,6 +22,9 @@ pub fn register_resources(
         last_synced: std::time::Instant::now(),
     });
     world.insert_resource(WorldTime::default());
+    world.insert_resource(TickCounter::new());
+    world.insert_resource(FluidScheduler::default());
+    world.insert_resource(ActiveDimension::default());
     world.insert_resource(ServerPerformance::new(get_global_config().tps));
     world.insert_resource(PhysicalRegistry::new());
 }

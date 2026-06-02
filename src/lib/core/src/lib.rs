@@ -8,5 +8,6 @@ pub mod conn;
 pub mod identity;
 pub mod mq;
 pub mod state;
+pub mod tick;
 pub mod time;
 pub mod transform;

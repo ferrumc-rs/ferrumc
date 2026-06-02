@@ -42,6 +42,25 @@ impl DirectSection {
     pub fn block_count(&self) -> u16 {
         self.1
     }
+
+    /// Packs every block id into the chunk-packet "data array" layout: a stream of u64s with
+    /// 16-bit entries, lowest index in the low bits, no spillover across longs.
+    ///
+    /// `bits_per_entry` is fixed at 16 for direct sections (we ship the global palette id), so
+    /// exactly four entries fit in each long. We could in theory `bytemuck::cast_slice::<u16,
+    /// u64>` the inner buffer, but that would assume a specific host endianness; the explicit
+    /// shift below is portable and not on a hot path (chunk send, not per-tick).
+    pub fn to_network_longs(&self) -> Vec<u64> {
+        const ENTRIES_PER_LONG: usize = 4;
+        const BITS_PER_ENTRY: usize = 16;
+        let mut out = vec![0u64; CHUNK_SECTION_LENGTH / ENTRIES_PER_LONG];
+        for (i, &id) in self.0.iter().enumerate() {
+            let long_idx = i / ENTRIES_PER_LONG;
+            let bit_idx = (i % ENTRIES_PER_LONG) * BITS_PER_ENTRY;
+            out[long_idx] |= (id as u64) << bit_idx;
+        }
+        out
+    }
 }
 
 impl From<&mut UniformSection> for DirectSection {
@@ -69,5 +88,49 @@ impl From<&mut PalettedSection> for DirectSection {
         }
 
         Self(vec.into_boxed_slice(), count)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Round-trip: every block id we put into a DirectSection must be recoverable from the packed
+    /// network long array. This guards against the previous bug where the data_array was sent
+    /// empty, causing every block to decode as 0 client-side (lava rendering as water etc.).
+    #[test]
+    fn to_network_longs_round_trips() {
+        let mut section = DirectSection::default();
+        // A handful of ids spread across the 4096 cells, including the boundaries between longs.
+        let samples: &[(usize, u32)] = &[
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 4),       // first long
+            (4, 100),     // second long, low entry
+            (7, 0xFFFF),  // second long, high entry (max representable)
+            (4095, 7),    // last cell
+        ];
+        for &(idx, id) in samples {
+            section.set_block(idx, BlockStateId::new(id));
+        }
+
+        let longs = section.to_network_longs();
+        assert_eq!(longs.len(), CHUNK_SECTION_LENGTH / 4);
+
+        // Manually decode each long (4 entries of 16 bits, lowest index in the low bits) and
+        // compare against the section's stored ids.
+        for long_idx in 0..longs.len() {
+            for entry in 0..4 {
+                let block_idx = long_idx * 4 + entry;
+                let decoded = ((longs[long_idx] >> (entry * 16)) & 0xFFFF) as u32;
+                assert_eq!(
+                    decoded,
+                    section.get_block(block_idx).raw(),
+                    "mismatch at block_idx {}",
+                    block_idx
+                );
+            }
+        }
     }
 }

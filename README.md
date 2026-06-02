@@ -132,6 +132,57 @@ Unfortunately, the server is **not yet ready for production use**. We are still 
 stages of development and are working hard to add more features and fix bugs.
 For now, you can either **compile** the server from source or **download** from Github Actions.
 
+### Tagged Releases
+
+Tagged releases publish a Docker image and pre-built binaries for each supported platform.
+This applies to every release, so the steps below are the same regardless of version.
+
+#### Docker (Recommended)
+
+```bash
+docker pull ghcr.io/ferrumc-rs/ferrumc:<version>
+docker run -p 25565:25565 ghcr.io/ferrumc-rs/ferrumc:<version>
+```
+
+Or use Docker Compose:
+
+```yaml
+services:
+  ferrumc:
+    image: ghcr.io/ferrumc-rs/ferrumc:<version>
+    ports:
+      - "25565:25565"
+    restart: unless-stopped
+```
+
+#### Native Binaries
+
+Download the binary for your platform from the
+[Releases](https://github.com/ferrumc-rs/ferrumc/releases) page, then run it directly:
+
+```bash
+# Linux/macOS
+chmod +x ferrumc-*
+./ferrumc-*
+```
+
+```powershell
+# Windows
+.\ferrumc-*.exe
+```
+
+Each binary ships with a SHA256 checksum file you can use to verify the download:
+
+```bash
+# Linux/macOS
+shasum -a 256 -c ferrumc-*.sha256
+```
+
+```powershell
+# Windows PowerShell
+Get-FileHash ferrumc-*.exe -Algorithm SHA256
+```
+
 ### [Option 1] Download from Github Actions
 
 ![Where To Find](https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/download_prebuilt.gif?raw=true)
