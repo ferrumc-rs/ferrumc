@@ -843,10 +843,10 @@ mod tests {
             ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
                 .expect("load chunk")
                 .get_block(lava_pos.chunk_block_pos());
-                
+
         assert_eq!(
             result,
-            block!("cobblestone"), 
+            block!("cobblestone"),
             "flowing lava touching a water source horizontally should become cobblestone, got {}",
             result
         );
@@ -868,7 +868,7 @@ mod tests {
         )
         .expect("generate chunk");
 
-        let lava_pos = BlockPos::of(0, 65, 0); 
+        let lava_pos = BlockPos::of(0, 65, 0);
         let water_pos = BlockPos::of(0, 64, 0);
         global
             .world
