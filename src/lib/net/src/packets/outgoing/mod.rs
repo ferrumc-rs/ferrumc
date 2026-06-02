@@ -63,3 +63,4 @@ pub mod update_time;
 
 pub mod synchronise_vehicle_position;
 pub mod update_tags;
+pub mod level_event;

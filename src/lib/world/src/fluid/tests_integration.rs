@@ -83,8 +83,9 @@ fn run(
             }
         }
 
-        // Write phase: apply changes and re-schedule, using the rules for whatever the new block
-        // is (the changed block, not the source position, drives the follow-up cadence).
+        // Write phase: apply each change, re-schedule the changed block if it asked, and wake the
+        // changed cell's fluid neighbours so updates ripple outward (mirrors the server's
+        // `apply_changes`, which performs the same neighbour propagation).
         for change in &changes {
             world.set(change.pos, change.new_block);
             total_changes += 1;
@@ -95,6 +96,12 @@ fn run(
                     // default. In practice non-fluid changes set reschedule = false.
                     .unwrap_or_else(|| FluidRules::for_kind(FluidKind::Water, DIM).tick_delay);
                 scheduler.schedule(change.pos, TickKind::FluidSpread, current, delay);
+            }
+            for neighbour in crate::fluid::spread::fluid_neighbours(change.pos) {
+                if let Some(state) = fluid_state(world.get(neighbour)) {
+                    let delay = FluidRules::for_kind(state.kind, DIM).tick_delay;
+                    scheduler.schedule(neighbour, TickKind::FluidSpread, current, delay);
+                }
             }
         }
     }
@@ -249,4 +256,56 @@ fn steady_state_stops_rescheduling() {
         0,
         "scheduler should drain to empty once fluid settles"
     );
+}
+
+/// Removing the source must make the *whole* flowing body recede level-by-level and ultimately
+/// disappear, not just blank the ring next to the source. This is the regression the receding
+/// rewrite targets.
+#[test]
+fn removing_source_drains_entire_flow() {
+    let mut world = MapWorld::new();
+    let mut scheduler = BlockTickScheduler::new();
+
+    // Flat floor with a source at the centre; let it spread out fully first.
+    for x in -8..=8 {
+        for z in -8..=8 {
+            world.set(p(x, 63, z), block!("stone"));
+        }
+    }
+    let source = p(0, 64, 0);
+    world.set(source, fluid_block(FluidKind::Water, 0));
+    scheduler.schedule(source, TickKind::FluidSpread, 0, 5);
+    run(&mut world, &mut scheduler, 0, 200);
+
+    // Sanity: water has spread several blocks out from the source.
+    assert!(
+        fluid_state(world.get(p(3, 64, 0))).is_some(),
+        "precondition: water should have spread before source removal"
+    );
+
+    // Remove the source and re-tick its position (as a bucket pickup / block break would).
+    world.set(source, block!("air"));
+    scheduler.schedule(source, TickKind::FluidSpread, 200, 0);
+    // Also wake the immediate neighbours so the drain kicks off, mirroring seed_on_block_break.
+    for n in [p(1, 64, 0), p(-1, 64, 0), p(0, 64, 1), p(0, 64, -1)] {
+        scheduler.schedule(n, TickKind::FluidSpread, 200, 0);
+    }
+    run(&mut world, &mut scheduler, 200, 600);
+
+    // Every flowing-water cell should be gone; nothing flowing should remain anywhere on the floor.
+    let mut remaining = Vec::new();
+    for x in -8..=8 {
+        for z in -8..=8 {
+            if fluid_state(world.get(p(x, 64, z))).is_some() {
+                remaining.push((x, z));
+            }
+        }
+    }
+    assert!(
+        remaining.is_empty(),
+        "all flowing water should drain after the source is removed, but these cells remain: {:?}",
+        remaining
+    );
+    // And the scheduler should be idle again.
+    assert_eq!(scheduler.pending_count(), 0, "scheduler should settle after draining");
 }

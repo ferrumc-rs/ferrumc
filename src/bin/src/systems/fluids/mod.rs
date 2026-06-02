@@ -20,18 +20,27 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_messages::BlockBrokenEvent;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
+use ferrumc_net::packets::outgoing::level_event::LevelEventPacket;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::dimension::Dimension;
 use ferrumc_world::fluid::is_fluid;
-use ferrumc_world::fluid::spread::{compute_fluid_tick, BlockView, FluidChange};
+use ferrumc_world::fluid::spread::{
+    compute_fluid_tick, fluid_neighbours, would_react, BlockView, FluidChange,
+};
 use ferrumc_world::fluid::{fluid_state, FluidKind, FluidRules};
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::scheduler::{BlockTickScheduler, ScheduledTick, TickKind};
 use std::collections::HashMap;
 use tracing::{error, trace};
+
+/// Delay (in ticks) before a lava block that has just touched water resolves its solidification.
+///
+/// Vanilla reacts essentially on the next block update; a 1-tick delay keeps that "instant on
+/// contact" feel rather than making lava wait out its slow 30-tick spread cadence.
+const REACTION_DELAY: u64 = 1;
 
 /// Minimum number of due ticks in a batch before the parallel evaluation path is used.
 ///
@@ -108,8 +117,16 @@ impl BlockView for WorldBlockView {
 /// The delay comes from [`FluidRules::for_kind`] for whatever fluid is at `pos`, so water and
 /// lava (and Nether vs overworld lava) tick at their own cadences.
 ///
-/// Intended to be called from block placement/break handlers (and from neighbour updates) to kick
-/// off or continue spreading. No-op for non-fluid blocks.
+/// Schedules a fluid tick for `pos` if it currently contains fluid, picking the right delay.
+///
+/// The delay is normally [`FluidRules::for_kind`] for whatever fluid is at `pos` (so water and
+/// lava, overworld vs Nether, tick at their own cadences). But if the block is lava that is already
+/// in contact with water — i.e. it would solidify this tick — it is scheduled at the fast
+/// [`REACTION_DELAY`] instead, so the reaction happens essentially on contact rather than after
+/// lava's slow spread cadence.
+///
+/// Intended to be called from block placement/break handlers and from neighbour propagation. No-op
+/// for non-fluid blocks.
 pub fn seed_fluid_tick(
     scheduler: &mut BlockTickScheduler,
     state: &GlobalState,
@@ -117,16 +134,23 @@ pub fn seed_fluid_tick(
     current_tick: u64,
     pos: BlockPos,
 ) {
-    let block = match ferrumc_utils::world::load_or_generate_chunk(state, pos.chunk(), dim.name()) {
-        Ok(chunk) => chunk.get_block(pos.chunk_block_pos()),
-        Err(_) => return,
+    let view = WorldBlockView {
+        state: state.clone(),
+        dim,
     };
-    if let Some(rules) = rules_for_block(block, dim.0) {
-        scheduler.schedule(pos, TickKind::FluidSpread, current_tick, rules.tick_delay);
-    } else {
-        // Keep the early exit on non-fluid blocks for callers that pass arbitrary positions.
+    let block = view.block_at(pos);
+    let Some(rules) = rules_for_block(block, dim.0) else {
         debug_assert!(!is_fluid(block), "rules_for_block disagreed with is_fluid");
-    }
+        return;
+    };
+    // A lava block already touching water solidifies almost immediately rather than waiting out its
+    // spread cadence.
+    let delay = if would_react(pos, &view) {
+        REACTION_DELAY
+    } else {
+        rules.tick_delay
+    };
+    scheduler.schedule(pos, TickKind::FluidSpread, current_tick, delay);
 }
 
 /// The six axis-aligned neighbours of a block position.
@@ -245,13 +269,21 @@ fn reduce_changes(changes: Vec<FluidChange>) -> Vec<FluidChange> {
     by_pos.into_values().collect()
 }
 
-/// Priority key for [`reduce_changes`]. Higher wins. Fluids outrank non-fluids; among fluids a
-/// lower level (stronger) outranks; ties fall back to the raw id for stability.
+/// Priority key for [`reduce_changes`]. Higher wins.
+///
+/// Lava/water solidifications (`fizz`) outrank everything: once a cell is set to turn into rock,
+/// no competing fluid flow at the same position may override it (this is what keeps a down-flow
+/// "stone" from being clobbered by the water cell's own recede in the same batch). Below that,
+/// fluids outrank non-fluids, and among fluids a lower level (stronger) wins; ties fall back to the
+/// raw id for stability.
 fn change_priority(change: &FluidChange) -> (u8, i32, u32) {
+    if change.fizz {
+        return (3, 0, change.new_block.raw());
+    }
     match fluid_state(change.new_block) {
-        // Fluid: top tier (2). Stronger (lower level) should win, so negate the level.
+        // Fluid: middle tier (2). Stronger (lower level) should win, so negate the level.
         Some(state) => (2, -(state.level as i32), change.new_block.raw()),
-        // Non-fluid (air/removal): lower tier (1).
+        // Non-fluid (air/removal): lowest tier (1).
         None => (1, 0, change.new_block.raw()),
     }
 }
@@ -384,9 +416,14 @@ fn prewarm_chunks(state: &GlobalState, dim: ActiveDimension, positions: &[BlockP
 /// been computed. Runs on the calling (main) thread, so writes are serial and need no locking
 /// beyond the per-chunk guard taken inside [`apply_change`].
 ///
-/// Re-scheduling reads the [`FluidRules`] for the *new* block at each change, so a freshly placed
-/// lava cell gets lava's cadence, even if the original tick that produced the change was scheduled
-/// at the water cadence (e.g. a water tick removing itself adjacent to lava).
+/// For each applied change this:
+/// * broadcasts the new block to nearby players, plus the lava-extinguish "fizz" effect when the
+///   change is a solidification ([`FluidChange::fizz`]);
+/// * re-ticks the changed flowing block itself when it asked for it;
+/// * wakes the fluid **neighbours** of the changed position (via [`seed_fluid_tick`], which also
+///   gives a lava-meets-water neighbour the fast reaction cadence). This neighbour propagation is
+///   what lets a recede, a fresh spread, or a solidification ripple through the whole body of fluid
+///   instead of stopping at the first ring — the analogue of vanilla's neighbour block updates.
 fn apply_changes(
     changes: &[FluidChange],
     scheduler: &mut BlockTickScheduler,
@@ -395,9 +432,7 @@ fn apply_changes(
     current: u64,
     players: &Query<(Entity, &StreamWriter, &Position)>,
 ) {
-    // Fallback delay for changes that turn a fluid into a non-fluid (e.g. drying up). In
-    // practice such changes set `reschedule = false`, but if a future change ever asks to be
-    // rescheduled we still need a defensible delay; water's cadence is the conservative choice.
+    // Fallback cadence for re-ticking a changed block whose new state is not itself fluid.
     let fallback_delay = FluidRules::for_kind(FluidKind::Water, dim.0).tick_delay;
 
     for change in changes {
@@ -405,11 +440,52 @@ fn apply_changes(
             continue;
         }
         broadcast_change(change, state, players);
+        if change.fizz {
+            // Play the hiss + smoke at the solidified block.
+            broadcast_fizz(change.pos, state, players);
+        }
+
+        // Re-tick the changed block itself if it is still flowing fluid that may keep evolving.
         if change.reschedule {
             let delay = rules_for_block(change.new_block, dim.0)
                 .map(|r| r.tick_delay)
                 .unwrap_or(fallback_delay);
             scheduler.schedule(change.pos, TickKind::FluidSpread, current, delay);
+        }
+
+        // Wake fluid neighbours so the update propagates outward. `seed_fluid_tick` skips
+        // non-fluid neighbours and picks the reaction cadence for lava that now touches water.
+        for neighbour in fluid_neighbours(change.pos) {
+            seed_fluid_tick(scheduler, state, dim, current, neighbour);
+        }
+    }
+}
+
+/// Broadcasts the lava-extinguish effect (sound + smoke) at `pos` to nearby players.
+fn broadcast_fizz(
+    pos: BlockPos,
+    state: &GlobalState,
+    players: &Query<(Entity, &StreamWriter, &Position)>,
+) {
+    let render_distance = get_global_config().chunk_render_distance as i32;
+    let target_chunk = pos.chunk();
+    let packet = LevelEventPacket::lava_extinguish(NetworkPosition {
+        x: pos.pos.x,
+        y: pos.pos.y as i16,
+        z: pos.pos.z,
+    });
+
+    for (eid, conn, position) in players.iter() {
+        if !state.players.is_connected(eid) {
+            continue;
+        }
+        let player_chunk = position.chunk();
+        if (target_chunk.x() - player_chunk.x).abs() <= render_distance
+            && (target_chunk.z() - player_chunk.y).abs() <= render_distance
+        {
+            if let Err(err) = conn.send_packet_ref(&packet) {
+                trace!("[fluid] failed to send lava-fizz level event: {:?}", err);
+            }
         }
     }
 }
@@ -575,6 +651,25 @@ mod tests {
                         .unwrap_or(TEST_DELAY);
                     scheduler.schedule(change.pos, TickKind::FluidSpread, tick, delay);
                 }
+                // Wake fluid neighbours so updates propagate, matching production `apply_changes`.
+                for neighbour in fluid_neighbours(change.pos) {
+                    let block = match ferrumc_utils::world::load_or_generate_chunk(
+                        state,
+                        neighbour.chunk(),
+                        TEST_DIM_NAME,
+                    ) {
+                        Ok(chunk) => chunk.get_block(neighbour.chunk_block_pos()),
+                        Err(_) => continue,
+                    };
+                    if let Some(rules) = rules_for_block(block, TEST_DIM.0) {
+                        scheduler.schedule(
+                            neighbour,
+                            TickKind::FluidSpread,
+                            tick,
+                            rules.tick_delay,
+                        );
+                    }
+                }
             }
         }
     }
@@ -696,21 +791,9 @@ mod tests {
     #[test]
     fn reduce_changes_is_order_independent() {
         let pos = BlockPos::of(5, 70, 5);
-        let strong = FluidChange {
-            pos,
-            new_block: fluid_block(FluidKind::Water, 1),
-            reschedule: true,
-        };
-        let weak = FluidChange {
-            pos,
-            new_block: fluid_block(FluidKind::Water, 6),
-            reschedule: false,
-        };
-        let air = FluidChange {
-            pos,
-            new_block: block!("air"),
-            reschedule: false,
-        };
+        let strong = FluidChange::flow(pos, fluid_block(FluidKind::Water, 1), true);
+        let weak = FluidChange::flow(pos, fluid_block(FluidKind::Water, 6), false);
+        let air = FluidChange::flow(pos, block!("air"), false);
 
         let a = reduce_changes(vec![strong, weak, air]);
         let b = reduce_changes(vec![air, weak, strong]);
@@ -725,6 +808,49 @@ mod tests {
         assert_eq!(c[0].new_block, strong.new_block);
         // reschedule is OR-ed across contributors.
         assert!(a[0].reschedule);
+    }
+
+    /// End-to-end through the real apply path: flowing lava adjacent to a water source solidifies
+    /// into stone. This exercises `compute_fluid_tick`'s reaction branch plus the production
+    /// `apply_changes` (write + neighbour waking), not just the pure algorithm.
+    #[test]
+    fn flowing_lava_beside_water_source_turns_to_stone() {
+        let (state, _tmp) = create_test_state();
+        let global = &state.0;
+
+        // Generate the chunk so set_block_and_fetch hits a cached chunk.
+        let _ = ferrumc_utils::world::load_or_generate_chunk(
+            global,
+            BlockPos::of(0, 64, 0).chunk(),
+            TEST_DIM_NAME,
+        )
+        .expect("generate chunk");
+
+        let lava_pos = BlockPos::of(0, 64, 0);
+        let water_pos = BlockPos::of(1, 64, 0);
+        global
+            .world
+            .set_block_and_fetch(lava_pos, TEST_DIM_NAME, fluid_block(FluidKind::Lava, 2))
+            .expect("set flowing lava");
+        global
+            .world
+            .set_block_and_fetch(water_pos, TEST_DIM_NAME, fluid_block(FluidKind::Water, 0))
+            .expect("set water source");
+
+        let mut scheduler = BlockTickScheduler::new();
+        // Tick the lava: it should solidify because it touches a water source.
+        scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
+        run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
+
+        let result = ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
+            .expect("load chunk")
+            .get_block(lava_pos.chunk_block_pos());
+        assert_eq!(
+            result,
+            block!("stone"),
+            "flowing lava touching a water source should become stone, got {}",
+            result
+        );
     }
 
     /// Manual benchmark comparing serial vs parallel evaluation on a large batch. Ignored by
