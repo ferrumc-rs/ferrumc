@@ -90,13 +90,15 @@ fn slope_distance<V: BlockView>(
     best
 }
 
-/// The level a freshly spread flowing block should take when fed from a block of `source_level`
-/// (or from a source, when `source_level` is 0). One `level_step` thinner than its feeder, clamped
-/// to the cap.
+/// The level a freshly spread flowing block would take when fed from a block of `source_level`
+/// (or from a source, when `source_level` is 0): one `level_step` thinner than its feeder.
+///
+/// Intentionally **not** clamped to the cap. The caller compares the result against
+/// `max_spread_level` to decide whether the fluid is still thick enough to spread at all; clamping
+/// here would defeat that check and let a max-level cell spread forever (an edge cell would then
+/// flip-flop between max-level water and air every tick).
 fn spread_level(rules: FluidRules, source_level: u8) -> u8 {
-    source_level
-        .saturating_add(rules.level_step)
-        .min(rules.max_spread_level)
+    source_level.saturating_add(rules.level_step)
 }
 
 /// Computes a single fluid block's changes for this tick, vanilla-style.
@@ -220,16 +222,25 @@ fn can_spread_into<V: BlockView>(
 
 /// The level a flowing block should hold this tick, or `None` if it should dry up.
 ///
-/// Vanilla's `getNewLiquid`: the block is fed by fluid directly above (a full column) or by the
-/// strongest horizontal same-fluid neighbour (`neighbour.level + level_step`). Water can also form
-/// a new source between two sources, but that is handled separately. Returns the strongest
-/// (lowest) supportable level within the cap.
+/// Mirrors vanilla's `getNewLiquid`, in priority order:
+/// 1. **Source formation** — if this fluid can form sources and the block has at least two
+///    horizontally adjacent same-fluid *sources* with solid (or same-fluid source) support below,
+///    it becomes a source (`Some(0)`). This is what makes a 2x2 (or two-with-a-gap) water pool
+///    self-heal into infinite water.
+/// 2. fluid directly above feeds a full column → near-source level;
+/// 3. otherwise the strongest horizontal same-fluid neighbour (`neighbour.level + level_step`).
+///
+/// Returns the strongest (lowest) supportable level within the cap, or `None` if nothing feeds it.
 fn new_liquid_level<V: BlockView>(
     pos: BlockPos,
     kind: FluidKind,
     rules: FluidRules,
     view: &V,
 ) -> Option<u8> {
+    if forms_source(pos, kind, rules, view) {
+        return Some(0);
+    }
+
     if matches!(fluid_state(view.block_at(above(pos))), Some(s) if s.kind == kind) {
         return Some(rules.level_step.min(rules.max_spread_level));
     }
@@ -246,6 +257,43 @@ fn new_liquid_level<V: BlockView>(
         }
     }
     best
+}
+
+/// Whether the cell at `pos` should spontaneously become a source of `kind` this tick.
+///
+/// Vanilla `canConvertToSource` + the source-count check in `getNewLiquid`: the fluid must allow
+/// infinite sources (`rules.can_form_source`), there must be at least two horizontally adjacent
+/// *source* blocks of the same fluid, and the block below must be either a same-fluid source or a
+/// solid block (so the new source has something to rest on). This is how water heals back into a
+/// full source between existing sources; lava never qualifies in the overworld/Nether.
+fn forms_source<V: BlockView>(pos: BlockPos, kind: FluidKind, rules: FluidRules, view: &V) -> bool {
+    if !rules.can_form_source {
+        return false;
+    }
+
+    let adjacent_sources = HORIZONTAL
+        .iter()
+        .filter(|&&offset| {
+            matches!(
+                fluid_state(view.block_at(pos + offset)),
+                Some(s) if s.kind == kind && s.is_source()
+            )
+        })
+        .count();
+    if adjacent_sources < 2 {
+        return false;
+    }
+
+    let below_block = view.block_at(below(pos));
+    let below_is_same_source =
+        matches!(fluid_state(below_block), Some(s) if s.kind == kind && s.is_source());
+    // "Solid" here means it is neither air/replaceable nor any fluid — something the source can
+    // rest on. Using the existing replaceability + fluid checks keeps this consistent with how the
+    // rest of the kernel classifies blocks without needing a full collision model.
+    let below_is_solid =
+        fluid_state(below_block).is_none() && !is_replaceable_by(kind, below_block);
+
+    below_is_same_source || below_is_solid
 }
 
 #[cfg(test)]
@@ -407,5 +455,121 @@ mod tests {
         let lower = c.iter().find(|c| c.pos == p(0, 64, 0)).unwrap();
         assert_eq!(lower.new_block, block!("stone"));
         assert!(lower.fizz);
+    }
+
+    // --- Infinite source formation (vanilla canConvertToSource). ---
+
+    /// A flowing water cell flanked by two water sources, resting on solid ground, converts into a
+    /// new source — the core of infinite water.
+    #[test]
+    fn flowing_water_between_two_sources_becomes_source() {
+        let mut view = MapView::new();
+        view.set(p(0, 63, 0), block!("stone")); // solid support below the gap
+        view.set(p(-1, 64, 0), fluid_block(FluidKind::Water, 0)); // source west
+        view.set(p(1, 64, 0), fluid_block(FluidKind::Water, 0)); // source east
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 1)); // flowing in the middle
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, water());
+        let self_change = changes
+            .iter()
+            .find(|c| c.pos == p(0, 64, 0))
+            .expect("middle cell should change");
+        assert_eq!(
+            self_change.new_block,
+            fluid_block(FluidKind::Water, 0),
+            "flowing water between two sources on solid ground becomes a source"
+        );
+    }
+
+    /// Only one adjacent source is not enough to form a new source.
+    #[test]
+    fn one_source_does_not_form_a_source() {
+        let mut view = MapView::new();
+        view.set(p(0, 63, 0), block!("stone"));
+        view.set(p(-1, 64, 0), fluid_block(FluidKind::Water, 0)); // single source
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 1));
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, water());
+        // It is fed (stays level 1) but must NOT become a source.
+        assert!(
+            changes
+                .iter()
+                .all(|c| !(c.pos == p(0, 64, 0) && c.new_block == fluid_block(FluidKind::Water, 0))),
+            "a single adjacent source must not create a new source, changes: {:?}",
+            changes
+        );
+    }
+
+    /// With no solid support below (the gap sits over air), two sources still do not form a new
+    /// source — the cell would fall instead.
+    #[test]
+    fn no_support_below_prevents_source_formation() {
+        let mut view = MapView::new();
+        // No floor under the middle cell; sources to either side are floored so they persist.
+        view.set(p(-1, 63, 0), block!("stone"));
+        view.set(p(1, 63, 0), block!("stone"));
+        view.set(p(-1, 64, 0), fluid_block(FluidKind::Water, 0));
+        view.set(p(1, 64, 0), fluid_block(FluidKind::Water, 0));
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 1));
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, water());
+        // It should flow down rather than convert to a source.
+        assert!(
+            changes
+                .iter()
+                .all(|c| !(c.pos == p(0, 64, 0) && c.new_block == fluid_block(FluidKind::Water, 0))),
+            "no support below must prevent source formation, changes: {:?}",
+            changes
+        );
+        assert!(
+            changes.iter().any(|c| c.pos == p(0, 63, 0)),
+            "the unsupported cell should flow downward instead"
+        );
+    }
+
+    /// Lava never forms infinite sources in the overworld, even flanked by two lava sources.
+    #[test]
+    fn lava_never_forms_a_source() {
+        let lava = FluidRules::for_kind(FluidKind::Lava, Dimension::Overworld);
+        let mut view = MapView::new();
+        view.set(p(0, 63, 0), block!("stone"));
+        view.set(p(-1, 64, 0), fluid_block(FluidKind::Lava, 0));
+        view.set(p(1, 64, 0), fluid_block(FluidKind::Lava, 0));
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Lava, 2));
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, lava);
+        assert!(
+            changes
+                .iter()
+                .all(|c| !(c.pos == p(0, 64, 0) && c.new_block == fluid_block(FluidKind::Lava, 0))),
+            "overworld lava must never form an infinite source, changes: {:?}",
+            changes
+        );
+    }
+
+    /// A flowing cell already at the maximum spread level must NOT spread further. Regression for
+    /// an edge-oscillation bug: when `spread_level` clamped to the cap, a max-level edge cell would
+    /// repeatedly spread max-level water into a neighbour that then dried up, flip-flopping every
+    /// tick forever. The fed level must exceed the cap so the spread is rejected.
+    #[test]
+    fn max_level_cell_does_not_spread() {
+        let rules = water();
+        // A level-7 (max) flowing cell, fed by a level-6 neighbour to the west so it is stable,
+        // on solid ground with open air to the east. It must not spread east (7 + 1 = 8 > cap).
+        let mut view = MapView::new();
+        view.set(p(-1, 64, 0), fluid_block(FluidKind::Water, 6));
+        view.set(
+            p(0, 64, 0),
+            fluid_block(FluidKind::Water, rules.max_spread_level),
+        );
+        view.set(p(0, 63, 0), block!("stone"));
+        view.set(p(1, 63, 0), block!("stone")); // floor east so spread (not fall) would be tested
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, rules);
+        assert!(
+            changes.iter().all(|c| c.pos != p(1, 64, 0)),
+            "max-level water must not spread to its neighbour, changes: {:?}",
+            changes
+        );
     }
 }
