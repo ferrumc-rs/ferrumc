@@ -913,7 +913,7 @@ mod tests {
         let water_pos = BlockPos::of(0, 65, 0);
         global
             .world
-            .set_block_and_fetch(lava_pos, TEST_DIM_NAME, fluid_block(FluidKind::Lava, 2))
+            .set_block_and_fetch(lava_pos, TEST_DIM_NAME, fluid_block(FluidKind::Lava, 0))
             .expect("set lava source");
         global
             .world
@@ -921,13 +921,13 @@ mod tests {
             .expect("set flowing water");
 
         let mut scheduler = BlockTickScheduler::new();
-        scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
+        scheduler.schedule(water_pos, TickKind::FluidSpread, 0, 0);
         run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
 
         let result =
-            ferrumc_utils::world::load_or_generate_chunk(global, water_pos.chunk(), TEST_DIM_NAME)
+            ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
                 .expect("load chunk")
-                .get_block(water_pos.chunk_block_pos());
+                .get_block(lava_pos.chunk_block_pos());
 
         assert_eq!(
             result,
