@@ -45,6 +45,10 @@ jobs:
             target: x86_64-unknown-linux-musl
           - os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
+          - os: ubuntu-22.04 # cuz glibc forward incompatible
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
           - os: windows-latest
             target: x86_64-pc-windows-msvc
           - os: macos-14
@@ -60,13 +64,15 @@ jobs:
         with:
           shared-key: "ferrumc"
       - name: Install musl-tools
-        if: runner.os == 'Linux'
+        if: contains(matrix.target, 'musl') 
         run: sudo apt-get update && sudo apt-get install -y musl-tools
+        
       - name: Build
         run: cargo build --profile production --target ${{ matrix.target }} -p ferrumc --features release
         env:
-          CC: ${{ runner.os == 'Linux' && 'musl-gcc' || '' }}
-          CXX: ${{ runner.os == 'Linux' && 'g++' || '' }}
+          CC: ${{ contains(matrix.target, 'musl') && 'musl-gcc' || '' }}
+          CXX: ${{ contains(matrix.target, 'musl') && 'g++' || '' }}
+
       - name: Package (Linux/macOS)
         if: runner.os != 'Windows'
         run: tar -czf ferrumc-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/production ferrumc
