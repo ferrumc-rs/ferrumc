@@ -63,6 +63,11 @@ on:
         description: 'Release version (e.g., v0.1.0)'
         required: true
         type: string
+      prerelease:
+        description: 'Mark this release as a pre-release'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -105,7 +110,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
 
 >>>>>>> 38723e90 (feat: add ci/cd pipelines for releases)
       - name: Install Rust nightly
@@ -173,19 +178,8 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
-      - name: Install cross
-        if: matrix.cross
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross
-
       - name: Build release binary
-        run: |
-          if [ "${{ matrix.cross }}" = "true" ]; then
-            cross build --release --target ${{ matrix.target }}
-          else
-            cargo build --release --target ${{ matrix.target }}
-          fi
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Strip binary (Linux/macOS)
         if: runner.os != 'Windows'
@@ -221,7 +215,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -240,7 +237,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ inputs.version }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ inputs.prerelease == false }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -258,9 +255,6 @@ jobs:
     needs: [build-binaries, build-docker]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -268,71 +262,14 @@ jobs:
           pattern: release-*
           merge-multiple: true
 
-      - name: Generate release notes
-        id: notes
-        run: |
-          cat > release_notes.md << 'EOF'
-          ## Installation
-
-          ### Docker (Recommended)
-          ```bash
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
-          docker run -p 25565:25565 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
-          ```
-
-          Or use Docker Compose:
-          ```yaml
-          version: '3.8'
-          services:
-            ferrumc:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
-              ports:
-                - "25565:25565"
-              restart: unless-stopped
-          ```
-
-          ### Native Binaries
-          Download the appropriate binary for your platform below and run it directly:
-
-          **Linux/macOS:**
-          ```bash
-          # Download the binary for your platform
-          chmod +x ferrumc-*
-          ./ferrumc-*
-          ```
-
-          **Windows:**
-          ```powershell
-          # Download ferrumc-*.exe and run it
-          .\ferrumc-*.exe
-          ```
-
-          ### Verify Downloads
-          Each binary includes a SHA256 checksum file for verification:
-          ```bash
-          # Linux/macOS
-          shasum -a 256 -c ferrumc-*.sha256
-
-          # Windows PowerShell
-          Get-FileHash ferrumc-*.exe -Algorithm SHA256
-          ```
-
-          ## What's Changed
-          <!-- Add your changelog here -->
-
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/...HEAD
-          EOF
-          
-          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
-
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.version }}
           name: Release ${{ inputs.version }}
-          body_path: ${{ steps.notes.outputs.notes_file }}
+          generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ inputs.prerelease }}
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -340,6 +277,7 @@ jobs:
   trigger-site-deploy:
     name: Trigger Site Deployment
     needs: create-release
+    if: ${{ inputs.prerelease == false }}
     runs-on: ubuntu-latest
     steps:
       - name: Trigger site repository workflow
