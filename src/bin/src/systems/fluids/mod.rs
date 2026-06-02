@@ -811,10 +811,52 @@ mod tests {
     }
 
     /// End-to-end through the real apply path: flowing lava adjacent to a water source solidifies
+    /// into cobblestone.
+    #[test]
+    fn flowing_lava_beside_water_source_turns_to_cobblestone() {
+        let (state, _tmp) = create_test_state();
+        let global = &state.0;
+
+        let _ = ferrumc_utils::world::load_or_generate_chunk(
+            global,
+            BlockPos::of(0, 64, 0).chunk(),
+            TEST_DIM_NAME,
+        )
+        .expect("generate chunk");
+
+        let lava_pos = BlockPos::of(0, 64, 0);
+        let water_pos = BlockPos::of(1, 64, 0);
+        global
+            .world
+            .set_block_and_fetch(lava_pos, TEST_DIM_NAME, fluid_block(FluidKind::Lava, 2))
+            .expect("set flowing lava");
+        global
+            .world
+            .set_block_and_fetch(water_pos, TEST_DIM_NAME, fluid_block(FluidKind::Water, 0))
+            .expect("set water source");
+
+        let mut scheduler = BlockTickScheduler::new();
+        scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
+        run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
+
+        let result =
+            ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
+                .expect("load chunk")
+                .get_block(lava_pos.chunk_block_pos());
+                
+        assert_eq!(
+            result,
+            block!("cobblestone"), 
+            "flowing lava touching a water source horizontally should become cobblestone, got {}",
+            result
+        );
+    }
+
+    /// End-to-end through the real apply path: flowing lava adjacent to a water source solidifies
     /// into stone. This exercises `compute_fluid_tick`'s reaction branch plus the production
     /// `apply_changes` (write + neighbour waking), not just the pure algorithm.
     #[test]
-    fn flowing_lava_beside_water_source_turns_to_stone() {
+    fn flowing_lava_above_water_source_turns_to_stone() {
         let (state, _tmp) = create_test_state();
         let global = &state.0;
 
@@ -826,8 +868,8 @@ mod tests {
         )
         .expect("generate chunk");
 
-        let lava_pos = BlockPos::of(0, 64, 0);
-        let water_pos = BlockPos::of(1, 64, 0);
+        let lava_pos = BlockPos::of(0, 65, 0); 
+        let water_pos = BlockPos::of(0, 64, 0);
         global
             .world
             .set_block_and_fetch(lava_pos, TEST_DIM_NAME, fluid_block(FluidKind::Lava, 2))
@@ -849,10 +891,12 @@ mod tests {
         assert_eq!(
             result,
             block!("stone"),
-            "flowing lava touching a water source should become stone, got {}",
+            "flowing lava falling into water should become stone, got {}",
             result
         );
     }
+
+    //TODO: obsidian check :3
 
     /// Manual benchmark comparing serial vs parallel evaluation on a large batch. Ignored by
     /// default (it only prints timing data and is sensitive to machine load); run explicitly with:
