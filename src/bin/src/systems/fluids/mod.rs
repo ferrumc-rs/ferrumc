@@ -27,9 +27,7 @@ use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::dimension::Dimension;
 use ferrumc_world::fluid::is_fluid;
-use ferrumc_world::fluid::spread::{
-    compute_fluid_tick, fluid_neighbours, would_react, BlockView, FluidChange,
-};
+use ferrumc_world::fluid::spread::{fluid_neighbours, would_react, BlockView, FluidChange};
 use ferrumc_world::fluid::{fluid_state, FluidKind, FluidRules};
 use ferrumc_world::pos::BlockPos;
 use ferrumc_world::scheduler::{BlockTickScheduler, ScheduledTick, TickKind};
@@ -312,8 +310,9 @@ fn evaluate_batch(
 }
 
 /// Evaluates a single ticking position against the world, picking the right [`FluidRules`] from
-/// whatever fluid currently sits there. Non-fluid positions produce no changes (the block was
-/// removed or replaced between scheduling and now).
+/// whatever fluid currently sits there, and dispatching to the configured spreading kernel.
+/// Non-fluid positions produce no changes (the block was removed or replaced between scheduling
+/// and now).
 #[inline]
 fn evaluate_position<V: BlockView>(view: &V, dim: Dimension, pos: BlockPos) -> Vec<FluidChange> {
     let block = view.block_at(pos);
@@ -321,7 +320,8 @@ fn evaluate_position<V: BlockView>(view: &V, dim: Dimension, pos: BlockPos) -> V
         return Vec::new();
     };
     let rules = FluidRules::for_kind(state.kind, dim);
-    compute_fluid_tick(pos, view, rules)
+    let algorithm = get_global_config().fluids.algorithm;
+    ferrumc_world::fluid::compute_tick(algorithm, pos, view, rules)
 }
 
 /// Serial evaluation: computes changes for every position on the calling thread.
@@ -389,18 +389,37 @@ fn evaluate_parallel(
     reduce_changes(all)
 }
 
+/// Horizontal radius (in blocks) that a single fluid tick may read.
+///
+/// The current six-neighbour model only needs radius 1, but the vanilla-style spread we are moving
+/// toward does a bounded slope search (`getSlopeDistance`, default depth 4) to find the nearest
+/// hole. Pre-warming to this radius now means the parallel read phase stays a genuine read-only
+/// phase once the new kernel lands: every chunk the search can touch is already cached, so no
+/// worker thread triggers chunk generation (which writes, and is unsafe to do concurrently).
+///
+/// Kept slightly larger than vanilla's depth-4 search so a downward probe at the rim of the search
+/// box still lands on a pre-warmed chunk.
+const FLUID_SEARCH_RADIUS: i32 = 5;
+
 /// Loads or generates, on the calling thread, every chunk the parallel evaluation phase might read.
 ///
-/// A fluid tick reads the ticking block and its six axis-aligned neighbours, so the set of chunks
-/// touched is each position's chunk plus the chunks of its neighbours. Doing this serially up front
-/// removes all chunk generation/insertion from the parallel phase, leaving only cache reads there.
+/// A fluid tick reads a horizontal box of half-width [`FLUID_SEARCH_RADIUS`] around the ticking
+/// block (plus one below, for downward probes). The set of chunks touched is therefore every chunk
+/// spanned by that box for every ticking position. Doing this serially up front removes all chunk
+/// generation/insertion from the parallel phase, leaving only cache reads there.
 fn prewarm_chunks(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) {
     use std::collections::HashSet;
+    let r = FLUID_SEARCH_RADIUS;
     let mut chunks = HashSet::new();
     for &pos in positions {
-        chunks.insert(pos.chunk());
-        for neighbour in neighbours(pos) {
-            chunks.insert(neighbour.chunk());
+        // The search is horizontal, so we only need to span chunks in x/z. Iterate every chunk
+        // column the half-width-`r` box covers (robust even if `r` exceeds a chunk width).
+        let min = (pos + (-r, 0, -r)).chunk();
+        let max = (pos + (r, 0, r)).chunk();
+        for cx in min.x()..=max.x() {
+            for cz in min.z()..=max.z() {
+                chunks.insert(ferrumc_world::pos::ChunkPos::new(cx, cz));
+            }
         }
     }
     for chunk_pos in chunks {

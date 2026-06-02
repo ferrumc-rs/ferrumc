@@ -14,10 +14,31 @@
 
 use crate::block_state_id::{BlockStateId, ID2BLOCK};
 use crate::dimension::Dimension;
+use ferrumc_config::server_config::FluidAlgorithm;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 pub mod spread;
+pub mod vanilla;
+
+/// Dispatches a single fluid tick to the kernel selected by `algorithm`.
+///
+/// Both kernels share the same seams (a read-only [`spread::BlockView`] in, a `Vec` of
+/// [`spread::FluidChange`] out) and both return real mutations only, leaving neighbour waking to
+/// the caller. This indirection is the single switch point: callers pass the configured
+/// [`FluidAlgorithm`] and never name a kernel directly.
+#[inline]
+pub fn compute_tick<V: spread::BlockView>(
+    algorithm: FluidAlgorithm,
+    pos: crate::pos::BlockPos,
+    view: &V,
+    rules: FluidRules,
+) -> Vec<spread::FluidChange> {
+    match algorithm {
+        FluidAlgorithm::Simplified => spread::compute_fluid_tick(pos, view, rules),
+        FluidAlgorithm::Vanilla => vanilla::compute_fluid_tick_vanilla(pos, view, rules),
+    }
+}
 
 #[cfg(test)]
 mod tests_integration;
@@ -62,6 +83,14 @@ pub struct FluidRules {
     /// Number of game ticks between scheduled updates of a flowing block of this fluid.
     /// Vanilla water = 5, overworld lava = 30, Nether lava = 10.
     pub tick_delay: u64,
+    /// How many blocks the vanilla-style slope search (`getSlopeDistance`) looks outward for the
+    /// nearest hole before giving up. Vanilla: water = 4, overworld lava = 2, Nether lava = 4.
+    /// Only used by the vanilla spread kernel; the simplified model ignores it.
+    pub slope_find_distance: u8,
+    /// Whether two or more adjacent source blocks can spontaneously create a new source between
+    /// them (infinite water). Vanilla: water = true, lava = false (lava is never infinite in
+    /// unmodified overworld/Nether). Only used by the vanilla spread kernel.
+    pub can_form_source: bool,
 }
 
 impl FluidRules {
@@ -75,16 +104,22 @@ impl FluidRules {
                 level_step: 1,
                 max_spread_level: 7,
                 tick_delay: 5,
+                slope_find_distance: 4,
+                can_form_source: true,
             },
             (FluidKind::Lava, Dimension::Nether) => Self {
                 level_step: 1,
                 max_spread_level: 7,
                 tick_delay: 10,
+                slope_find_distance: 4,
+                can_form_source: false,
             },
             (FluidKind::Lava, Dimension::Overworld | Dimension::End) => Self {
                 level_step: 2,
                 max_spread_level: 7,
                 tick_delay: 30,
+                slope_find_distance: 2,
+                can_form_source: false,
             },
         }
     }

@@ -90,7 +90,7 @@ impl FluidChange {
 /// checks whether the flow would actually strengthen them). The *opposite* fluid is intentionally
 /// not replaceable here: lava meeting water is resolved by the solidification reaction, not by one
 /// fluid overwriting the other. Solid blocks are never replaceable.
-fn is_replaceable_by(kind: FluidKind, block: BlockStateId) -> bool {
+pub(crate) fn is_replaceable_by(kind: FluidKind, block: BlockStateId) -> bool {
     if block == block!("air") || block == block!("void_air") {
         return true;
     }
@@ -107,7 +107,7 @@ fn below(pos: BlockPos) -> BlockPos {
 fn above(pos: BlockPos) -> BlockPos {
     pos + (0, 1, 0)
 }
-const HORIZONTAL: [(i32, i32, i32); 4] = [(1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)];
+pub(crate) const HORIZONTAL: [(i32, i32, i32); 4] = [(1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)];
 
 /// The six axis-aligned neighbours of `pos` (the cells a fluid tick at `pos` can influence).
 ///
@@ -145,7 +145,7 @@ fn lava_harden_in_place(lava: FluidState) -> BlockStateId {
 /// Mirrors vanilla: lava checks the five cells `{above, N, S, E, W}` (deliberately excluding the
 /// cell directly below) for water. Water below is handled by the down-flow path instead, so that a
 /// lava-above/water-below column solidifies the lower (water) cell into stone, not the upper lava.
-fn lava_harden_check<V: BlockView>(
+pub(crate) fn lava_harden_check<V: BlockView>(
     pos: BlockPos,
     lava: FluidState,
     view: &V,
@@ -154,6 +154,17 @@ fn lava_harden_check<V: BlockView>(
         .chain(HORIZONTAL.iter().map(|&o| pos + o))
         .any(|n| matches!(fluid_state(view.block_at(n)), Some(s) if s.kind == FluidKind::Water));
     touches_water.then(|| lava_harden_in_place(lava))
+}
+
+/// If lava at `pos` sits directly above a water cell, returns the [`FluidChange`] that turns that
+/// water cell into stone (the classic "stone generator"). Shared by both spread kernels.
+pub(crate) fn lava_water_down_reaction<V: BlockView>(
+    pos: BlockPos,
+    view: &V,
+) -> Option<FluidChange> {
+    let below_pos = below(pos);
+    matches!(fluid_state(view.block_at(below_pos)), Some(s) if s.kind == FluidKind::Water)
+        .then(|| FluidChange::reaction(below_pos, block!("stone")))
 }
 
 /// Computes the lowest level a flowing block of `kind` could legitimately hold this tick, given its
