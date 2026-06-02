@@ -106,10 +106,10 @@ mod tests {
             (0, 1),
             (1, 2),
             (2, 3),
-            (3, 4),       // first long
-            (4, 100),     // second long, low entry
-            (7, 0xFFFF),  // second long, high entry (max representable)
-            (4095, 7),    // last cell
+            (3, 4),      // first long
+            (4, 100),    // second long, low entry
+            (7, 0xFFFF), // second long, high entry (max representable)
+            (4095, 7),   // last cell
         ];
         for &(idx, id) in samples {
             section.set_block(idx, BlockStateId::new(id));
@@ -120,7 +120,7 @@ mod tests {
 
         // Manually decode each long (4 entries of 16 bits, lowest index in the low bits) and
         // compare against the section's stored ids.
-        for long_idx in 0..longs.len() {
+        for (long_idx, _) in longs.iter().enumerate() {
             for entry in 0..4 {
                 let block_idx = long_idx * 4 + entry;
                 let decoded = ((longs[long_idx] >> (entry * 16)) & 0xFFFF) as u32;

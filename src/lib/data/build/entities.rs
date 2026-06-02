@@ -304,7 +304,10 @@ pub(crate) fn build() -> TokenStream {
             }
 
             pub const fn is_attackable(&self) -> bool {
-                self.attackable.unwrap_or(false)
+                match self.attackable {
+                    Some(val) => val,
+                    None => false,
+                }
             }
 
             pub const fn can_summon(&self) -> bool {

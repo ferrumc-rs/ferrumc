@@ -52,7 +52,12 @@ fn p(x: i32, y: i32, z: i32) -> BlockPos {
 /// Runs the full scheduler-driven fluid loop for `ticks` game ticks, returning the number of block
 /// changes applied across the whole run. Mirrors the server's `process_fluid_ticks`: each due tick
 /// looks up the rules for the fluid currently at that position and feeds them to the algorithm.
-fn run(world: &mut MapWorld, scheduler: &mut BlockTickScheduler, start_tick: u64, ticks: u64) -> usize {
+fn run(
+    world: &mut MapWorld,
+    scheduler: &mut BlockTickScheduler,
+    start_tick: u64,
+    ticks: u64,
+) -> usize {
     // All integration tests in this file run in the overworld, where water and lava use their
     // own rules. The reschedule delay mirrors whichever fluid produced the change.
     const DIM: Dimension = Dimension::Overworld;
@@ -121,10 +126,13 @@ fn water_source_spreads_across_flat_floor_over_time() {
 
     // The four direct neighbours should now hold flowing water.
     for n in [p(1, 64, 0), p(-1, 64, 0), p(0, 64, 1), p(0, 64, -1)] {
-        let state = fluid_state(world.get(n))
-            .unwrap_or_else(|| panic!("expected water at {:?}", n.pos));
+        let state =
+            fluid_state(world.get(n)).unwrap_or_else(|| panic!("expected water at {:?}", n.pos));
         assert_eq!(state.kind, FluidKind::Water);
-        assert!(!state.is_source(), "neighbour should be flowing, not source");
+        assert!(
+            !state.is_source(),
+            "neighbour should be flowing, not source"
+        );
     }
     // The source itself is untouched.
     assert!(fluid_state(world.get(source)).unwrap().is_source());
