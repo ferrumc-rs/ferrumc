@@ -860,7 +860,6 @@ mod tests {
         let (state, _tmp) = create_test_state();
         let global = &state.0;
 
-        // Generate the chunk so set_block_and_fetch hits a cached chunk.
         let _ = ferrumc_utils::world::load_or_generate_chunk(
             global,
             BlockPos::of(0, 64, 0).chunk(),
@@ -880,23 +879,63 @@ mod tests {
             .expect("set water source");
 
         let mut scheduler = BlockTickScheduler::new();
-        // Tick the lava: it should solidify because it touches a water source.
+        // Tick the lava: it should flow down and turn the water into stone.
         scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
         run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
 
         let result =
-            ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
+            ferrumc_utils::world::load_or_generate_chunk(global, water_pos.chunk(), TEST_DIM_NAME)
                 .expect("load chunk")
-                .get_block(lava_pos.chunk_block_pos());
+                .get_block(water_pos.chunk_block_pos());
+
         assert_eq!(
             result,
             block!("stone"),
-            "flowing lava falling into water should become stone, got {}",
+            "flowing lava falling into water should become stone at the water's position, got {}",
             result
         );
     }
 
-    //TODO: obsidian check :3
+    //obsidian check :3
+    #[test]
+    fn flowing_water_above_lava_source_turns_to_obsidian() {
+        let (state, _tmp) = create_test_state();
+        let global = &state.0;
+
+        let _ = ferrumc_utils::world::load_or_generate_chunk(
+            global,
+            BlockPos::of(0, 64, 0).chunk(),
+            TEST_DIM_NAME,
+        )
+        .expect("generate chunk");
+
+        let lava_pos = BlockPos::of(0, 64, 0);
+        let water_pos = BlockPos::of(0, 65, 0);
+        global
+            .world
+            .set_block_and_fetch(lava_pos, TEST_DIM_NAME, fluid_block(FluidKind::Lava, 2))
+            .expect("set lava source");
+        global
+            .world
+            .set_block_and_fetch(water_pos, TEST_DIM_NAME, fluid_block(FluidKind::Water, 0))
+            .expect("set flowing water");
+
+        let mut scheduler = BlockTickScheduler::new();
+        scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
+        run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
+
+        let result =
+            ferrumc_utils::world::load_or_generate_chunk(global, water_pos.chunk(), TEST_DIM_NAME)
+                .expect("load chunk")
+                .get_block(water_pos.chunk_block_pos());
+                
+        assert_eq!(
+            result,
+            block!("obsidian"),
+            "flowing water falling into lava source should become obsidian at the lava's position, got {}",
+            result
+        );
+    }
 
     /// Manual benchmark comparing serial vs parallel evaluation on a large batch. Ignored by
     /// default (it only prints timing data and is sensitive to machine load); run explicitly with:
