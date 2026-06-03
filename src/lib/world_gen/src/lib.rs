@@ -1,152 +1,285 @@
+//! World generation.
+//!
+//! This is a port of the layered terrain pipeline from the upstream `feature/nicer-terrain`
+//! branch, adapted to FerrumC's current chunk model. The upstream branch rewrote the entire
+//! chunk/section model (`chunk_format`, `EditBatch`, per-section `block_counts`, etc.); rather
+//! than pull that in (which would conflict with the fluid system, palette, and network
+//! serialization), this port keeps the existing [`ferrumc_world::chunk::Chunk`] API and reproduces
+//! only the *generation algorithm*:
+//!
+//! 1. Fill the column with stone up to [`MAX_GENERATED_HEIGHT`].
+//! 2. Carve an initial height field from broad height noise (`carving::initial_height`).
+//! 3. Apply erosion to lower the surface further (`carving::erosion`).
+//! 4. Per column, pick a biome from the noise/height and let it decorate the surface
+//!    (`biomes::{plains, ocean, mountain}`).
+//! 5. Carve caves (retained from FerrumC's existing generator; the upstream branch dropped them).
+//!
+//! The per-column surface height and noise values are passed around as plain local arrays
+//! (`Heightmap` / `ColumnNoise`) during a single `generate_chunk` call rather than being stored on
+//! the chunk, since nothing outside generation needs them.
+
 mod biomes;
+mod carving;
 mod caves;
 pub mod errors;
 mod interp;
+mod terrain_noise;
 
 use crate::errors::WorldGenError;
-use crate::interp::smoothstep;
-use ferrumc_world::{chunk::Chunk, pos::ChunkPos};
-use noise::{Fbm, MultiFractal, NoiseFn, Perlin, RidgedMulti};
+use crate::terrain_noise::NoiseGenerator;
+use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::chunk::Chunk;
+use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
+use noise::{MultiFractal, NoiseFn, RidgedMulti};
 
-/// Trait for generating a biome
+/// The highest Y the generator fills before carving. The whole column is stone up to here, then
+/// height + erosion carve it back down to the real surface.
+pub const MAX_GENERATED_HEIGHT: i16 = 192;
+
+/// The nominal sea-level-ish baseline the height field is centred on.
+pub const BASELINE_HEIGHT: i16 = 82;
+
+/// The lowest world Y (overworld floor). The bedrock layer sits here.
+const MIN_WORLD_Y: i16 = -64;
+
+/// A per-column surface height map for one chunk (`[local_x][local_z]`).
+pub(crate) type Heightmap = [[i16; 16]; 16];
+
+/// Per-column noise values captured during carving, reused for biome selection.
+#[derive(Default, Clone, Copy)]
+pub(crate) struct ColumnNoise {
+    pub erosion: f32,
+    pub height: f32,
+}
+
+/// Trait implemented by each biome's surface decorator.
 ///
-/// Should be implemented for each biome's generator
+/// Biomes only *decorate* a single column (`local_x`, `local_z`): the base stone terrain and the
+/// surface height are already established by the carving stages, so a biome just places its
+/// surface blocks (grass/dirt, sand/sandstone + water, etc.) relative to the column's height.
 pub(crate) trait BiomeGenerator {
     fn _biome_id(&self) -> u8;
     fn _biome_name(&self) -> String;
-    fn generate_chunk(&self, pos: ChunkPos, noise: &NoiseGenerator)
-    -> Result<Chunk, WorldGenError>;
+    /// Decorates column (`x`, `z`) of `chunk`, where `surface_y` is the established surface height
+    /// for that column.
+    fn decorate(
+        &self,
+        chunk: &mut Chunk,
+        x: u8,
+        z: u8,
+        surface_y: i16,
+    ) -> Result<(), WorldGenError>;
+    fn new(seed: u64) -> Self
+    where
+        Self: Sized;
 }
 
+/// Terrain generator. Holds the noise samplers; one instance is shared across all chunk
+/// generation for a world.
 pub struct WorldGenerator {
-    _seed: u64,
-    noise_generator: NoiseGenerator,
-}
-pub(crate) struct NoiseGenerator {
-    // broad “land shape”
-    base: Fbm<Perlin>,
-    // spiky mountains
-    peaks: RidgedMulti<Perlin>,
-    // where mountains should appear
-    mountain_mask: Fbm<Perlin>,
-    pub seed: u64,
-
-    pub(crate) caves_layer: RidgedMulti<noise::OpenSimplex>,
-}
-
-impl NoiseGenerator {
-    pub fn new(seed: u64) -> Self {
-        let base = Fbm::<Perlin>::new(seed as u32)
-            .set_octaves(4)
-            .set_frequency(0.002); // big smooth hills
-
-        let peaks = RidgedMulti::<Perlin>::new((seed as u32).wrapping_add(1))
-            .set_octaves(4)
-            .set_frequency(0.01); // spiky detail (tune)
-
-        let mountain_mask = Fbm::<Perlin>::new((seed as u32).wrapping_add(2))
-            .set_octaves(2)
-            .set_frequency(0.0006); // very broad regions
-
-        Self {
-            base,
-            peaks,
-            mountain_mask,
-            caves_layer: RidgedMulti::new((seed + 100) as u32)
-                .set_frequency(0.01)
-                .set_lacunarity(2.5)
-                .set_octaves(5)
-                .set_persistence(0.8)
-                .set_attenuation(0.3),
-            seed,
-        }
-    }
-
-    pub fn get_noise(&self, x: f64, z: f64) -> f64 {
-        let to01 = |n: f64| (n * 0.5 + 0.5).clamp(0.0, 1.0);
-
-        // Smooth base terrain (valleys + gentle hills)
-        let base = self.base.get([x, z]);
-        let base01 = to01(base);
-
-        // Spiky mountains (ridged)
-        let peaks = self.peaks.get([x, z]);
-        let peaks01 = to01(peaks);
-
-        // Mountain placement mask (big regions)
-        let mask = self.mountain_mask.get([x, z]);
-        let mask01 = to01(mask);
-
-        // Make mask “binary-ish”: lowlands stay lowlands, mountains cluster
-        let mask_shaped = smoothstep(((mask01 - 0.45) / (0.75 - 0.45)).clamp(0.0, 1.0));
-
-        // Compose:
-        // - keep valleys flatter by compressing base a bit
-        // - add peaks only where mask says so
-        let valleys = base01.powf(1.3); // <— flatter lowlands
-        let mountain_add = peaks01.powf(2.2) * 0.25; // <— spikiness + height
-
-        // Final 0..1-ish height signal
-        let h01 = valleys + mountain_add * mask_shaped;
-
-        (h01.clamp(0.0, 1.0) * 2.0) - 1.0
-    }
-
-    pub fn get_cave_noise(&self, x: f64, y: f64, z: f64) -> f64 {
-        self.caves_layer.get([x, y, z])
-    }
+    seed: u64,
+    height_noise: NoiseGenerator,
+    erosion_noise: NoiseGenerator,
+    caves_layer: RidgedMulti<noise::OpenSimplex>,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
-            _seed: seed,
-            noise_generator: NoiseGenerator::new(seed),
+            seed,
+            height_noise: carving::initial_height::height_noise(seed.wrapping_add(2)),
+            erosion_noise: carving::erosion::erosion_noise(seed.wrapping_add(3)),
+            caves_layer: RidgedMulti::<noise::OpenSimplex>::new((seed.wrapping_add(100)) as u32)
+                .set_frequency(0.01)
+                .set_lacunarity(2.5)
+                .set_octaves(5)
+                .set_persistence(0.8)
+                .set_attenuation(0.3),
         }
     }
 
-    fn get_biome(&self, _pos: ChunkPos) -> Box<dyn BiomeGenerator> {
-        // Implement biome selection here
-        Box::new(biomes::plains::PlainsBiome)
+    /// 3D cave noise sample (retained from FerrumC's previous generator).
+    pub(crate) fn cave_noise(&self, x: f64, y: f64, z: f64) -> f64 {
+        self.caves_layer.get([x, y, z])
+    }
+    /// Selects the biome for a column from its captured noise/height.
+    fn get_biome(&self, noise: ColumnNoise, surface_y: i16) -> Box<dyn BiomeGenerator> {
+        if surface_y < 50 {
+            return Box::new(biomes::ocean::OceanBiome::new(self.seed));
+        }
+        if noise.erosion <= 0.3 {
+            return Box::new(biomes::mountain::MountainBiome::new(self.seed));
+        }
+        Box::new(biomes::plains::PlainsBiome::new(self.seed))
     }
 
     pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
-        let biome = self.get_biome(pos);
-        let mut chunk = biome.generate_chunk(pos, &self.noise_generator)?;
-        caves::generate_caves(&mut chunk, pos, &self.noise_generator);
+        let mut chunk = Chunk::new_empty();
+
+        // 1. Fill every section whose top is at or below MAX_GENERATED_HEIGHT with stone.
+        //    Section index i covers world Y [i*16-64, i*16-64+15]; fill while the section bottom is
+        //    below the generated ceiling.
+        let stone = ferrumc_macros::block!("stone");
+        let top_section = (MAX_GENERATED_HEIGHT / 16) as i8; // 192/16 = 12
+        for section_y in -4..top_section {
+            chunk.fill_section(section_y, stone);
+        }
+
+        // 2 + 3. Carve the surface height field (initial height, then erosion). These return the
+        //         per-column surface height and the noise values used, captured for biome
+        //         selection.
+        let mut heightmap: Heightmap = [[BASELINE_HEIGHT; 16]; 16];
+        let mut col_noise = [[ColumnNoise::default(); 16]; 16];
+        self.apply_initial_height(&mut chunk, pos, &mut heightmap, &mut col_noise);
+        self.apply_erosion(&mut chunk, pos, &mut heightmap, &mut col_noise);
+
+        // 4. Decorate each column according to its biome.
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                let surface_y = heightmap[x as usize][z as usize];
+                let biome = self.get_biome(col_noise[x as usize][z as usize], surface_y);
+                biome.decorate(&mut chunk, x, z, surface_y)?;
+            }
+        }
+
+        // 5. Carve caves through the solid terrain (retained feature).
+        self.generate_caves(&mut chunk, pos);
+
+        // 6. Lay an unbreakable bedrock floor at the bottom of the world (Y = -64). Done last so
+        //    cave carving cannot punch through it.
+        let bedrock = ferrumc_macros::block!("bedrock");
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                chunk.set_block(ChunkBlockPos::new(x, MIN_WORLD_Y, z), bedrock);
+            }
+        }
+
         Ok(chunk)
+    }
+
+    /// Clears (sets to air) every block in column (`x`, `z`) strictly above `surface_y` up to the
+    /// generated ceiling. Shared by the carving stages so a lowered surface actually removes the
+    /// stone above it.
+    fn clear_above(chunk: &mut Chunk, x: u8, z: u8, surface_y: i16) {
+        let air = ferrumc_macros::block!("air");
+        for y in (surface_y + 1)..=MAX_GENERATED_HEIGHT {
+            chunk.set_block(ChunkBlockPos::new(x, y, z), air);
+        }
     }
 }
 
-#[test]
-#[ignore]
-fn find_good_seed() {
-    use ferrumc_macros::match_block;
-    use ferrumc_world::block_state_id::BlockStateId;
-    use ferrumc_world::pos::ChunkBlockPos;
-    let mut the_good_seed = 0u64;
-    println!("Searching for good seed...");
-    'seed: for seed in 0..10000000u64 {
-        let gener = WorldGenerator::new(seed);
-        let chunk = gener.generate_chunk(ChunkPos::new(1, 1)).unwrap();
-        // Check if the section below me is solid on top
-        println!("Testing seed {}", seed);
-        'y: for y in (64..128).rev() {
-            let block = chunk.get_block(ChunkBlockPos::new(0, y, 0));
-            if match_block!("air", block) {
-                continue 'y;
-            } else if match_block!("water", block) {
-                println!("got water at y={}, rejecting", y);
-                continue 'seed;
-            } else {
-                the_good_seed = seed;
-                break 'seed;
+// Carving stage implementations live in the `carving` submodule (as `impl WorldGenerator`).
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ferrumc_macros::{block, match_block};
+
+    #[test]
+    fn generates_without_error() {
+        let generator = WorldGenerator::new(0);
+        assert!(generator.generate_chunk(ChunkPos::new(0, 0)).is_ok());
+    }
+
+    #[test]
+    fn high_and_low_coordinates_are_ok() {
+        let generator = WorldGenerator::new(67890);
+        assert!(
+            generator
+                .generate_chunk(ChunkPos::new((1 << 21) - 1, (1 << 21) - 1))
+                .is_ok()
+        );
+        assert!(
+            generator
+                .generate_chunk(ChunkPos::new(-((1 << 21) - 1), -((1 << 21) - 1)))
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn generated_chunk_is_not_all_air() {
+        let generator = WorldGenerator::new(13579);
+        let chunk = generator.generate_chunk(ChunkPos::new(0, 0)).unwrap();
+        let mut solid = 0;
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                for y in -64..192i16 {
+                    if !match_block!("air", chunk.get_block(ChunkBlockPos::new(x, y, z))) {
+                        solid += 1;
+                    }
+                }
             }
         }
+        assert!(solid > 0, "generated chunk should contain solid blocks");
     }
-    if the_good_seed != 0 {
-        println!("Found good seed: {}", the_good_seed);
-    } else {
-        println!("No good seed found");
+
+    #[test]
+    fn neighbouring_chunks_differ() {
+        let generator = WorldGenerator::new(24680);
+        let a = generator.generate_chunk(ChunkPos::new(0, 0)).unwrap();
+        let b = generator.generate_chunk(ChunkPos::new(10, 10)).unwrap();
+        // Compare the surface column at local (0,0): different terrain noise should usually differ.
+        let col = |c: &Chunk| {
+            (-64..192i16)
+                .map(|y| c.get_block(ChunkBlockPos::new(0, y, 0)).raw())
+                .collect::<Vec<_>>()
+        };
+        assert_ne!(
+            col(&a),
+            col(&b),
+            "distant chunks should generate differently"
+        );
+    }
+
+    /// Computes the highest non-air Y in a column (the surface). Returns `None` if all air.
+    fn surface_height(chunk: &Chunk, x: u8, z: u8) -> Option<i16> {
+        (-64..256i16)
+            .rev()
+            .find(|&y| !match_block!("air", chunk.get_block(ChunkBlockPos::new(x, y, z))))
+    }
+
+    /// Regression guard against "superflat" terrain: the surface must vary by a meaningful amount
+    /// across a region. Before the height-noise rescale the effective frequency was so low and the
+    /// amplitude so small that every column landed at the same Y and the world looked flat.
+    #[test]
+    fn terrain_has_meaningful_height_variation() {
+        let generator = WorldGenerator::new(0);
+        let mut min_h = i16::MAX;
+        let mut max_h = i16::MIN;
+        for cx in 0..6 {
+            for cz in 0..6 {
+                let chunk = generator.generate_chunk(ChunkPos::new(cx, cz)).unwrap();
+                for &(x, z) in &[(0u8, 0u8), (8, 8), (15, 15)] {
+                    if let Some(h) = surface_height(&chunk, x, z) {
+                        min_h = min_h.min(h);
+                        max_h = max_h.max(h);
+                    }
+                }
+            }
+        }
+        let spread = max_h - min_h;
+        assert!(
+            spread >= 12,
+            "terrain is too flat: surface spread over the sampled region was only {spread} \
+             blocks (min {min_h}, max {max_h}); expected hills of at least ~12 blocks"
+        );
+    }
+
+    /// The bottom world layer (Y = -64) must be solid bedrock in every column, and caves must not
+    /// have punched through it.
+    #[test]
+    fn world_floor_is_bedrock() {
+        let generator = WorldGenerator::new(99);
+        let chunk = generator.generate_chunk(ChunkPos::new(3, 7)).unwrap();
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                let floor = chunk.get_block(ChunkBlockPos::new(x, -64, z));
+                assert_eq!(
+                    floor,
+                    block!("bedrock"),
+                    "world floor at ({x},-64,{z}) should be bedrock, was {floor:?}"
+                );
+            }
+        }
     }
 }
