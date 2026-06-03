@@ -2,10 +2,11 @@ use bevy_ecs::prelude::{MessageReader, Query};
 use bevy_math::IVec2;
 use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::chunks::chunk_receiver::{effective_view_radius, ChunkReceiver};
 use ferrumc_core::transform::position::Position;
 use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_world::pos::ChunkPos;
+use std::collections::HashSet;
 use tracing::warn;
 
 pub fn handle(
@@ -23,16 +24,26 @@ pub fn handle(
 
         let server_render_distance = get_global_config().chunk_render_distance as i32;
         let client_view_distance = client_info.view_distance as i32;
-        let radius = server_render_distance.min(client_view_distance);
+        let radius = effective_view_radius(server_render_distance, client_view_distance);
         let player_chunk = ChunkPos::from(position.coords);
+
+        // Chunks already queued this session, so we don't push duplicates into `loading`. The
+        // `loading` deque has no membership check of its own, and `ChunkCalc` fires on every
+        // chunk-boundary crossing, so without this a chunk that is queued but not yet sent would
+        // be re-queued on every move — piling up stale duplicates that crowd out genuinely new
+        // chunks under the per-tick send limit.
+        let already_queued: HashSet<(i32, i32)> = chunk_receiver.loading.iter().copied().collect();
 
         let mut queued_chunks = Vec::new();
 
-        // Add all chunks within the radius to the loading list if not already loaded
+        // Add all chunks within the (square / Chebyshev) radius to the loading list if not already
+        // loaded or already queued. This MUST use the same metric the sender filters with.
         for x in player_chunk.x() - radius..=player_chunk.x() + radius {
             for z in player_chunk.z() - radius..=player_chunk.z() + radius {
                 let chunk_coords = (x, z);
-                if !chunk_receiver.loaded.contains(&chunk_coords) {
+                if !chunk_receiver.loaded.contains(&chunk_coords)
+                    && !already_queued.contains(&chunk_coords)
+                {
                     queued_chunks.push(chunk_coords);
                 }
             }
