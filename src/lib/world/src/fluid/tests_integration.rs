@@ -404,9 +404,14 @@ fn vanilla_water_cascades_down_a_staircase_with_bounded_activity() {
             world.set(p(12, y, z), block!("stone"));
         }
     }
-    // A back wall behind the source so it cannot flow -x off the top step.
-    world.set(p(-1, 67, 0), block!("stone"));
-    world.set(p(-1, 66, 0), block!("stone"));
+    // A back wall behind the source so it cannot flow -x off the top step. It must span the full
+    // channel width (z = -1..=1, matching the side walls at z = +-2) — sealing only z = 0 would
+    // leave the corners (-1, *, +-1) open, and the slope search would steer the source around the
+    // corner into that void (distance 2) instead of down the staircase (distance 3).
+    for z in -1..=1 {
+        world.set(p(-1, 67, z), block!("stone"));
+        world.set(p(-1, 66, z), block!("stone"));
+    }
 
     // Pour a water source at the top step.
     let source = p(0, 67, 0);

@@ -664,14 +664,21 @@ mod tests {
         view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 0));
 
         let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, r);
-        let dirs: std::collections::HashSet<(i32, i32)> = changes
-            .iter()
-            .map(|c| (c.pos.pos.x, c.pos.pos.z))
-            .collect();
+        let dirs: std::collections::HashSet<(i32, i32)> =
+            changes.iter().map(|c| (c.pos.pos.x, c.pos.pos.z)).collect();
         for d in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-            assert!(dirs.contains(&d), "missing spread direction {:?}: {:?}", d, dirs);
+            assert!(
+                dirs.contains(&d),
+                "missing spread direction {:?}: {:?}",
+                d,
+                dirs
+            );
         }
-        assert_eq!(dirs.len(), 4, "should spread exactly four ways on symmetric flat ground");
+        assert_eq!(
+            dirs.len(),
+            4,
+            "should spread exactly four ways on symmetric flat ground"
+        );
     }
 
     /// Two holes at different distances: water steers to the NEARER one only. Confirms the BFS
@@ -728,10 +735,30 @@ mod tests {
 
         // The source must steer ONLY east (+x); the other three directions have no hole in range.
         let dists = debug_spread_distances(p(0, 64, 0), &view, r);
-        assert_eq!(dists[0], Some(4), "east should find the hole at distance 4: {:?}", dists);
-        assert_eq!(dists[1], Some(NO_HOLE), "west has no hole in range: {:?}", dists);
-        assert_eq!(dists[2], Some(NO_HOLE), "+z has no hole in range: {:?}", dists);
-        assert_eq!(dists[3], Some(NO_HOLE), "-z has no hole in range: {:?}", dists);
+        assert_eq!(
+            dists[0],
+            Some(4),
+            "east should find the hole at distance 4: {:?}",
+            dists
+        );
+        assert_eq!(
+            dists[1],
+            Some(NO_HOLE),
+            "west has no hole in range: {:?}",
+            dists
+        );
+        assert_eq!(
+            dists[2],
+            Some(NO_HOLE),
+            "+z has no hole in range: {:?}",
+            dists
+        );
+        assert_eq!(
+            dists[3],
+            Some(NO_HOLE),
+            "-z has no hole in range: {:?}",
+            dists
+        );
 
         let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, r);
         assert!(
@@ -740,9 +767,9 @@ mod tests {
             changes
         );
         assert!(
-            changes.iter().all(|c| c.pos != p(-1, 64, 0)
-                && c.pos != p(0, 64, 1)
-                && c.pos != p(0, 64, -1)),
+            changes
+                .iter()
+                .all(|c| c.pos != p(-1, 64, 0) && c.pos != p(0, 64, 1) && c.pos != p(0, 64, -1)),
             "source must NOT spread to the holeless directions: {:?}",
             changes
         );

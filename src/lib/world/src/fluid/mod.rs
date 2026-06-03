@@ -42,8 +42,6 @@ pub fn compute_tick<V: spread::BlockView>(
 
 #[cfg(test)]
 mod tests_integration;
-#[cfg(test)]
-mod osc_probe;
 
 /// The category of a fluid.
 ///
