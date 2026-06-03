@@ -520,7 +520,7 @@ fn vanilla_two_by_two_pool_heals_to_infinite_source() {
     // Walls around so nothing escapes.
     for x in -1..=2 {
         for z in -1..=2 {
-            if x < 0 || x > 1 || z < 0 || z > 1 {
+            if !(0..=1).contains(&x) || !(0..=1).contains(&z) {
                 world.set(p(x, 64, z), block!("stone"));
                 world.set(p(x, 63, z), block!("stone"));
             }

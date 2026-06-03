@@ -109,15 +109,10 @@ pub enum FluidAlgorithm {
 }
 
 /// The fluid simulation configuration section from [ServerConfig].
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Default, Debug, Deserialize, Serialize)]
 pub struct FluidConfig {
     /// Which spreading algorithm to use. Defaults to `vanilla`.
     #[serde(default)]
-    pub algorithm: FluidAlgorithm,
-}
-
-#[derive(Default)]
-pub struct FluidConfig {
     pub algorithm: FluidAlgorithm,
 }
 

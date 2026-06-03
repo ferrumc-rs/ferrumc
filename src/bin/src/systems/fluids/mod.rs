@@ -88,21 +88,12 @@ pub struct FluidScheduler(pub BlockTickScheduler);
 /// (potentially huge) cascade of a single placement can be inspected one game tick at a time
 /// without drowning in logs. Only the fluid system consults this; the rest of the server keeps
 /// running normally, so players can still move and place blocks while fluids are frozen.
-#[derive(Resource)]
+#[derive(Default, Resource)]
 pub struct FluidTickControl {
     /// When true, fluid ticks do not advance unless `steps` is positive.
     pub frozen: bool,
     /// Number of single steps queued up while frozen. Each processed tick decrements this.
     pub steps: u32,
-}
-
-impl Default for FluidTickControl {
-    fn default() -> Self {
-        Self {
-            frozen: false,
-            steps: 0,
-        }
-    }
 }
 
 impl FluidTickControl {
