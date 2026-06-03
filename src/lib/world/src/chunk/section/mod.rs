@@ -294,20 +294,20 @@ mod section_tests {
         // with water, then air, then sand again (a cell being filled, drained, refilled), many
         // times over — the churn that used to inflate sand's count.
         for round in 0..4 {
-            for i in 0..CHUNK_SECTION_LENGTH {
+            for (i, item) in model.iter_mut().enumerate().take(CHUNK_SECTION_LENGTH) {
                 let new = match (round + i) % 3 {
                     0 => water,
                     1 => air,
                     _ => sand,
                 };
                 section.set_block(sbp(i), new);
-                model[i] = new;
+                *item = new;
             }
             // After every round, every cell must still read back the model value.
-            for i in 0..CHUNK_SECTION_LENGTH {
+            for (i, item) in model.iter().enumerate().take(CHUNK_SECTION_LENGTH) {
                 assert_eq!(
                     section.get_block(sbp(i)),
-                    model[i],
+                    *item,
                     "cell {i} corrupted after round {round} (section collapsed?)"
                 );
             }
