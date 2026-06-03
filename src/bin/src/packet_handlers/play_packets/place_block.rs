@@ -185,11 +185,15 @@ pub fn handle(
                         block_state_id: VarInt::from(*mapped_block_state_id),
                     };
 
-                    if let Err(err) = conn.send_packet_ref(&ack_packet) {
-                        error!("Failed to send block change ack packet: {:?}", err);
-                        continue 'ev_loop;
-                    }
-
+                    // Broadcast the authoritative block state to every nearby player FIRST, then
+                    // acknowledge the placing client's sequence LAST. Order matters: on block
+                    // placement the client predicts the block locally and, when it receives the
+                    // BlockChangeAck, reconciles that prediction against the authoritative state it
+                    // currently knows. If the ack arrives before the BlockUpdate, the client sees
+                    // the cell as still empty, discards its prediction (the block flickers out),
+                    // then the BlockUpdate arrives and it reappears. Sending the update before the
+                    // ack keeps the client's authoritative state in sync at reconcile time, so the
+                    // placed block never flickers. (The digging path already sends update-then-ack.)
                     let offset_chunk = offset_pos.chunk();
                     let (offset_chunk_x, offset_chunk_z) = (offset_chunk.x(), offset_chunk.z());
                     let render_distance = get_global_config().chunk_render_distance as i32;
@@ -215,6 +219,11 @@ pub fn handle(
                             mapped_block_state_id.raw()
                         ),
                     );
+
+                    if let Err(err) = conn.send_packet_ref(&ack_packet) {
+                        error!("Failed to send block change ack packet: {:?}", err);
+                        continue 'ev_loop;
+                    }
 
                     // Seed fluid simulation. If the placed block is itself a fluid it will begin
                     // to spread; in all cases, neighbouring fluids may need to react to the new
