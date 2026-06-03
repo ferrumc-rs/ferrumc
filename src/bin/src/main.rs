@@ -10,6 +10,7 @@ use std::time::Instant;
 use tracing::{error, info};
 
 mod cli;
+pub(crate) mod commands;
 pub(crate) mod errors;
 mod game_loop;
 mod launch;

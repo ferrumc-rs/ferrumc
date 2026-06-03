@@ -60,35 +60,57 @@ fn slope_distance<V: BlockView>(
     kind: FluidKind,
     origin: BlockPos,
     from: BlockPos,
-    skip_back_toward: Option<BlockPos>,
-    depth: u8,
     limit: u8,
     view: &V,
 ) -> u8 {
-    let mut best = limit;
-    for &offset in HORIZONTAL.iter() {
-        let next = from + offset;
-        // Do not search back toward the cell we came from, and never revisit the origin.
-        if Some(next) == skip_back_toward || next == origin {
+    use std::collections::HashSet;
+    use std::collections::VecDeque;
+
+    // `from` is one block out from the origin already, so it sits at depth 1.
+    let mut visited: HashSet<(i32, i32, i32)> = HashSet::new();
+    visited.insert((origin.pos.x, origin.pos.y, origin.pos.z));
+    visited.insert((from.pos.x, from.pos.y, from.pos.z));
+
+    // If the starting cell itself is a hole, distance is 1.
+    if can_flow_down_into(kind, from, view) {
+        return 1;
+    }
+
+    let mut queue: VecDeque<(BlockPos, u8)> = VecDeque::new();
+    queue.push_back((from, 1));
+
+    while let Some((cell, depth)) = queue.pop_front() {
+        if depth >= limit {
+            // Cannot expand further; this branch contributes no hole within range.
             continue;
         }
-        if !is_replaceable_by(kind, view.block_at(next)) {
-            continue;
-        }
-        // Found a hole: this branch costs `depth + 1` blocks.
-        if can_flow_down_into(kind, next, view) {
-            return depth + 1;
-        }
-        // Otherwise keep searching outward until the limit is reached.
-        if depth + 1 < limit {
-            let found = slope_distance(kind, origin, next, Some(from), depth + 1, limit, view);
-            if found < best {
-                best = found;
+        for &offset in HORIZONTAL.iter() {
+            let next = cell + offset;
+            let key = (next.pos.x, next.pos.y, next.pos.z);
+            if !visited.insert(key) {
+                continue;
             }
+            // Can only flow across cells that are open to this fluid.
+            if !is_replaceable_by(kind, view.block_at(next)) {
+                continue;
+            }
+            let next_depth = depth + 1;
+            if can_flow_down_into(kind, next, view) {
+                // BFS guarantees the first hole reached is at the minimum distance.
+                return next_depth;
+            }
+            queue.push_back((next, next_depth));
         }
     }
-    best
+
+    // No hole within range. Return a sentinel strictly larger than any real distance so a real
+    // hole found at exactly `limit` is still preferred over flat ground (which returns this).
+    NO_HOLE
 }
+
+/// Sentinel returned by [`slope_distance`] when no hole is reachable within the search limit.
+/// Larger than any real distance so "found a hole at the max distance" still beats "no hole".
+const NO_HOLE: u8 = u8::MAX;
 
 /// The level a freshly spread flowing block would take when fed from a block of `source_level`
 /// (or from a source, when `source_level` is 0): one `level_step` thinner than its feeder.
@@ -108,6 +130,39 @@ fn spread_level(rules: FluidRules, source_level: u8) -> u8 {
 /// the slope search says are closest to a hole (steering), decrementing the level by `level_step`.
 ///
 /// Like the simplified kernel this returns only real mutations; the caller wakes neighbours.
+/// DEBUG ONLY: returns the slope distance the spread step computes for each of the four
+/// horizontal directions [+x, -x, +z, -z] from `pos`, or `None` where the direction cannot be
+/// spread into. Used by diagnostics and steering tests to inspect the spread decision directly.
+pub fn debug_spread_distances<V: BlockView>(
+    pos: BlockPos,
+    view: &V,
+    rules: FluidRules,
+) -> [Option<u8>; 4] {
+    let Some(state) = fluid_state(view.block_at(pos)) else {
+        return [None; 4];
+    };
+    let kind = state.kind;
+    let next_level = spread_level(rules, state.level);
+    let limit = rules.slope_find_distance.max(1);
+    let mut out = [None; 4];
+    if next_level > rules.max_spread_level {
+        return out;
+    }
+    for (i, &offset) in HORIZONTAL.iter().enumerate() {
+        let n_pos = pos + offset;
+        if !can_search_into(kind, n_pos, view) {
+            continue;
+        }
+        let dd = if can_flow_down_into(kind, n_pos, view) {
+            0
+        } else {
+            slope_distance(kind, pos, n_pos, limit, view)
+        };
+        out[i] = Some(dd);
+    }
+    out
+}
+
 pub fn compute_fluid_tick_vanilla<V: BlockView>(
     pos: BlockPos,
     view: &V,
@@ -166,20 +221,32 @@ pub fn compute_fluid_tick_vanilla<V: BlockView>(
         return changes;
     }
 
-    // Compute, for each open horizontal direction, the slope distance to the nearest hole. Only
-    // the directions tied for the minimum distance actually receive flow (vanilla steering).
+    // Slope steering, in two stages so a direction that already leads to the hole keeps "claiming"
+    // the steer even after its immediate cell has filled:
+    //
+    // 1. For every direction whose immediate neighbour is *terrain-passable* for this fluid
+    //    (air or same fluid — independent of whether flowing there would currently be an
+    //    improvement), compute the slope distance to the nearest hole. This is the steering
+    //    decision and must not depend on the transient fill state of the first cell, otherwise a
+    //    source whose downhill neighbour is already wet would wrongly fan out the other ways.
+    // 2. Emit flow only to the minimum-distance direction(s) AND only where it is actually an
+    //    improvement (`can_spread_into`). A direction that is the chosen steer but already full
+    //    simply produces no change this tick.
+    //
+    // If no direction finds a hole they all tie at NO_HOLE and the fluid spreads uniformly (flat
+    // ground), matching vanilla.
     let limit = rules.slope_find_distance.max(1);
     let mut dir_distance: [Option<u8>; 4] = [None; 4];
-    let mut min_distance = u8::MAX;
+    let mut min_distance = NO_HOLE;
     for (i, &offset) in HORIZONTAL.iter().enumerate() {
         let n_pos = pos + offset;
-        if !can_spread_into(kind, n_pos, next_level, view) {
+        if !can_search_into(kind, n_pos, view) {
             continue;
         }
         let d = if can_flow_down_into(kind, n_pos, view) {
             0 // an immediately-falling neighbour is the strongest possible attractor
         } else {
-            slope_distance(kind, pos, n_pos, Some(pos), 1, limit, view)
+            slope_distance(kind, pos, n_pos, limit, view)
         };
         dir_distance[i] = Some(d);
         if d < min_distance {
@@ -187,15 +254,15 @@ pub fn compute_fluid_tick_vanilla<V: BlockView>(
         }
     }
 
-    if min_distance == u8::MAX {
-        // Nothing to spread into.
-        return changes;
-    }
-
     let outflow = fluid_block(kind, next_level);
     for (i, &offset) in HORIZONTAL.iter().enumerate() {
         if dir_distance[i] == Some(min_distance) {
-            changes.push(FluidChange::flow(pos + offset, outflow, true));
+            let n_pos = pos + offset;
+            // Only actually place fluid where it would be an improvement; the steering above may
+            // have selected a direction whose first cell is already adequately filled.
+            if can_spread_into(kind, n_pos, next_level, view) {
+                changes.push(FluidChange::flow(n_pos, outflow, true));
+            }
         }
     }
 
@@ -218,6 +285,14 @@ fn can_spread_into<V: BlockView>(
         Some(_) => false, // opposite fluid: reaction path handles it
         None => true,     // air
     }
+}
+
+/// Whether the slope search may *traverse* `n_pos` for this fluid: the cell is terrain-passable
+/// (air or the same fluid), regardless of whether depositing flow there would currently be an
+/// improvement. Used for the steering decision so an already-filled downhill cell still counts as
+/// "the way to the hole" and keeps the fluid from fanning out the other directions.
+fn can_search_into<V: BlockView>(kind: FluidKind, n_pos: BlockPos, view: &V) -> bool {
+    is_replaceable_by(kind, view.block_at(n_pos))
 }
 
 /// The level a flowing block should hold this tick, or `None` if it should dry up.
@@ -569,6 +644,106 @@ mod tests {
         assert!(
             changes.iter().all(|c| c.pos != p(1, 64, 0)),
             "max-level water must not spread to its neighbour, changes: {:?}",
+            changes
+        );
+    }
+
+    /// On a symmetric flat platform with no hole in range, all four directions must tie and the
+    /// source spreads to all four. Regression for a steering bug where the recursive slope search
+    /// (no visited set) returned non-minimal, asymmetric distances and dropped two of the four
+    /// symmetric directions.
+    #[test]
+    fn symmetric_flat_spreads_all_four_directions() {
+        let r = water();
+        let mut view = MapView::new();
+        for x in -3..=3 {
+            for z in -3..=3 {
+                view.set(p(x, 63, z), block!("stone"));
+            }
+        }
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 0));
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, r);
+        let dirs: std::collections::HashSet<(i32, i32)> = changes
+            .iter()
+            .map(|c| (c.pos.pos.x, c.pos.pos.z))
+            .collect();
+        for d in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+            assert!(dirs.contains(&d), "missing spread direction {:?}: {:?}", d, dirs);
+        }
+        assert_eq!(dirs.len(), 4, "should spread exactly four ways on symmetric flat ground");
+    }
+
+    /// Two holes at different distances: water steers to the NEARER one only. Confirms the BFS
+    /// returns true shortest-path distances.
+    #[test]
+    fn steers_to_nearer_of_two_holes() {
+        let r = water();
+        let mut view = MapView::new();
+        // East-west corridor floored at y=63, walls at z=+-1.
+        for x in -4..=4 {
+            view.set(p(x, 63, 0), block!("stone"));
+            view.set(p(x, 64, -1), block!("stone"));
+            view.set(p(x, 64, 1), block!("stone"));
+        }
+        view.set(p(5, 64, 0), block!("stone"));
+        view.set(p(-5, 64, 0), block!("stone"));
+        // East hole at x=2 (distance 2); west hole at x=-3 (distance 3).
+        view.blocks.remove(&(2, 63, 0));
+        view.blocks.remove(&(-3, 63, 0));
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 0));
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, r);
+        assert!(
+            changes.iter().any(|c| c.pos == p(1, 64, 0)),
+            "should spread east toward the nearer hole, {:?}",
+            changes
+        );
+        assert!(
+            changes.iter().all(|c| c.pos != p(-1, 64, 0)),
+            "should NOT spread west toward the farther hole, {:?}",
+            changes
+        );
+    }
+
+    /// A hole at *exactly* the slope search limit must still be preferred over flat directions.
+    /// Regression: `slope_distance` used to return `limit` both for "hole found at limit" and for
+    /// "no hole within range", so a source 4 blocks from a hole (with water's limit = 4) tied the
+    /// hole direction with the three flat directions and spread uniformly instead of steering.
+    #[test]
+    fn hole_at_exactly_the_limit_still_steers() {
+        let r = water();
+        assert_eq!(r.slope_find_distance, 4);
+
+        // Large floor so the floor edges are far outside the search range (no phantom holes).
+        let mut view = MapView::new();
+        for x in -10..=10 {
+            for z in -10..=10 {
+                view.set(p(x, 63, z), block!("stone"));
+            }
+        }
+        // Single hole exactly 4 blocks east of the source.
+        view.blocks.remove(&(4, 63, 0));
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 0));
+
+        // The source must steer ONLY east (+x); the other three directions have no hole in range.
+        let dists = debug_spread_distances(p(0, 64, 0), &view, r);
+        assert_eq!(dists[0], Some(4), "east should find the hole at distance 4: {:?}", dists);
+        assert_eq!(dists[1], Some(NO_HOLE), "west has no hole in range: {:?}", dists);
+        assert_eq!(dists[2], Some(NO_HOLE), "+z has no hole in range: {:?}", dists);
+        assert_eq!(dists[3], Some(NO_HOLE), "-z has no hole in range: {:?}", dists);
+
+        let changes = compute_fluid_tick_vanilla(p(0, 64, 0), &view, r);
+        assert!(
+            changes.iter().any(|c| c.pos == p(1, 64, 0)),
+            "source must spread east toward the limit-distance hole: {:?}",
+            changes
+        );
+        assert!(
+            changes.iter().all(|c| c.pos != p(-1, 64, 0)
+                && c.pos != p(0, 64, 1)
+                && c.pos != p(0, 64, -1)),
+            "source must NOT spread to the holeless directions: {:?}",
             changes
         );
     }

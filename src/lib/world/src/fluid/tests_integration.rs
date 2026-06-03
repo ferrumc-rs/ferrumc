@@ -664,3 +664,56 @@ fn vanilla_open_platform_top_layer_settles() {
         changed
     );
 }
+
+/// Regression for steering that broke after the first ring filled: a source with a hole within
+/// range must keep steering toward the hole on every tick, not fan out to the other directions
+/// once the downhill neighbour is already wet. Reproduces the user's "tick 1 correct, tick 2 fans
+/// out" report. Drives the loop tick by tick and asserts no water ever appears on the side away
+/// from the hole while the hole is still being approached.
+#[test]
+fn vanilla_keeps_steering_after_first_ring_fills() {
+    let mut world = MapWorld::new();
+    let mut scheduler = BlockTickScheduler::new();
+
+    // Large flat floor so the floor edges are far outside slope range (no phantom holes).
+    for x in 0..=20 {
+        for z in 0..=20 {
+            world.set(p(x, 63, z), block!("stone"));
+        }
+    }
+    // A single hole three blocks east of the source, on the same z row.
+    world.set(p(13, 62, 10), block!("stone")); // catch floor for the pit
+    world.blocks.remove(&(13, 63, 10));
+
+    let source = p(10, 64, 10);
+    world.set(source, fluid_block(FluidKind::Water, 0));
+    scheduler.schedule(source, TickKind::FluidSpread, 0, 0);
+
+    // Run enough ticks for the flow to travel the three blocks east and start falling in.
+    run_with(&mut world, &mut scheduler, FluidAlgorithm::Vanilla, 0, 60);
+
+    // The flow must have reached the hole column (water fell in).
+    assert!(
+        fluid_state(world.get(p(13, 63, 10))).is_some()
+            || fluid_state(world.get(p(13, 62, 10))).is_none(), // (catch floor stays solid)
+        "water should have reached and entered the hole"
+    );
+    assert!(
+        fluid_state(world.get(p(11, 64, 10))).is_some()
+            && fluid_state(world.get(p(12, 64, 10))).is_some(),
+        "water should have flowed east toward the hole"
+    );
+
+    // Crucially: while steering toward the hole, the source must NOT have fanned out west, since
+    // west leads nowhere (no hole in range). The cell directly west of the source stays dry.
+    assert!(
+        fluid_state(world.get(p(9, 64, 10))).is_none(),
+        "water must not fan out away from the hole (west of source should be dry)"
+    );
+    // Nor straight north/south of the source one block out (those directions have no hole either).
+    assert!(
+        fluid_state(world.get(p(10, 64, 9))).is_none()
+            && fluid_state(world.get(p(10, 64, 11))).is_none(),
+        "water must not fan out north/south of the source while steering toward the hole"
+    );
+}

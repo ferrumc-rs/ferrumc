@@ -82,6 +82,45 @@ fn rules_for_block(block: BlockStateId, dim: Dimension) -> Option<FluidRules> {
 #[derive(Resource, Default)]
 pub struct FluidScheduler(pub BlockTickScheduler);
 
+/// Debug control for the fluid simulation clock.
+///
+/// Lets `/tick freeze` / `/tick step` / `/tick run` pause and single-step fluid spreading so the
+/// (potentially huge) cascade of a single placement can be inspected one game tick at a time
+/// without drowning in logs. Only the fluid system consults this; the rest of the server keeps
+/// running normally, so players can still move and place blocks while fluids are frozen.
+#[derive(Resource)]
+pub struct FluidTickControl {
+    /// When true, fluid ticks do not advance unless `steps` is positive.
+    pub frozen: bool,
+    /// Number of single steps queued up while frozen. Each processed tick decrements this.
+    pub steps: u32,
+}
+
+impl Default for FluidTickControl {
+    fn default() -> Self {
+        Self {
+            frozen: false,
+            steps: 0,
+        }
+    }
+}
+
+impl FluidTickControl {
+    /// Returns true if a fluid tick is allowed to run this game tick, consuming one queued step if
+    /// the simulation is frozen.
+    fn allow_tick(&mut self) -> bool {
+        if !self.frozen {
+            return true;
+        }
+        if self.steps > 0 {
+            self.steps -= 1;
+            true
+        } else {
+            false
+        }
+    }
+}
+
 /// A [`BlockView`] backed by the live world.
 ///
 /// Holds an owned [`GlobalState`] handle (an `Arc` clone) so it can be moved into worker threads
@@ -187,11 +226,41 @@ pub fn seed_on_block_break(
     }
 }
 
-/// Writes a single block change back to the world. Returns true on success.
+/// Writes a single block change back to the world. Returns true if the world was actually
+/// modified (so the caller knows to broadcast and wake neighbours), false otherwise.
+///
+/// Guards against two classes of bad writes:
+/// * **No-op writes** — if the cell already holds `new_block` there is nothing to do. Skipping
+///   these is what stops a settled fluid body from re-broadcasting and re-waking neighbours every
+///   tick (the visual "keeps changing shape" symptom).
+/// * **Eating solid blocks** — a fluid change must never overwrite a non-fluid, non-air block.
+///   The pure kernels never target solids, but a stale read in the parallel phase (or a block
+///   placed between evaluation and apply) theoretically could; refusing the write here makes that
+///   impossible rather than silently destroying terrain. Reactions (`fizz`, e.g. lava→stone) are
+///   allowed to replace fluid with rock, which is their whole purpose.
 fn apply_change(state: &GlobalState, dim: ActiveDimension, change: &FluidChange) -> bool {
-    match ferrumc_utils::world::load_or_generate_mut(state, change.pos.chunk(), dim.name()) {
+    let chunk_pos = change.pos.chunk();
+    let block_pos = change.pos.chunk_block_pos();
+
+    match ferrumc_utils::world::load_or_generate_mut(state, chunk_pos, dim.name()) {
         Ok(mut chunk) => {
-            chunk.set_block(change.pos.chunk_block_pos(), change.new_block);
+            let current = chunk.get_block(block_pos);
+            // Nothing to do if the block is already what we'd write.
+            if current == change.new_block {
+                return false;
+            }
+            // Refuse to overwrite a solid block with fluid. A reaction (fizz) replaces fluid with
+            // rock and is fine; a plain fluid flow must only ever land on air or fluid.
+            if ferrumc_world::fluid::is_fluid(change.new_block)
+                && ferrumc_world::fluid::is_solid_obstacle(current)
+            {
+                trace!(
+                    "[fluid] refused to overwrite solid block at {:?} with fluid",
+                    change.pos.pos
+                );
+                return false;
+            }
+            chunk.set_block(block_pos, change.new_block);
             true
         }
         Err(err) => {
@@ -520,8 +589,15 @@ pub fn process_fluid_ticks(
     tick: Res<TickCounter>,
     state: Res<GlobalStateResource>,
     dim: Res<ActiveDimension>,
+    mut control: ResMut<FluidTickControl>,
     players: Query<(Entity, &StreamWriter, &Position)>,
 ) {
+    // Debug freeze/step: when frozen, only advance on an explicitly queued step. Checked before
+    // draining so a frozen simulation leaves its pending ticks untouched.
+    if !control.allow_tick() {
+        return;
+    }
+
     let current = tick.get();
     let due = scheduler.0.drain_due(current);
     if due.is_empty() {
@@ -594,6 +670,7 @@ mod tests {
         world.insert_resource(state.clone());
         world.insert_resource(TickCounter::new());
         world.insert_resource(TEST_DIM);
+        world.insert_resource(FluidTickControl::default());
         let mut sched = FluidScheduler::default();
 
         // Seed the source as the placement handler would.

@@ -42,6 +42,8 @@ pub fn compute_tick<V: spread::BlockView>(
 
 #[cfg(test)]
 mod tests_integration;
+#[cfg(test)]
+mod osc_probe;
 
 /// The category of a fluid.
 ///
@@ -224,6 +226,15 @@ pub fn fluid_state(block: BlockStateId) -> Option<FluidState> {
 #[inline]
 pub fn is_fluid(block: BlockStateId) -> bool {
     FLUID_TABLES.id_to_fluid.contains_key(&block.raw())
+}
+
+/// Returns true if `block` is a solid obstacle from a fluid's point of view: not air, not any
+/// fluid. Fluid flow must never overwrite such a block; the apply path uses this as a safety guard
+/// against accidentally "eating" terrain.
+#[inline]
+pub fn is_solid_obstacle(block: BlockStateId) -> bool {
+    use ferrumc_macros::block;
+    block != block!("air") && block != block!("void_air") && !is_fluid(block)
 }
 
 /// Returns the block state ID for the given fluid kind and level.
