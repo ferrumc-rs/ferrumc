@@ -55,6 +55,8 @@ pub struct ServerConfig {
     pub default_gamemode: String,
     pub dashboard: DashboardConfig,
     pub performance: PerformanceConfig,
+    #[serde(default)]
+    pub fluids: FluidConfig,
 }
 
 /// The database configuration section from [ServerConfig].
@@ -88,6 +90,30 @@ pub struct DashboardConfig {
 pub struct PerformanceConfig {
     pub chunks_per_tick_min: u32,
     pub chunks_per_tick: i32,
+}
+
+/// Selects which fluid-spreading kernel the server uses.
+///
+/// `simplified` is a cheap approximation (uniform spread, no hole steering); `vanilla` is the
+/// Minecraft-faithful bounded slope search that steers fluid toward the nearest hole at a higher
+/// CPU cost. The actual kernels live in `ferrumc-world`; this enum is the config-level selector so
+/// it can be validated at load time without the config crate depending on the world crate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum FluidAlgorithm {
+    /// Cheap approximation: per-block feeder re-derivation, uniform horizontal spread.
+    Simplified,
+    /// Vanilla-faithful bounded slope search (`getSlopeDistance`): fluid steers toward holes.
+    #[default]
+    Vanilla,
+}
+
+/// The fluid simulation configuration section from [ServerConfig].
+#[derive(Default, Debug, Deserialize, Serialize)]
+pub struct FluidConfig {
+    /// Which spreading algorithm to use. Defaults to `vanilla`.
+    #[serde(default)]
+    pub algorithm: FluidAlgorithm,
 }
 
 fn create_config() -> ServerConfig {

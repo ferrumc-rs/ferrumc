@@ -78,6 +78,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     // Initialize default server commands (e.g., /stop, /help, etc.)
     ferrumc_default_commands::init();
+    // Initialize binary-local commands (e.g., /tick freeze|step|run for fluid debugging).
+    crate::commands::init();
 
     // Wrap global state for ECS resource access
     let global_state_res = GlobalStateResource(global_state.clone());

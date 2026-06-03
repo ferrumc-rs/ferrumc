@@ -55,6 +55,7 @@ crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
 dhat = { workspace = true, optional = true }
 bitcode = { workspace = true }
+ctor = { workspace = true }
 
 [features]
 dhat = ["dep:dhat"]

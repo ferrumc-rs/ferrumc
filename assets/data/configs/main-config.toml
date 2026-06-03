@@ -60,6 +60,13 @@ chunks_per_tick = 0
 # set to a static number or unlimited. Setting this to 0 disables the minimum.
 chunks_per_tick_min = 16
 
+[fluids]
+# Which fluid-spreading algorithm to use.
+#   "vanilla"    - Minecraft-faithful: fluid steers toward the nearest hole (bounded slope search).
+#                  Matches vanilla behaviour at a higher CPU cost.
+#   "simplified" - Cheaper approximation: uniform spread with no hole steering.
+algorithm = "vanilla"
+
 [dashboard]
 # The port the dashboard will run on.
 port = 9000
