@@ -50,6 +50,12 @@ pub fn handle(
                     .expect("Failed to load or generate chunk");
                     chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
 
+                    crate::debug_probe::log(
+                        "player_action.creative_mine",
+                        pos,
+                        "creative instabreak set block to air",
+                    );
+
                     // Send block broken event for un-grounding system
                     block_break_events.write(BlockBrokenEvent { position: pos });
 

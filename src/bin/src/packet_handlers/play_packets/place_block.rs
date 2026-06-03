@@ -155,6 +155,16 @@ pub fn handle(
 
                     chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
 
+                    crate::debug_probe::log(
+                        "place_block.set_block",
+                        offset_pos,
+                        format!(
+                            "wrote block_state_id={} (clicked_block_was={:?})",
+                            mapped_block_state_id.raw(),
+                            block_clicked
+                        ),
+                    );
+
                     // Release the chunk write guard before seeding fluid ticks. `chunk` is a
                     // DashMap RefMut holding the shard lock; because it implements Drop it would
                     // otherwise stay alive until the end of this scope. `seed_fluid_tick` loads
@@ -196,6 +206,15 @@ pub fn handle(
                             }
                         }
                     }
+
+                    crate::debug_probe::log(
+                        "place_block.broadcast",
+                        offset_pos,
+                        format!(
+                            "broadcast BlockUpdate id={} to nearby players",
+                            mapped_block_state_id.raw()
+                        ),
+                    );
 
                     // Seed fluid simulation. If the placed block is itself a fluid it will begin
                     // to spread; in all cases, neighbouring fluids may need to react to the new

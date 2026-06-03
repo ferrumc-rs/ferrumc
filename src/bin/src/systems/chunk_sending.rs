@@ -113,6 +113,12 @@ pub fn handle(
             chunk_receiver
                 .loaded
                 .insert((coordinates.x(), coordinates.z()));
+            crate::debug_probe::log_chunk(
+                "chunk_sending.send",
+                coordinates.x(),
+                coordinates.z(),
+                "full chunk (re)sent to a player",
+            );
             let state = state.clone();
             let is_compressed = conn.compress.load(Ordering::Relaxed);
             batch.execute({

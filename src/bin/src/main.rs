@@ -11,6 +11,7 @@ use tracing::{error, info};
 
 mod cli;
 pub(crate) mod commands;
+pub(crate) mod debug_probe;
 pub(crate) mod errors;
 mod game_loop;
 mod launch;

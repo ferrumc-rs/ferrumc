@@ -252,6 +252,16 @@ fn apply_change(state: &GlobalState, dim: ActiveDimension, change: &FluidChange)
                 return false;
             }
             chunk.set_block(block_pos, change.new_block);
+            crate::debug_probe::log(
+                "fluid.apply_change",
+                change.pos,
+                format!(
+                    "fluid wrote id={} over previous id={} (fizz={})",
+                    change.new_block.raw(),
+                    current.raw(),
+                    change.fizz
+                ),
+            );
             true
         }
         Err(err) => {
