@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, Query, Res};
 use bevy_math::{IVec2, IVec3};
 use ferrumc_components::player::client_information::ClientInformationComponent;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::chunks::chunk_receiver::{effective_view_radius, ChunkReceiver};
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::compression::compress_packet;
 use ferrumc_net::connection::StreamWriter;
@@ -63,7 +63,7 @@ pub fn handle(
 
         let mut needed_chunks: Vec<(i32, i32)> = Vec::new();
 
-        if sent_chunks < chunk_receiver.chunks_per_tick as usize {
+        if sent_chunks < chunk_per_tick {
             // Then handle loading chunks
             while let Some(coords) = chunk_receiver.loading.pop_front() {
                 needed_chunks.push(coords);
@@ -96,17 +96,22 @@ pub fn handle(
         for coordinates in needed_chunks
             .into_iter()
             .filter(|coord| {
-                let chunk_pos = IVec2::new(coord.0, coord.1);
+                // Keep only chunks within the player's effective view radius, using the SAME
+                // metric (Chebyshev / square) and the SAME radius the calculator queued with.
+                // Previously this used a Euclidean circle (distance_squared <= r^2) while the
+                // calculator queued a square, so the square's corner chunks were popped here,
+                // failed this filter, were dropped without ever entering `loaded`, and got
+                // re-queued forever — wasting a tick's send budget and leaving the corners void.
                 let player_chunk_pos = IVec2::new(
                     pos.coords.x.floor() as i32 >> 4,
                     pos.coords.z.floor() as i32 >> 4,
                 );
-                let distance = chunk_pos.distance_squared(player_chunk_pos);
-                let view_distance = max(
-                    client_info.view_distance as u32,
-                    get_global_config().chunk_render_distance,
+                let chunk_pos = IVec2::new(coord.0, coord.1);
+                let radius = effective_view_radius(
+                    get_global_config().chunk_render_distance as i32,
+                    client_info.view_distance as i32,
                 );
-                distance <= (view_distance * view_distance) as i32
+                chunk_pos.chebyshev_distance(player_chunk_pos) <= radius as u32
             })
             .map(|c| ChunkPos::new(c.0, c.1))
         {

@@ -468,10 +468,15 @@ fn send_initial_chunks(
     // Send center chunk
     conn_write.send_packet(SetCenterChunk::new(pos.x as i32 >> 4, pos.z as i32 >> 4))?;
 
-    // Calculate render distance
+    // Calculate render distance. Use the shared helper so the initial send matches what the
+    // chunk calculator/sender will use afterwards (and so a not-yet-known client view distance
+    // does not collapse the initial area to a single chunk).
     let server_render_distance = config.chunk_render_distance as i32;
     let client_view_distance = client_view_distance as i32;
-    let radius = server_render_distance.min(client_view_distance);
+    let radius = ferrumc_core::chunks::chunk_receiver::effective_view_radius(
+        server_render_distance,
+        client_view_distance,
+    );
     // Generate/load chunks in parallel
     let mut batch = state.thread_pool.batch();
 

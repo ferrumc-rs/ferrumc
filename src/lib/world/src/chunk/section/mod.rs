@@ -261,3 +261,82 @@ impl TryFrom<&Section> for ChunkSection {
         }
     }
 }
+
+#[cfg(test)]
+mod section_tests {
+    use super::*;
+    use crate::pos::SectionBlockPos;
+    use ferrumc_macros::block;
+
+    fn sbp(i: usize) -> SectionBlockPos {
+        SectionBlockPos::unpack(i as u16).expect("in bounds")
+    }
+
+    /// Regression for the disappearing-section bug. A full sand section (a `UniformSection`, as the
+    /// terrain generator produces for the all-sand layer at y=48..63) gets blocks replaced by other
+    /// types — exactly what mining or water inflow does. Because `BlockPalette::remove_block` used
+    /// to discard its count decrement, sand's palette count never dropped; re-adding sand then
+    /// pushed the count past 4096 and `add_block` returned `ConvertToUniform`, collapsing the WHOLE
+    /// section to a single block (every other block in it vanished). This drives many replacements
+    /// against a uniform-sand section and asserts every cell always reads back exactly what was
+    /// written.
+    #[test]
+    fn uniform_sand_section_survives_many_replacements() {
+        let sand = block!("sand");
+        let water = block!("water", { level: 0 });
+        let air = block!("air");
+
+        let mut section = ChunkSectionType::Uniform(UniformSection::new_with(sand));
+        // Reference model: what every cell should hold.
+        let mut model = vec![sand; CHUNK_SECTION_LENGTH];
+
+        // Simulate water flowing across the top rows and some mining: replace a swathe of cells
+        // with water, then air, then sand again (a cell being filled, drained, refilled), many
+        // times over — the churn that used to inflate sand's count.
+        for round in 0..4 {
+            for (i, item) in model.iter_mut().enumerate().take(CHUNK_SECTION_LENGTH) {
+                let new = match (round + i) % 3 {
+                    0 => water,
+                    1 => air,
+                    _ => sand,
+                };
+                section.set_block(sbp(i), new);
+                *item = new;
+            }
+            // After every round, every cell must still read back the model value.
+            for (i, item) in model.iter().enumerate().take(CHUNK_SECTION_LENGTH) {
+                assert_eq!(
+                    section.get_block(sbp(i)),
+                    *item,
+                    "cell {i} corrupted after round {round} (section collapsed?)"
+                );
+            }
+        }
+    }
+
+    /// Tighter focus on the exact collapse trigger: a uniform sand section with a single cell
+    /// repeatedly toggled sand→water→sand must never lose its other 4095 sand blocks. Before the
+    /// fix, the toggling inflated the count until the section collapsed to uniform water/air.
+    #[test]
+    fn toggling_one_cell_does_not_collapse_section() {
+        let sand = block!("sand");
+        let water = block!("water", { level: 0 });
+
+        let mut section = ChunkSectionType::Uniform(UniformSection::new_with(sand));
+
+        for _ in 0..5000 {
+            section.set_block(sbp(0), water);
+            section.set_block(sbp(0), sand);
+        }
+
+        // Every cell is still sand.
+        for i in 0..CHUNK_SECTION_LENGTH {
+            assert_eq!(
+                section.get_block(sbp(i)),
+                sand,
+                "cell {i} should still be sand"
+            );
+        }
+        assert_eq!(section.block_count(), CHUNK_SECTION_LENGTH as u16);
+    }
+}

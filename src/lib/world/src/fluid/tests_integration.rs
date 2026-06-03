@@ -15,6 +15,7 @@ use crate::scheduler::{BlockTickScheduler, TickKind};
 use ferrumc_config::server_config::FluidAlgorithm;
 use ferrumc_macros::block;
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 /// A mutable map-backed world. Missing positions read as air.
 struct MapWorld {
@@ -127,6 +128,134 @@ fn run_with(
     }
 
     total_changes
+}
+
+/// Per-tick wall-clock timing for a fluid simulation run, plus a helper to surface overruns
+/// against the server's tick budget. Produced by [`run_with_timing`].
+///
+/// This is the test-side analogue of the production tick loop's overrun warning
+/// (`game_loop.rs`: "Schedule 'tick' overran ..."). A fluid tick that consistently exceeds the
+/// 50ms / 20 TPS budget would stall the real server, so these stress tests measure the *fluid
+/// evaluation cost in isolation* and make any overrun visible (printed and, where asserted, a
+/// hard failure).
+struct TickTiming {
+    /// Wall-clock duration of every game tick that actually did fluid work (empty ticks skipped).
+    per_tick: Vec<Duration>,
+    /// Total block changes applied across the run (same value `run_with` returns).
+    total_changes: usize,
+}
+
+/// The vanilla server tick budget: 20 ticks per second => 50ms per tick. A fluid tick that takes
+/// longer than this in isolation would, on its own, push the real server below 20 TPS.
+const TICK_BUDGET: Duration = Duration::from_millis(50);
+
+impl TickTiming {
+    /// The slowest single tick in the run, or zero if no tick did any work.
+    fn max(&self) -> Duration {
+        self.per_tick.iter().copied().max().unwrap_or_default()
+    }
+
+    /// Mean duration across ticks that did work, or zero if none did.
+    fn mean(&self) -> Duration {
+        if self.per_tick.is_empty() {
+            return Duration::ZERO;
+        }
+        let total: Duration = self.per_tick.iter().sum();
+        total / self.per_tick.len() as u32
+    }
+
+    /// Number of ticks that exceeded `budget`.
+    fn overruns(&self, budget: Duration) -> usize {
+        self.per_tick.iter().filter(|&&d| d > budget).count()
+    }
+
+    /// Prints a one-line summary to stdout (visible with `cargo test -- --nocapture`). Always
+    /// shows the worst tick and how many ticks blew the budget so overruns are easy to spot even
+    /// when the test does not hard-assert on timing.
+    fn report(&self, label: &str, budget: Duration) {
+        let overruns = self.overruns(budget);
+        println!(
+            "[tick-timing] {label}: {} working ticks, {} changes | mean {:?}, max {:?} | \
+             budget {:?}, overruns {}",
+            self.per_tick.len(),
+            self.total_changes,
+            self.mean(),
+            self.max(),
+            budget,
+            overruns,
+        );
+        if overruns > 0 {
+            println!(
+                "[tick-timing] {label}: WARNING {overruns} tick(s) exceeded the {budget:?} budget \
+                 (worst {:?})",
+                self.max()
+            );
+        }
+    }
+}
+
+/// Like [`run_with`], but measures the wall-clock duration of each game tick that does fluid work
+/// and returns a [`TickTiming`] report. Timing covers the read (evaluate) and write (apply +
+/// reschedule + wake) phases — i.e. everything the production `process_fluid_ticks` does per tick
+/// except networking — so it reflects the fluid cost the real tick loop would pay.
+fn run_with_timing(
+    world: &mut MapWorld,
+    scheduler: &mut BlockTickScheduler,
+    algorithm: FluidAlgorithm,
+    start_tick: u64,
+    ticks: u64,
+) -> TickTiming {
+    const DIM: Dimension = Dimension::Overworld;
+    let mut total_changes = 0;
+    let mut per_tick = Vec::new();
+
+    for offset in 0..ticks {
+        let current = start_tick + offset;
+        let due = scheduler.drain_due(current);
+        if due.is_empty() {
+            continue;
+        }
+
+        let tick_start = Instant::now();
+
+        // Read phase: evaluate all due ticks against the current world.
+        let mut changes = Vec::new();
+        for (_chunk, scheduled) in &due {
+            for tick in scheduled {
+                let block = world.get(tick.pos);
+                let Some(state) = fluid_state(block) else {
+                    continue;
+                };
+                let rules = FluidRules::for_kind(state.kind, DIM);
+                changes.extend(compute_tick(algorithm, tick.pos, &&*world, rules));
+            }
+        }
+
+        // Write phase: apply, reschedule, wake neighbours (identical to `run_with`).
+        for change in &changes {
+            world.set(change.pos, change.new_block);
+            total_changes += 1;
+            if change.reschedule {
+                let delay = fluid_state(change.new_block)
+                    .map(|s| FluidRules::for_kind(s.kind, DIM).tick_delay)
+                    .unwrap_or_else(|| FluidRules::for_kind(FluidKind::Water, DIM).tick_delay);
+                scheduler.schedule(change.pos, TickKind::FluidSpread, current, delay);
+            }
+            for neighbour in crate::fluid::spread::fluid_neighbours(change.pos) {
+                if let Some(state) = fluid_state(world.get(neighbour)) {
+                    let delay = FluidRules::for_kind(state.kind, DIM).tick_delay;
+                    scheduler.schedule(neighbour, TickKind::FluidSpread, current, delay);
+                }
+            }
+        }
+
+        per_tick.push(tick_start.elapsed());
+    }
+
+    TickTiming {
+        per_tick,
+        total_changes,
+    }
 }
 
 #[test]
@@ -720,5 +849,105 @@ fn vanilla_keeps_steering_after_first_ring_fills() {
         fluid_state(world.get(p(10, 64, 9))).is_none()
             && fluid_state(world.get(p(10, 64, 11))).is_none(),
         "water must not fan out north/south of the source while steering toward the hole"
+    );
+}
+
+// ===========================================================================================
+// Tick-timing stress tests.
+//
+// These measure the *fluid evaluation cost per game tick* in isolation and surface any tick that
+// exceeds the server's 20 TPS budget (50ms). They mirror the production tick loop's overrun
+// warning ("Schedule 'tick' overran ...") but at the granularity of the fluid system alone.
+//
+// Run with output to see the timing summary even when they pass:
+//     cargo test -p ferrumc-world --lib fluid::tests_integration::tick_timing -- --nocapture
+//
+// Note on hard assertions: wall-clock timing is machine- and load-dependent, so the asserting
+// test uses a deliberately generous ceiling (a large multiple of the budget). Its job is to catch
+// a *catastrophic* per-tick blowup (e.g. an O(n^2) regression in the kernel), not to enforce a
+// tight latency SLA — that would be flaky in CI. The printed report is the primary signal.
+// ===========================================================================================
+
+/// Builds a square solid floor at `y` spanning `[-half, half]` on both axes.
+fn build_floor(world: &mut MapWorld, half: i32, y: i32) {
+    for x in -half..=half {
+        for z in -half..=half {
+            world.set(p(x, y, z), block!("stone"));
+        }
+    }
+}
+
+/// Large open flat platform with a central source. A single water source spreads at most 7 blocks
+/// before thinning out, so this measures the per-tick cost of an expanding slope-search front
+/// (each front cell runs a bounded hole search) rather than a full-platform fill. Reports per-tick
+/// timing; does not hard-assert (informational).
+#[test]
+fn tick_timing_large_open_platform_reports() {
+    let mut world = MapWorld::new();
+    let mut scheduler = BlockTickScheduler::new();
+
+    // Floor larger than water's 7-block reach so the spread front is never clipped by an edge.
+    let half = 12;
+    build_floor(&mut world, half, 63);
+
+    let source = p(0, 64, 0);
+    world.set(source, fluid_block(FluidKind::Water, 0));
+    seed(&mut scheduler, source);
+
+    // Run long enough for the front to reach its maximum extent and settle.
+    let timing = run_with_timing(&mut world, &mut scheduler, FluidAlgorithm::Vanilla, 0, 600);
+    timing.report("large_open_platform", TICK_BUDGET);
+
+    // Sanity: a level-7 disc of water is ~100+ cells, so the run should apply a few hundred
+    // changes as the front advances and settles.
+    assert!(
+        timing.total_changes > 100,
+        "expected the source to spread out, only {} changes",
+        timing.total_changes
+    );
+}
+
+/// Many independent water sources poured across a large floor at once. This maximises the number
+/// of fluid ticks due on the *same* game tick (a wide batch), which is the scenario most likely to
+/// blow the per-tick budget on the real server. Reports timing and asserts the worst tick stays
+/// within a generous multiple of the budget so a catastrophic regression fails the test.
+#[test]
+fn tick_timing_many_simultaneous_sources_bounded() {
+    let mut world = MapWorld::new();
+    let mut scheduler = BlockTickScheduler::new();
+
+    let half = 30;
+    build_floor(&mut world, half, 63);
+
+    // A 13x13 grid of sources (169 sources) spaced 4 apart, all seeded on tick 0 so their spread
+    // fronts all evaluate together.
+    let mut source_count = 0;
+    for x in (-24..=24).step_by(4) {
+        for z in (-24..=24).step_by(4) {
+            let s = p(x, 64, z);
+            world.set(s, fluid_block(FluidKind::Water, 0));
+            seed(&mut scheduler, s);
+            source_count += 1;
+        }
+    }
+    assert!(source_count >= 100, "expected a large source grid");
+
+    let timing = run_with_timing(&mut world, &mut scheduler, FluidAlgorithm::Vanilla, 0, 400);
+    timing.report("many_simultaneous_sources", TICK_BUDGET);
+
+    // Catastrophic-regression guard: the slowest fluid tick must not exceed 20x the budget (1s).
+    // This is intentionally loose to avoid CI flakiness; the report above is the fine-grained
+    // signal. If this trips, a single fluid tick is taking over a second, which would hard-stall
+    // the server regardless of machine speed.
+    let ceiling = TICK_BUDGET * 20;
+    assert!(
+        timing.max() < ceiling,
+        "slowest fluid tick {:?} exceeded catastrophic ceiling {:?} (budget {:?}); \
+         {} of {} working ticks overran the budget",
+        timing.max(),
+        ceiling,
+        TICK_BUDGET,
+        timing.overruns(TICK_BUDGET),
+        timing.per_tick.len(),
     );
 }

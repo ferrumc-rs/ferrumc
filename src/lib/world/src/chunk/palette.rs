@@ -160,7 +160,9 @@ impl BlockPalette {
             idx,
         );
 
-        let (_, count) = &mut self.palette[idx].unwrap();
+        let (_, count) = self.palette[idx]
+            .as_mut()
+            .expect("Palette does not contain an entry for idx");
 
         if count.get() == 1 {
             self.palette[idx] = None;
@@ -213,5 +215,50 @@ mod tests {
         assert_eq!(BlockPalette::bit_width_for_len(len_c), 4);
         assert_eq!(BlockPalette::bit_width_for_len(len_d), 4);
         assert_eq!(BlockPalette::bit_width_for_len(len_e), 8);
+    }
+
+    /// Regression: removing a block whose palette entry has count > 1 must actually decrement the
+    /// stored count. `remove_block` used to do `&mut self.palette[idx].unwrap()`, which borrows a
+    /// *copy* of the `Copy` Option payload, so the decrement was silently discarded and counts
+    /// drifted upward forever. With many distinct blocks sharing a section (e.g. a sand surface
+    /// where blocks are mined/replaced), the inflated counts corrupt the section.
+    #[test]
+    fn remove_block_decrements_count_above_one() {
+        use crate::chunk::BlockStateId;
+
+        let mut palette = BlockPalette::new();
+        let stone = BlockStateId::new(1);
+
+        // Add the same block 5 times: count should be 5.
+        for _ in 0..5 {
+            palette.add_block(stone);
+        }
+        // The non-air total is exactly 5.
+        assert_eq!(palette.block_count(), 5, "five stones should count as 5");
+
+        // Find stone's palette index.
+        let idx = palette
+            .palette
+            .iter()
+            .position(|e| matches!(e, Some((b, _)) if *b == stone))
+            .expect("stone should be in the palette") as u16;
+
+        // Remove one stone. The count must drop to 4.
+        palette.remove_block(idx);
+        assert_eq!(
+            palette.block_count(),
+            4,
+            "after removing one of five stones the count must be 4, not stay at 5"
+        );
+
+        // Remove the rest one at a time; the count must keep dropping by one.
+        for expected in [3u16, 2, 1] {
+            palette.remove_block(idx);
+            assert_eq!(
+                palette.block_count(),
+                expected,
+                "count should decrement on every removal"
+            );
+        }
     }
 }
