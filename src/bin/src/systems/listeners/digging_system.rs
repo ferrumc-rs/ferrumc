@@ -282,12 +282,6 @@ fn break_block(
         .expect("Failed to load or generate chunk");
     chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
 
-    crate::debug_probe::log(
-        "digging_system.break_block",
-        pos,
-        "survival break set block to air",
-    );
-
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
     block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: pos });
