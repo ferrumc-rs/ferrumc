@@ -116,12 +116,9 @@ pub struct FluidConfig {
     pub algorithm: FluidAlgorithm,
 }
 
-impl Default for FluidConfig {
-    fn default() -> Self {
-        Self {
-            algorithm: FluidAlgorithm::default(),
-        }
-    }
+#[derive(Default)]
+pub struct FluidConfig {
+    pub algorithm: FluidAlgorithm,
 }
 
 fn create_config() -> ServerConfig {
