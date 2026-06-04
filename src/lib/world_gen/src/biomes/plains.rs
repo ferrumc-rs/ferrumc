@@ -13,8 +13,8 @@ pub(crate) struct PlainsBiome {
 }
 
 impl BiomeGenerator for PlainsBiome {
-    fn _biome_id(&self) -> u8 {
-        0
+    fn biome_id(&self) -> u8 {
+        40 // minecraft:plains
     }
 
     fn _biome_name(&self) -> String {

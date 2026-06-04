@@ -58,7 +58,8 @@ pub(crate) struct ColumnNoise {
 /// surface height are already established by the carving stages, so a biome just places its
 /// surface blocks (grass/dirt, sand/sandstone + water, etc.) relative to the column's height.
 pub(crate) trait BiomeGenerator {
-    fn _biome_id(&self) -> u8;
+    /// Returns the Minecraft registry biome ID for this biome (used in chunk data packets).
+    fn biome_id(&self) -> u8;
     fn _biome_name(&self) -> String;
     /// Decorates column (`x`, `z`) of `chunk`, where `surface_y` is the established surface height
     /// for that column.
@@ -133,14 +134,36 @@ impl WorldGenerator {
         self.apply_initial_height(&mut chunk, pos, &mut heightmap, &mut col_noise);
         self.apply_erosion(&mut chunk, pos, &mut heightmap, &mut col_noise);
 
-        // 4. Decorate each column according to its biome.
+        // 4. Decorate each column according to its biome, recording the ID for step 4b.
+        let mut col_biome_ids = [[0u8; 16]; 16];
         for x in 0..16u8 {
             for z in 0..16u8 {
                 let surface_y = heightmap[x as usize][z as usize];
                 let biome = self.get_biome(col_noise[x as usize][z as usize], surface_y);
                 biome.decorate(&mut chunk, x, z, surface_y)?;
+                col_biome_ids[x as usize][z as usize] = biome.biome_id();
             }
         }
+
+        // 4b. Write biome IDs into the chunk's section biome data.
+        //     Mixed-biome sections require a network encoding path that is not yet implemented,
+        //     so all sections are set to a single uniform biome. The dominant biome among the
+        //     16 biome-cell columns (4×4 grid, one per 4-block square) is used; for most
+        //     chunks this is the only biome present anyway, so the result is exact.
+        let mut biome_counts = [0u32; 256];
+        for cell_x in 0..4u8 {
+            for cell_z in 0..4u8 {
+                let id = col_biome_ids[usize::from(cell_x) * 4][usize::from(cell_z) * 4];
+                biome_counts[usize::from(id)] += 1;
+            }
+        }
+        let dominant_biome = biome_counts
+            .iter()
+            .enumerate()
+            .max_by_key(|&(_, c)| c)
+            .map(|(id, _)| id as u8)
+            .unwrap_or(40); // plains as fallback
+        chunk.fill_biome(dominant_biome);
 
         // 5. Carve caves through the solid terrain (retained feature).
         self.generate_caves(&mut chunk, pos);

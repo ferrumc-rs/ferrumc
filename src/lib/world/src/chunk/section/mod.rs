@@ -11,7 +11,7 @@ use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::block;
 
-mod biome;
+pub(crate) mod biome;
 mod direct;
 pub mod network;
 mod paletted;

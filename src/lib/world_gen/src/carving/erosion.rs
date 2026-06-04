@@ -9,7 +9,7 @@ use ferrumc_world::pos::ChunkPos;
 /// Maximum number of blocks erosion can carve off a column at the high end of its range. Kept
 /// well below the base [`super::initial_height::HEIGHT_AMPLITUDE`] so erosion *textures* the
 /// terrain rather than dominating it and flattening everything to one level.
-const MAX_EROSION_DEPTH: f32 = 18.0;
+const MAX_EROSION_DEPTH: f32 = 16.0;
 
 /// Builds the erosion-noise sampler.
 ///

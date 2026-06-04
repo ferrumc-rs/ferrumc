@@ -17,8 +17,8 @@ pub(crate) struct OceanBiome {
 }
 
 impl BiomeGenerator for OceanBiome {
-    fn _biome_id(&self) -> u8 {
-        1
+    fn biome_id(&self) -> u8 {
+        35 // minecraft:ocean
     }
 
     fn _biome_name(&self) -> String {

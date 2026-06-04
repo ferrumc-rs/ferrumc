@@ -8,8 +8,8 @@ use ferrumc_world::chunk::Chunk;
 pub(crate) struct MountainBiome {}
 
 impl BiomeGenerator for MountainBiome {
-    fn _biome_id(&self) -> u8 {
-        1
+    fn biome_id(&self) -> u8 {
+        62 // minecraft:windswept_hills
     }
 
     fn _biome_name(&self) -> String {

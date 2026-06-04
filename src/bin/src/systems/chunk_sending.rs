@@ -29,9 +29,9 @@ pub fn handle(
     )>,
     state: Res<GlobalStateResource>,
 ) {
-    for (eid, conn, mut chunk_receiver, pos, client_info) in query.iter_mut() {
+    'entity: for (eid, conn, mut chunk_receiver, pos, client_info) in query.iter_mut() {
         if !state.0.players.is_connected(eid) {
-            continue; // Skip if the player is not connected
+            continue 'entity; // Skip if the player is not connected
         }
 
         let chunk_per_tick = match get_global_config().performance.chunks_per_tick {
@@ -82,16 +82,21 @@ pub fn handle(
 
         let mut batch = state.0.thread_pool.batch();
 
-        conn.send_packet(ChunkBatchStart {})
-            .expect("Failed to send ChunkBatchStart");
+        if conn.send_packet(ChunkBatchStart {}).is_err() {
+            continue 'entity;
+        }
 
         let center_chunk: IVec3 = pos.coords.floor().as_ivec3() >> 4;
 
-        conn.send_packet(SetCenterChunk {
-            x: center_chunk.x.into(),
-            z: center_chunk.z.into(),
-        })
-        .expect("Failed to send SetCenterChunk");
+        if conn
+            .send_packet(SetCenterChunk {
+                x: center_chunk.x.into(),
+                z: center_chunk.z.into(),
+            })
+            .is_err()
+        {
+            continue 'entity;
+        }
 
         for coordinates in needed_chunks
             .into_iter()
@@ -143,24 +148,29 @@ pub fn handle(
         let packets = batch.wait();
         let packets_len = packets.len();
         for packet in packets {
-            conn.send_raw_packet(packet)
-                .expect("Failed to send ChunkAndLightData");
+            if conn.send_raw_packet(packet).is_err() {
+                continue 'entity;
+            }
         }
 
-        conn.send_packet(ChunkBatchFinish {
-            batch_size: packets_len.into(),
-        })
-        .expect("Failed to send ChunkBatchFinish");
+        if conn
+            .send_packet(ChunkBatchFinish {
+                batch_size: packets_len.into(),
+            })
+            .is_err()
+        {
+            continue 'entity;
+        }
 
         // Tell the client to unload chunks that are no longer needed
-
         while let Some(coords) = &chunk_receiver.unloading.pop_front() {
             let packet = ferrumc_net::packets::outgoing::unload_chunk::UnloadChunk {
                 x: coords.0,
                 z: coords.1,
             };
-            conn.send_packet(packet)
-                .expect("Failed to send UnloadChunk packet");
+            if conn.send_packet(packet).is_err() {
+                continue 'entity;
+            }
         }
     }
 }

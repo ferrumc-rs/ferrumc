@@ -984,6 +984,8 @@ mod tests {
     }
 
     //obsidian check :3
+    // up to 2026-06-04, NCC find these tests are easy to overtime on github runners.
+    // So, we need either optimize it or set higher time bar.
     #[test]
     fn flowing_water_above_lava_source_turns_to_obsidian() {
         let (state, _tmp) = create_test_state();

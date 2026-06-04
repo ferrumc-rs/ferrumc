@@ -130,6 +130,19 @@ impl Chunk {
         self.sections[section as usize].get_block(pos.section_block_pos())
     }
 
+    /// Sets every section in this chunk to a single uniform biome.
+    ///
+    /// `BiomeData::Mixed` network encoding is not yet implemented, so all biome assignment
+    /// must go through the `Uniform` path. For world generation this is fine: noise is smooth
+    /// enough that the dominant biome at the chunk level is correct for the vast majority of
+    /// columns in that chunk.
+    pub fn fill_biome(&mut self, biome_id: u8) {
+        use crate::chunk::section::biome::BiomeType;
+        for section in self.sections.iter_mut() {
+            section.biome.fill_biome(BiomeType(biome_id));
+        }
+    }
+
     /// Sets a block in the chunk.
     ///
     /// # Arguments

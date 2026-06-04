@@ -9,7 +9,7 @@ use ferrumc_world::pos::ChunkPos;
 /// Peak-to-trough amplitude (in blocks) of the base height field. The surface varies by roughly
 /// `+/- HEIGHT_AMPLITUDE` around [`crate::BASELINE_HEIGHT`] before erosion. Chosen so plains have
 /// visible rolling hills rather than looking superflat.
-const HEIGHT_AMPLITUDE: f32 = 32.0;
+const HEIGHT_AMPLITUDE: f32 = 48.0;
 
 /// Builds the height-noise sampler.
 ///
