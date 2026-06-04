@@ -41,8 +41,13 @@ pub fn handle(
         for x in player_chunk.x() - radius..=player_chunk.x() + radius {
             for z in player_chunk.z() - radius..=player_chunk.z() + radius {
                 let chunk_coords = (x, z);
+                // Skip chunks already sent (`loaded`), already queued this session
+                // (`already_queued`), or currently being generated off-thread (`pending`). Without
+                // the `pending` check, an in-flight chunk — popped from `loading` but not yet sent —
+                // would be re-queued on every move and resubmitted to the thread pool.
                 if !chunk_receiver.loaded.contains(&chunk_coords)
                     && !already_queued.contains(&chunk_coords)
+                    && !chunk_receiver.pending.contains(&chunk_coords)
                 {
                     queued_chunks.push(chunk_coords);
                 }

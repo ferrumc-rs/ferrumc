@@ -62,19 +62,31 @@ pub(crate) trait BiomeGenerator {
     fn biome_id(&self) -> u8;
     fn _biome_name(&self) -> String;
     /// Decorates column (`x`, `z`) of `chunk`, where `surface_y` is the established surface height
-    /// for that column. `chunk_x` / `chunk_z` are the chunk's grid coordinates; combined with
-    /// the local `x` / `z` they give the global block position needed for cross-chunk-consistent
-    /// feature placement (e.g. trees must sample noise at the same global position regardless of
-    /// which chunk the tree trunk falls in).
+    /// for that column. Decoration only writes blocks within the column itself (surface cover, water
+    /// fill, etc.); cross-chunk features such as trees are handled separately via [`tree_at`].
+    ///
+    /// [`tree_at`]: BiomeGenerator::tree_at
     fn decorate(
         &self,
         chunk: &mut Chunk,
         x: u8,
         z: u8,
         surface_y: i16,
-        chunk_x: i32,
-        chunk_z: i32,
     ) -> Result<(), WorldGenError>;
+    /// Returns the tree to grow at the given global column, or `None` if none grows there.
+    ///
+    /// This must be a pure function of the world seed and the global position so it yields the same
+    /// answer regardless of which chunk asks — that is what lets a chunk resolve trees rooted in its
+    /// neighbours and place the canopy blocks that overhang into it (see [`biomes::trees`]). The
+    /// default implementation grows no trees.
+    fn tree_at(
+        &self,
+        _global_x: i32,
+        _global_z: i32,
+        _surface_y: i16,
+    ) -> Option<biomes::trees::Tree> {
+        None
+    }
     fn new(seed: u64) -> Self
     where
         Self: Sized;
@@ -129,6 +141,17 @@ impl WorldGenerator {
         &self.plains
     }
 
+    /// Deterministic surface height and column noise for an arbitrary global column, composing both
+    /// carving stages. This is a pure function of the world seed and global coordinates (the carving
+    /// stages add no cross-column interpolation), so it can be evaluated for columns outside the
+    /// chunk being generated — which the cross-chunk tree-canopy overscan relies on to resolve trees
+    /// rooted in neighbouring chunks identically to how those chunks resolve them.
+    pub(crate) fn column(&self, global_x: i32, global_z: i32) -> (i16, ColumnNoise) {
+        let (base, height) = self.initial_surface(global_x, global_z);
+        let (surface, erosion) = self.eroded_surface(global_x, global_z, base);
+        (surface, ColumnNoise { erosion, height })
+    }
+
     pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
         let mut chunk = Chunk::new_empty();
 
@@ -155,8 +178,32 @@ impl WorldGenerator {
             for z in 0..16u8 {
                 let surface_y = heightmap[x as usize][z as usize];
                 let biome = self.get_biome(col_noise[x as usize][z as usize], surface_y);
-                biome.decorate(&mut chunk, x, z, surface_y, pos.x(), pos.z())?;
+                biome.decorate(&mut chunk, x, z, surface_y)?;
                 col_biome_ids[x as usize][z as usize] = biome.biome_id();
+            }
+        }
+
+        // 4c. Place trees, including the canopies of trees rooted in neighbouring chunks.
+        //     A tree's canopy can overhang up to MAX_CANOPY_RADIUS blocks past its trunk, so this
+        //     scans that far beyond the chunk edges. Tree placement is a pure function of the world
+        //     seed and the trunk's global column, so every chunk resolves the same trees and writes
+        //     only the blocks that fall within its own bounds — no cross-chunk writes, no shared
+        //     state, no locking. Trunk columns outside this chunk are clipped by `place_tree`.
+        let base_x = pos.x() * 16;
+        let base_z = pos.z() * 16;
+        let overscan = biomes::trees::MAX_CANOPY_RADIUS;
+        for global_x in (base_x - overscan)..(base_x + 16 + overscan) {
+            for global_z in (base_z - overscan)..(base_z + 16 + overscan) {
+                let (surface_y, noise) = self.column(global_x, global_z);
+                let biome = self.get_biome(noise, surface_y);
+                if let Some(tree) = biome.tree_at(global_x, global_z, surface_y) {
+                    biomes::trees::place_tree(
+                        &mut chunk,
+                        global_x - base_x,
+                        global_z - base_z,
+                        &tree,
+                    );
+                }
             }
         }
 
@@ -319,5 +366,46 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// Cross-chunk tree continuity: a tree rooted one column inside a chunk edge must drop its
+    /// canopy into the neighbouring chunk. Regression guard against the old behaviour that clipped
+    /// (discarded) boundary leaves instead of placing them in the neighbour, leaving half-trees.
+    #[test]
+    fn tree_canopy_crosses_chunk_boundary() {
+        let generator = WorldGenerator::new(0);
+
+        // Find a tree whose trunk sits on the western edge of its chunk (global x divisible by 16),
+        // so its canopy overhangs the chunk to the west. Searching tree placement is cheap (no chunk
+        // generation), so a wide scan reliably finds an edge-aligned tree.
+        let mut found = None;
+        'search: for gx in (0..2048i32).step_by(16) {
+            for gz in 0..256i32 {
+                let (surface_y, noise) = generator.column(gx, gz);
+                let biome = generator.get_biome(noise, surface_y);
+                if let Some(tree) = biome.tree_at(gx, gz, surface_y) {
+                    found = Some((gx, gz, tree.surface_y, tree.trunk_height));
+                    break 'search;
+                }
+            }
+        }
+        let (gx, gz, surface_y, trunk_height) =
+            found.expect("expected to find an edge-aligned plains tree within the scan region");
+
+        // One column west of the trunk (dx = -1) is part of the wide leaf ring and lands at local
+        // x = 15 of the western neighbour chunk. That leaf only exists if the canopy was placed
+        // across the boundary rather than clipped.
+        let neighbour = ChunkPos::new((gx >> 4) - 1, gz >> 4);
+        let chunk = generator.generate_chunk(neighbour).unwrap();
+
+        let leaf_y = surface_y + i16::from(trunk_height) - 1; // top of trunk, minus one (wide ring)
+        let local_x = (gx - 1).rem_euclid(16) as u8; // == 15
+        let local_z = gz.rem_euclid(16) as u8;
+        let block = chunk.get_block(ChunkBlockPos::new(local_x, leaf_y, local_z));
+        assert!(
+            match_block!("oak_leaves", block),
+            "expected a canopy leaf from the neighbouring tree at local \
+             ({local_x},{leaf_y},{local_z}) of chunk {neighbour:?}, found {block:?}"
+        );
     }
 }

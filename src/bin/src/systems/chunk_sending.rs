@@ -15,10 +15,26 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::ChunkPos;
 use std::cmp::max;
 use std::sync::atomic::Ordering;
+use tracing::error;
 
-// Just take the needed chunks from the ChunkReceiver and send them
-// calculating which chunks are required is figured out elsewhere
-// TODO: Respect chunks_per_tick limit
+/// Sends chunks to players without ever blocking the tick thread on generation or compression.
+///
+/// The work is split into two non-blocking phases per connected player:
+///
+/// 1. **Submit** — pop queued/dirty chunk coordinates (up to the per-tick budget) and hand each to
+///    the thread pool as a fire-and-forget job. The job loads or generates the chunk, builds the
+///    `ChunkAndLightData` packet, compresses it, and pushes the encoded bytes onto the receiver's
+///    lock-free `results` queue when finished (possibly several ticks later). In-flight coordinates
+///    are recorded in `pending` so they are neither resubmitted here nor re-queued by the chunk
+///    calculator.
+/// 2. **Drain** — collect whatever encoded chunks finished since the last tick and send them to the
+///    client wrapped in a single chunk batch.
+///
+/// Previously this system blocked the tick on `batch.wait()` until every submitted chunk had been
+/// generated and compressed, so a burst of new chunks (a player joining, or moving quickly) would
+/// overrun the tick budget. Moving the wait off the tick thread keeps each tick cheap regardless of
+/// how much terrain is in flight; the trade-off is that freshly queued chunks arrive a few ticks
+/// later instead of within the same tick.
 pub fn handle(
     mut query: Query<(
         Entity,
@@ -34,6 +50,18 @@ pub fn handle(
             continue 'entity; // Skip if the player is not connected
         }
 
+        let chunk_receiver = &mut *chunk_receiver;
+
+        let player_chunk = IVec2::new(
+            pos.coords.x.floor() as i32 >> 4,
+            pos.coords.z.floor() as i32 >> 4,
+        );
+        let radius = effective_view_radius(
+            get_global_config().chunk_render_distance as i32,
+            client_info.view_distance as i32,
+        );
+
+        // ── Phase 1: submit new chunk jobs to the thread pool (fire-and-forget) ──────────────
         let chunk_per_tick = match get_global_config().performance.chunks_per_tick {
             0 => max(
                 chunk_receiver.loading.len() / 3,
@@ -43,127 +71,119 @@ pub fn handle(
             hard_limit => hard_limit as usize,
         };
 
-        if chunk_receiver.dirty.is_empty() && chunk_receiver.loading.is_empty() {
-            continue;
-        }
-
-        let chunk_receiver = &mut *chunk_receiver;
-
-        let mut dirty_chunks = Vec::new();
-        let mut sent_chunks = 0;
-
-        // First handle dirty chunks
-        while let Some(coords) = &chunk_receiver.dirty.pop_front() {
-            dirty_chunks.push(*coords);
-            sent_chunks += 1;
-            if sent_chunks >= chunk_per_tick {
+        let is_compressed = conn.compress.load(Ordering::Relaxed);
+        let mut submitted = 0;
+        while submitted < chunk_per_tick {
+            // Dirty chunks (already sent once, needing a resend) take priority over first-time
+            // loads, matching the previous ordering.
+            let Some(coords) = chunk_receiver
+                .dirty
+                .pop_front()
+                .or_else(|| chunk_receiver.loading.pop_front())
+            else {
                 break;
+            };
+
+            // Skip anything already in flight or already sent.
+            if chunk_receiver.pending.contains(&coords) || chunk_receiver.loaded.contains(&coords) {
+                continue;
             }
-        }
 
-        let mut needed_chunks: Vec<(i32, i32)> = Vec::new();
+            chunk_receiver.pending.insert(coords);
+            submitted += 1;
 
-        if sent_chunks < chunk_per_tick {
-            // Then handle loading chunks
-            while let Some(coords) = chunk_receiver.loading.pop_front() {
-                needed_chunks.push(coords);
-                sent_chunks += 1;
-                if sent_chunks >= chunk_per_tick {
-                    break;
+            let state_arc = state.0.clone();
+            let results = chunk_receiver.results.clone();
+            // `oneshot` runs the job on the thread pool and the returned handle is dropped, leaving
+            // the job to complete in the background and report back through `results`.
+            drop(state.0.thread_pool.oneshot(move || {
+                let pos = ChunkPos::new(coords.0, coords.1);
+                let chunk = match ferrumc_utils::world::load_or_generate_chunk(
+                    &state_arc,
+                    pos,
+                    "overworld",
+                ) {
+                    Ok(chunk) => chunk,
+                    Err(e) => {
+                        error!("Failed to load or generate chunk {:?}: {}", coords, e);
+                        results.push((coords, None));
+                        return;
+                    }
                 };
-            }
-        }
-
-        needed_chunks.extend(dirty_chunks);
-
-        if needed_chunks.is_empty() {
-            continue;
-        };
-
-        let mut batch = state.0.thread_pool.batch();
-
-        if conn.send_packet(ChunkBatchStart {}).is_err() {
-            continue 'entity;
-        }
-
-        let center_chunk: IVec3 = pos.coords.floor().as_ivec3() >> 4;
-
-        if conn
-            .send_packet(SetCenterChunk {
-                x: center_chunk.x.into(),
-                z: center_chunk.z.into(),
-            })
-            .is_err()
-        {
-            continue 'entity;
-        }
-
-        for coordinates in needed_chunks
-            .into_iter()
-            .filter(|coord| {
-                // Keep only chunks within the player's effective view radius, using the SAME
-                // metric (Chebyshev / square) and the SAME radius the calculator queued with.
-                // Previously this used a Euclidean circle (distance_squared <= r^2) while the
-                // calculator queued a square, so the square's corner chunks were popped here,
-                // failed this filter, were dropped without ever entering `loaded`, and got
-                // re-queued forever — wasting a tick's send budget and leaving the corners void.
-                let player_chunk_pos = IVec2::new(
-                    pos.coords.x.floor() as i32 >> 4,
-                    pos.coords.z.floor() as i32 >> 4,
-                );
-                let chunk_pos = IVec2::new(coord.0, coord.1);
-                let radius = effective_view_radius(
-                    get_global_config().chunk_render_distance as i32,
-                    client_info.view_distance as i32,
-                );
-                chunk_pos.chebyshev_distance(player_chunk_pos) <= radius as u32
-            })
-            .map(|c| ChunkPos::new(c.0, c.1))
-        {
-            chunk_receiver
-                .loaded
-                .insert((coordinates.x(), coordinates.z()));
-            let state = state.clone();
-            let is_compressed = conn.compress.load(Ordering::Relaxed);
-            batch.execute({
-                move || {
-                    let chunk = ferrumc_utils::world::load_or_generate_chunk(
-                        &state.0,
-                        coordinates,
-                        "overworld",
-                    )
-                    .expect("Failed to load or generate chunk");
-                    let packet = ChunkAndLightData::from_chunk(coordinates, &chunk)
-                        .expect("Failed to create ChunkAndLightData");
-                    compress_packet(
-                        &packet,
-                        is_compressed,
-                        &NetEncodeOpts::WithLength,
-                        get_global_config().network_compression_threshold as usize,
-                    )
-                    .expect("Failed to compress ChunkAndLightData packet")
+                let packet = match ChunkAndLightData::from_chunk(pos, &chunk) {
+                    Ok(packet) => packet,
+                    Err(e) => {
+                        error!("Failed to build chunk packet for {:?}: {}", coords, e);
+                        results.push((coords, None));
+                        return;
+                    }
+                };
+                match compress_packet(
+                    &packet,
+                    is_compressed,
+                    &NetEncodeOpts::WithLength,
+                    get_global_config().network_compression_threshold as usize,
+                ) {
+                    Ok(bytes) => results.push((coords, Some(bytes))),
+                    Err(e) => {
+                        error!("Failed to compress chunk packet for {:?}: {}", coords, e);
+                        results.push((coords, None));
+                    }
                 }
-            });
+            }));
         }
-        let packets = batch.wait();
-        let packets_len = packets.len();
-        for packet in packets {
-            if conn.send_raw_packet(packet).is_err() {
+
+        // ── Phase 2: drain finished chunks and send them in a single batch ───────────────────
+        let mut ready: Vec<Vec<u8>> = Vec::new();
+        while let Some((coords, maybe_bytes)) = chunk_receiver.results.pop() {
+            chunk_receiver.pending.remove(&coords);
+            let Some(bytes) = maybe_bytes else {
+                continue; // Job failed; leave it unloaded so the calculator can re-queue it.
+            };
+            // Drop chunks the player has since moved away from; they will be re-queued if they come
+            // back into view. Uses the same Chebyshev metric the calculator queues with.
+            if IVec2::new(coords.0, coords.1).chebyshev_distance(player_chunk) > radius as u32 {
+                continue;
+            }
+            chunk_receiver.loaded.insert(coords);
+            ready.push(bytes);
+        }
+
+        if !ready.is_empty() {
+            if conn.send_packet(ChunkBatchStart {}).is_err() {
+                continue 'entity;
+            }
+
+            let center_chunk: IVec3 = pos.coords.floor().as_ivec3() >> 4;
+            if conn
+                .send_packet(SetCenterChunk {
+                    x: center_chunk.x.into(),
+                    z: center_chunk.z.into(),
+                })
+                .is_err()
+            {
+                continue 'entity;
+            }
+
+            let batch_size = ready.len();
+            for bytes in ready {
+                if conn.send_raw_packet(bytes).is_err() {
+                    continue 'entity;
+                }
+            }
+
+            if conn
+                .send_packet(ChunkBatchFinish {
+                    batch_size: batch_size.into(),
+                })
+                .is_err()
+            {
                 continue 'entity;
             }
         }
 
-        if conn
-            .send_packet(ChunkBatchFinish {
-                batch_size: packets_len.into(),
-            })
-            .is_err()
-        {
-            continue 'entity;
-        }
-
-        // Tell the client to unload chunks that are no longer needed
-        while let Some(coords) = &chunk_receiver.unloading.pop_front() {
+        // ── Phase 3: tell the client to unload chunks that are no longer needed ──────────────
+        while let Some(coords) = chunk_receiver.unloading.pop_front() {
             let packet = ferrumc_net::packets::outgoing::unload_chunk::UnloadChunk {
                 x: coords.0,
                 z: coords.1,

@@ -1,10 +1,10 @@
 //! Plains biome: grass over dirt, with sparse oak trees.
 
 use crate::BiomeGenerator;
-use crate::biomes::trees::place_oak_tree;
+use crate::biomes::trees::{Tree, TreeKind};
 use crate::errors::WorldGenError;
 use crate::terrain_noise::NoiseGenerator;
-use ferrumc_macros::{block, match_block};
+use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::ChunkBlockPos;
@@ -55,18 +55,26 @@ impl PlainsBiome {
 
     /// Returns `true` if column `(gx, gz)` should grow a tree.
     ///
-    /// Two-stage filter:
-    /// 1. **Local hash maximum** — ensures at least `MIN_TREE_RADIUS` blocks between trunks.
-    /// 2. **Density noise threshold** — carves the world into grove patches and open clearings.
+    /// Two-stage filter (both must pass; the result is independent of their order):
+    /// 1. **Density noise threshold** — carves the world into grove patches and open clearings.
+    /// 2. **Local hash maximum** — ensures at least `MIN_TREE_RADIUS` blocks between trunks.
+    ///
+    /// The cheap single-sample density check runs first so the `O((2R+1)^2)` local-maximum scan is
+    /// only performed in grove regions (the minority of columns), not for every column.
     fn should_place_tree(&self, gx: i32, gz: i32, surface_y: i16) -> bool {
         if surface_y < TREE_MIN_SURFACE_Y {
             return false;
         }
 
-        let score = self.tree_score(gx, gz);
+        // Stage 1: density noise controls grove vs clearing. Gates the expensive scan below.
+        let density = self.tree_density_noise.get(gx as f32, gz as f32);
+        if density < TREE_CANDIDATE_THRESHOLD {
+            return false;
+        }
 
-        // Stage 1: local maximum within a square of side 2*R+1.
+        // Stage 2: local maximum within a square of side 2*R+1.
         // Any neighbour with a strictly higher score disqualifies this column.
+        let score = self.tree_score(gx, gz);
         let r = MIN_TREE_RADIUS;
         for dx in -r..=r {
             for dz in -r..=r {
@@ -79,9 +87,7 @@ impl PlainsBiome {
             }
         }
 
-        // Stage 2: density noise controls grove vs clearing.
-        let density = self.tree_density_noise.get(gx as f32, gz as f32);
-        density >= TREE_CANDIDATE_THRESHOLD
+        true
     }
 
     /// Trunk height for the tree at `(gx, gz)`: 4, 5, or 6 blocks.
@@ -107,8 +113,6 @@ impl BiomeGenerator for PlainsBiome {
         x: u8,
         z: u8,
         surface_y: i16,
-        chunk_x: i32,
-        chunk_z: i32,
     ) -> Result<(), WorldGenError> {
         // ── Surface blocks ────────────────────────────────────────────────────
         chunk.set_block(
@@ -121,29 +125,18 @@ impl BiomeGenerator for PlainsBiome {
             chunk.set_block(ChunkBlockPos::new(x, surface_y - i, z), block!("dirt"));
         }
 
-        // ── Tree placement ────────────────────────────────────────────────────
-        let gx = chunk_x * 16 + i32::from(x);
-        let gz = chunk_z * 16 + i32::from(z);
-
-        if self.should_place_tree(gx, gz, surface_y) {
-            let height = self.trunk_height(gx, gz);
-
-            // Verify the trunk column is unobstructed. At decoration time everything above
-            // surface_y is already air, so this mainly guards against two trees overlapping
-            // (e.g. leaves from an earlier tree blocking a later trunk) or future re-ordering.
-            let trunk_clear = (1..=(i16::from(height) + 2)).all(|dy| {
-                match_block!(
-                    "air",
-                    chunk.get_block(ChunkBlockPos::new(x, surface_y + dy, z))
-                )
-            });
-
-            if trunk_clear {
-                place_oak_tree(chunk, x, z, surface_y, height);
-            }
-        }
-
         Ok(())
+    }
+
+    fn tree_at(&self, global_x: i32, global_z: i32, surface_y: i16) -> Option<Tree> {
+        if !self.should_place_tree(global_x, global_z, surface_y) {
+            return None;
+        }
+        Some(Tree {
+            kind: TreeKind::Oak,
+            surface_y,
+            trunk_height: self.trunk_height(global_x, global_z),
+        })
     }
 
     fn new(seed: u64) -> Self {

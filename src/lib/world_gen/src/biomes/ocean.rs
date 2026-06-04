@@ -31,8 +31,6 @@ impl BiomeGenerator for OceanBiome {
         x: u8,
         z: u8,
         surface_y: i16,
-        _chunk_x: i32,
-        _chunk_z: i32,
     ) -> Result<(), WorldGenError> {
         // Sand bed at and just below the surface.
         let sand_depth =

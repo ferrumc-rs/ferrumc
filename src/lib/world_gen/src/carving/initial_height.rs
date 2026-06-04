@@ -23,6 +23,17 @@ pub(crate) fn height_noise(seed: u64) -> NoiseGenerator {
 }
 
 impl WorldGenerator {
+    /// Pure per-column initial surface height from the height noise, returned with the raw noise
+    /// value. Depends only on the world seed and global coordinates (no cross-column interaction),
+    /// so it can be evaluated for any column — including ones outside the chunk being generated.
+    pub(crate) fn initial_surface(&self, global_x: i32, global_z: i32) -> (i16, f32) {
+        // Sample directly in world space; the sampler's frequency sets the feature scale.
+        let height_noise = self.height_noise.get(global_x as f32, global_z as f32);
+        // Map noise [0,1] -> a signed offset of +/- HEIGHT_AMPLITUDE around the baseline.
+        let offset = ((height_noise * 2.0) - 1.0) * HEIGHT_AMPLITUDE;
+        (BASELINE_HEIGHT + offset as i16, height_noise)
+    }
+
     /// First carving pass: sets each column's surface height from the height noise and clears the
     /// stone above it. Writes the resulting heights into `heightmap` and records the raw noise in
     /// `col_noise`.
@@ -38,12 +49,7 @@ impl WorldGenerator {
                 let global_x = pos.x() * 16 + i32::from(local_x);
                 let global_z = pos.z() * 16 + i32::from(local_z);
 
-                // Sample directly in world space; the sampler's frequency sets the feature scale.
-                let height_noise = self.height_noise.get(global_x as f32, global_z as f32);
-
-                // Map noise [0,1] -> a signed offset of +/- HEIGHT_AMPLITUDE around the baseline.
-                let offset = ((height_noise * 2.0) - 1.0) * HEIGHT_AMPLITUDE;
-                let surface_y = BASELINE_HEIGHT + offset as i16;
+                let (surface_y, height_noise) = self.initial_surface(global_x, global_z);
 
                 heightmap[local_x as usize][local_z as usize] = surface_y;
                 col_noise[local_x as usize][local_z as usize].height = height_noise;

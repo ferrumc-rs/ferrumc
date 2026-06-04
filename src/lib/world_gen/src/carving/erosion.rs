@@ -29,6 +29,15 @@ pub(crate) fn erosion_noise(seed: u64) -> NoiseGenerator {
 }
 
 impl WorldGenerator {
+    /// Pure per-column erosion: lowers the `base` surface by an amount derived from the (splined)
+    /// erosion noise, returning the eroded surface height and the erosion value. Depends only on the
+    /// world seed and global coordinates, so it can be evaluated for any column.
+    pub(crate) fn eroded_surface(&self, global_x: i32, global_z: i32, base: i16) -> (i16, f32) {
+        let erosion_value = self.erosion_noise.get(global_x as f32, global_z as f32);
+        let height_reduction = (erosion_value * MAX_EROSION_DEPTH) as i16;
+        (base - height_reduction, erosion_value)
+    }
+
     /// Second carving pass: reduces each column's surface height by an erosion amount derived from
     /// the (splined) erosion noise, clears the freshly exposed stone, and records the erosion
     /// value for biome selection.
@@ -44,10 +53,8 @@ impl WorldGenerator {
                 let global_x = pos.x() * 16 + i32::from(local_x);
                 let global_z = pos.z() * 16 + i32::from(local_z);
 
-                let erosion_value = self.erosion_noise.get(global_x as f32, global_z as f32);
-
-                let height_reduction = (erosion_value * MAX_EROSION_DEPTH) as i16;
-                let surface_y = heightmap[local_x as usize][local_z as usize] - height_reduction;
+                let base = heightmap[local_x as usize][local_z as usize];
+                let (surface_y, erosion_value) = self.eroded_surface(global_x, global_z, base);
 
                 heightmap[local_x as usize][local_z as usize] = surface_y;
                 col_noise[local_x as usize][local_z as usize].erosion = erosion_value;
