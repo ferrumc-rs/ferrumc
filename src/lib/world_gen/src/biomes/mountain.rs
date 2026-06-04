@@ -16,7 +16,15 @@ impl BiomeGenerator for MountainBiome {
         "mountain".to_string()
     }
 
-    fn decorate(&self, _: &mut Chunk, _: u8, _: u8, _: i16) -> Result<(), WorldGenError> {
+    fn decorate(
+        &self,
+        _: &mut Chunk,
+        _: u8,
+        _: u8,
+        _: i16,
+        _: i32,
+        _: i32,
+    ) -> Result<(), WorldGenError> {
         // Bare stone — nothing to place.
         Ok(())
     }

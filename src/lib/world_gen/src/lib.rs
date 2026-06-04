@@ -62,32 +62,42 @@ pub(crate) trait BiomeGenerator {
     fn biome_id(&self) -> u8;
     fn _biome_name(&self) -> String;
     /// Decorates column (`x`, `z`) of `chunk`, where `surface_y` is the established surface height
-    /// for that column.
+    /// for that column. `chunk_x` / `chunk_z` are the chunk's grid coordinates; combined with
+    /// the local `x` / `z` they give the global block position needed for cross-chunk-consistent
+    /// feature placement (e.g. trees must sample noise at the same global position regardless of
+    /// which chunk the tree trunk falls in).
     fn decorate(
         &self,
         chunk: &mut Chunk,
         x: u8,
         z: u8,
         surface_y: i16,
+        chunk_x: i32,
+        chunk_z: i32,
     ) -> Result<(), WorldGenError>;
     fn new(seed: u64) -> Self
     where
         Self: Sized;
 }
 
-/// Terrain generator. Holds the noise samplers; one instance is shared across all chunk
-/// generation for a world.
+/// Terrain generator. Holds the noise samplers and the per-biome surface decorators; one instance
+/// is shared across all chunk generation for a world.
+///
+/// The biome decorators (`plains`, `ocean`, `mountain`) only depend on the world seed, so they are
+/// built once here rather than per column. Constructing them is not free — each builds its own
+/// fractal-noise samplers — so rebuilding them for every column was a significant per-chunk cost.
 pub struct WorldGenerator {
-    seed: u64,
     height_noise: NoiseGenerator,
     erosion_noise: NoiseGenerator,
     caves_layer: RidgedMulti<noise::OpenSimplex>,
+    plains: biomes::plains::PlainsBiome,
+    ocean: biomes::ocean::OceanBiome,
+    mountain: biomes::mountain::MountainBiome,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
-            seed,
             height_noise: carving::initial_height::height_noise(seed.wrapping_add(2)),
             erosion_noise: carving::erosion::erosion_noise(seed.wrapping_add(3)),
             caves_layer: RidgedMulti::<noise::OpenSimplex>::new((seed.wrapping_add(100)) as u32)
@@ -96,6 +106,9 @@ impl WorldGenerator {
                 .set_octaves(5)
                 .set_persistence(0.8)
                 .set_attenuation(0.3),
+            plains: biomes::plains::PlainsBiome::new(seed),
+            ocean: biomes::ocean::OceanBiome::new(seed),
+            mountain: biomes::mountain::MountainBiome::new(seed),
         }
     }
 
@@ -103,15 +116,17 @@ impl WorldGenerator {
     pub(crate) fn cave_noise(&self, x: f64, y: f64, z: f64) -> f64 {
         self.caves_layer.get([x, y, z])
     }
-    /// Selects the biome for a column from its captured noise/height.
-    fn get_biome(&self, noise: ColumnNoise, surface_y: i16) -> Box<dyn BiomeGenerator> {
+    /// Selects the biome for a column from its captured noise/height. Returns a shared reference to
+    /// one of the pre-built decorators (see [`WorldGenerator`]); selection is pure, so the decorator
+    /// is borrowed rather than allocated per column.
+    fn get_biome(&self, noise: ColumnNoise, surface_y: i16) -> &dyn BiomeGenerator {
         if surface_y < 50 {
-            return Box::new(biomes::ocean::OceanBiome::new(self.seed));
+            return &self.ocean;
         }
         if noise.erosion <= 0.3 {
-            return Box::new(biomes::mountain::MountainBiome::new(self.seed));
+            return &self.mountain;
         }
-        Box::new(biomes::plains::PlainsBiome::new(self.seed))
+        &self.plains
     }
 
     pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
@@ -140,7 +155,7 @@ impl WorldGenerator {
             for z in 0..16u8 {
                 let surface_y = heightmap[x as usize][z as usize];
                 let biome = self.get_biome(col_noise[x as usize][z as usize], surface_y);
-                biome.decorate(&mut chunk, x, z, surface_y)?;
+                biome.decorate(&mut chunk, x, z, surface_y, pos.x(), pos.z())?;
                 col_biome_ids[x as usize][z as usize] = biome.biome_id();
             }
         }
