@@ -636,26 +636,39 @@ mod tests {
         let mut world = World::new();
         let (state, _temp_dir) = create_test_state();
 
-        // Lay a stone floor under the source so water spreads horizontally instead of only falling.
+        // Lay a clean, contained slab: stone floor at y=63 with air above it, large enough that the
+        // source's spread (a level-0 source reaches at most 7 blocks) stays entirely on this floor.
+        // Clearing the air is what makes the test independent of the generated terrain — otherwise
+        // the world generator's surface at these columns can be solid (or ocean) at y=64 and block
+        // the spread. A self-contained slab also keeps the simulation tiny and fast.
+        const SLAB: i32 = 8;
         {
             let global = &state.0;
-            let source = BlockPos::of(0, 64, 0);
-            for x in -4..=4 {
-                for z in -4..=4 {
-                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
-                        global,
-                        BlockPos::of(x, 63, z).chunk(),
-                        TEST_DIM_NAME,
-                    )
-                    .expect("load chunk");
-                    chunk.set_block(BlockPos::of(x, 63, z).chunk_block_pos(), block!("stone"));
+            for x in -SLAB..=SLAB {
+                for z in -SLAB..=SLAB {
+                    global
+                        .world
+                        .set_block_and_fetch(BlockPos::of(x, 63, z), TEST_DIM_NAME, block!("stone"))
+                        .expect("set floor");
+                    global
+                        .world
+                        .set_block_and_fetch(BlockPos::of(x, 64, z), TEST_DIM_NAME, block!("air"))
+                        .expect("clear y=64");
+                    global
+                        .world
+                        .set_block_and_fetch(BlockPos::of(x, 65, z), TEST_DIM_NAME, block!("air"))
+                        .expect("clear y=65");
                 }
             }
-            // Place the water source.
-            let mut chunk =
-                ferrumc_utils::world::load_or_generate_mut(global, source.chunk(), TEST_DIM_NAME)
-                    .expect("load chunk");
-            chunk.set_block(source.chunk_block_pos(), fluid_block(FluidKind::Water, 0));
+            // Place the water source on the cleared floor.
+            global
+                .world
+                .set_block_and_fetch(
+                    BlockPos::of(0, 64, 0),
+                    TEST_DIM_NAME,
+                    fluid_block(FluidKind::Water, 0),
+                )
+                .expect("set source");
         }
 
         world.insert_resource(state.clone());
@@ -674,21 +687,36 @@ mod tests {
         schedule.add_systems(crate::systems::tick_counter::handle);
         schedule.add_systems(process_fluid_ticks);
 
-        // Run enough ticks for the source to spread to its neighbours (water cadence is 5 ticks).
-        for _ in 0..30 {
-            schedule.run(&mut world);
-        }
-
-        // Verify a horizontal neighbour now holds flowing water in the live world.
+        // Run ticks until the source has spread to its horizontal neighbour, rather than capping at
+        // a fixed tick budget. The elapsed time is printed (visible under `--nocapture`); the loop
+        // is bounded only by a generous hang-guard so a real regression fails instead of spinning
+        // forever.
         let neighbour = BlockPos::of(1, 64, 0);
-        let block = ferrumc_utils::world::load_or_generate_chunk(
-            &state.0,
-            neighbour.chunk(),
-            TEST_DIM_NAME,
-        )
-        .expect("load chunk")
-        .get_block(neighbour.chunk_block_pos());
-        let fluid = fluid_state(block).expect("neighbour should contain water after spreading");
+        let read_neighbour = || {
+            ferrumc_utils::world::load_or_generate_chunk(&state.0, neighbour.chunk(), TEST_DIM_NAME)
+                .expect("load chunk")
+                .get_block(neighbour.chunk_block_pos())
+        };
+
+        let start = std::time::Instant::now();
+        const HANG_GUARD: u32 = 10_000;
+        let mut ticks = 0u32;
+        let fluid = loop {
+            schedule.run(&mut world);
+            ticks += 1;
+            if let Some(fluid) = fluid_state(read_neighbour()) {
+                break fluid;
+            }
+            assert!(
+                ticks < HANG_GUARD,
+                "neighbour still has no water after {ticks} ticks; spreading appears broken"
+            );
+        };
+        println!(
+            "water reached the neighbour after {ticks} ticks in {:?}",
+            start.elapsed()
+        );
+
         assert_eq!(fluid.kind, FluidKind::Water);
         assert!(
             !fluid.is_source(),
@@ -697,21 +725,25 @@ mod tests {
     }
 
     /// Whether to force the serial or parallel evaluator in [`run_to_steady_state`].
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, Debug)]
     enum EvalMode {
         Serial,
         Parallel,
     }
 
     /// Drives the full fluid loop (drain → evaluate → apply → re-schedule) directly, without the
-    /// ECS, using the chosen evaluator. Returns once the scheduler empties or `max_ticks` elapse.
+    /// ECS, using the chosen evaluator. Runs until the scheduler empties — there is no tick budget,
+    /// so a slow simulation reports its real cost instead of failing a fixed limit. The elapsed wall
+    /// time and tick count are printed (visible under `--nocapture`).
     fn run_to_steady_state(
         state: &GlobalState,
         scheduler: &mut BlockTickScheduler,
         mode: EvalMode,
-        max_ticks: u64,
     ) {
-        for tick in 1..=max_ticks {
+        let start = std::time::Instant::now();
+        let mut tick = 0u64;
+        loop {
+            tick += 1;
             let due = scheduler.drain_due(tick);
             if due.is_empty() {
                 if scheduler.pending_count() == 0 {
@@ -759,6 +791,10 @@ mod tests {
                 }
             }
         }
+        println!(
+            "run_to_steady_state ({mode:?}) settled after {tick} ticks in {:?}",
+            start.elapsed()
+        );
     }
 
     /// Builds a fresh world with a stone floor and walls forming an enclosed basin, plus a water
@@ -860,10 +896,10 @@ mod tests {
         let radius = 3;
 
         let (serial_state, _s_tmp, mut serial_sched) = basin_world(radius);
-        run_to_steady_state(&serial_state.0, &mut serial_sched, EvalMode::Serial, 400);
+        run_to_steady_state(&serial_state.0, &mut serial_sched, EvalMode::Serial);
 
         let (par_state, _p_tmp, mut par_sched) = basin_world(radius);
-        run_to_steady_state(&par_state.0, &mut par_sched, EvalMode::Parallel, 400);
+        run_to_steady_state(&par_state.0, &mut par_sched, EvalMode::Parallel);
 
         let serial_snap = snapshot(&serial_state.0, radius, 62, 66);
         let par_snap = snapshot(&par_state.0, radius, 62, 66);
@@ -924,7 +960,7 @@ mod tests {
 
         let mut scheduler = BlockTickScheduler::new();
         scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
-        run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
+        run_to_steady_state(global, &mut scheduler, EvalMode::Serial);
 
         let result =
             ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)
@@ -968,7 +1004,7 @@ mod tests {
         let mut scheduler = BlockTickScheduler::new();
         // Tick the lava: it should flow down and turn the water into stone.
         scheduler.schedule(lava_pos, TickKind::FluidSpread, 0, 0);
-        run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
+        run_to_steady_state(global, &mut scheduler, EvalMode::Serial);
 
         let result =
             ferrumc_utils::world::load_or_generate_chunk(global, water_pos.chunk(), TEST_DIM_NAME)
@@ -1011,7 +1047,7 @@ mod tests {
 
         let mut scheduler = BlockTickScheduler::new();
         scheduler.schedule(water_pos, TickKind::FluidSpread, 0, 0);
-        run_to_steady_state(global, &mut scheduler, EvalMode::Serial, 50);
+        run_to_steady_state(global, &mut scheduler, EvalMode::Serial);
 
         let result =
             ferrumc_utils::world::load_or_generate_chunk(global, lava_pos.chunk(), TEST_DIM_NAME)

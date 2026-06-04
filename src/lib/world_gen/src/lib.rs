@@ -939,6 +939,60 @@ mod tests {
         );
     }
 
+    /// Cacti must never have a horizontally adjacent block (the vanilla rule). Driven directly on a
+    /// flat sand surface (natural deserts are far from the origin and slow to generate): the
+    /// vegetation pass is run over many synthetic all-desert chunks, and every placed cactus must
+    /// have only air at its four horizontal neighbours.
+    #[test]
+    fn cactus_has_no_horizontal_neighbours() {
+        let vegetation = biomes::vegetation::Vegetation::new(7);
+        let desert_ids = [[14u8; 16]; 16];
+        let sand = block!("sand");
+        let mut cactus_seen = 0u32;
+
+        for cx in 0..16i32 {
+            for cz in 0..16i32 {
+                // A flat sand slab at Y=64, air above.
+                let mut chunk = Chunk::new_empty();
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        chunk.set_block(ChunkBlockPos::new(x, 64, z), sand);
+                    }
+                }
+                vegetation.decorate(&mut chunk, cx * 16, cz * 16, &desert_ids);
+
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        for y in 65..70i16 {
+                            if !match_block!("cactus", chunk.get_block(ChunkBlockPos::new(x, y, z)))
+                            {
+                                continue;
+                            }
+                            cactus_seen += 1;
+                            for (dx, dz) in [(-1i32, 0i32), (1, 0), (0, -1), (0, 1)] {
+                                let nx = i32::from(x) + dx;
+                                let nz = i32::from(z) + dz;
+                                assert!(
+                                    (0..16).contains(&nx) && (0..16).contains(&nz),
+                                    "cactus at edge column ({x},{y},{z})"
+                                );
+                                let n = chunk.get_block(ChunkBlockPos::new(nx as u8, y, nz as u8));
+                                assert!(
+                                    match_block!("air", n),
+                                    "cactus at ({x},{y},{z}) has neighbour {n:?}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert!(
+            cactus_seen > 0,
+            "expected at least one cactus across the synthetic desert chunks"
+        );
+    }
+
     /// In grassy biomes, no column may end in bare dirt exposed to the sky: the grass-fill pass must
     /// re-cover dirt that cave carving stripped. The topmost solid (non-air, non-water) block of
     /// every column in a grassy chunk must not be plain dirt.
