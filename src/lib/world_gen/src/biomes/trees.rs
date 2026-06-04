@@ -16,8 +16,16 @@ use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::ChunkBlockPos;
 
-/// Maximum horizontal distance (in blocks) from a trunk to the outermost canopy block. Chunk
-/// generation must overscan its neighbours by this many columns so cross-chunk canopies are placed.
+/// Maximum horizontal distance (in blocks) from a trunk to the outermost canopy block, across *all*
+/// tree shapes. This is the contract that makes cross-chunk canopies seamless: chunk generation
+/// overscans its neighbours by exactly this many columns (see
+/// [`crate::WorldGenerator::generate_chunk`]), so a trunk up to this far outside a chunk still has
+/// its overhang placed, and no canopy is ever clipped.
+///
+/// Any new (or enlarged) tree shape must keep its widest leaf ring within this radius — or raise
+/// this constant, which automatically widens the overscan. The radius is asserted in
+/// [`place_leaf_ring`], and `canopy_is_complete_across_chunks` guards the end-to-end invariant; a
+/// shape that exceeds the gate fails both rather than silently dropping leaves at borders.
 pub(crate) const MAX_CANOPY_RADIUS: i32 = 2;
 
 /// The kind of tree to place. Kept as an enum so additional shapes can be added without changing
@@ -175,6 +183,13 @@ fn place_spruce_tree(chunk: &mut Chunk, cx: i32, cz: i32, surface_y: i16, trunk_
 /// with all four diagonal corners (|dx| == radius && |dz| == radius) removed.
 /// Blocks outside chunk bounds (0..16) or already non-air are silently skipped.
 fn place_leaf_ring(chunk: &mut Chunk, cx: i32, cz: i32, y: i16, radius: i32, leaf: BlockStateId) {
+    // The overscan gate assumes no leaf sits further than MAX_CANOPY_RADIUS from its trunk; a ring
+    // wider than that would be clipped at chunk borders. Catch the mismatch at its source.
+    debug_assert!(
+        radius <= MAX_CANOPY_RADIUS,
+        "leaf ring radius {radius} exceeds MAX_CANOPY_RADIUS {MAX_CANOPY_RADIUS}; \
+         raise the constant to widen the cross-chunk overscan"
+    );
     let r = radius;
     for dx in -r..=r {
         for dz in -r..=r {

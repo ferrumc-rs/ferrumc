@@ -473,6 +473,142 @@ mod tests {
         );
     }
 
+    /// Returns true if the 5×5 columns centred on (gx,gz) all share the same surface height, so a
+    /// tree there has no terrain occluding its lower canopy (which would confound a leaf-presence
+    /// check).
+    fn flat_around(generator: &WorldGenerator, gx: i32, gz: i32) -> Option<i16> {
+        let (h0, _) = generator.column(gx, gz);
+        for dx in -2..=2 {
+            for dz in -2..=2 {
+                if generator.column(gx + dx, gz + dz).0 != h0 {
+                    return None;
+                }
+            }
+        }
+        Some(h0)
+    }
+
+    /// Returns the set of leaf positions (absolute world coords) a tree produces with no clipping,
+    /// by placing it at the centre of a scratch chunk (far from any edge) and reading back the
+    /// canopy. Used as the ground-truth "unbounded" canopy to compare cross-chunk placement against.
+    fn unbounded_canopy(
+        surface_y: i16,
+        kind: biomes::trees::TreeKind,
+        trunk_height: u8,
+    ) -> std::collections::HashSet<(i32, i32, i16)> {
+        let mut scratch = Chunk::new_empty();
+        for y in -4..(MAX_GENERATED_HEIGHT / 16) as i8 {
+            scratch.fill_section(y, block!("stone"));
+        }
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                WorldGenerator::clear_above(&mut scratch, x, z, surface_y);
+            }
+        }
+        biomes::trees::place_tree(
+            &mut scratch,
+            8,
+            8,
+            &biomes::trees::Tree {
+                kind,
+                surface_y,
+                trunk_height,
+            },
+        );
+        let mut leaves = std::collections::HashSet::new();
+        for x in 0..16i32 {
+            for z in 0..16i32 {
+                for y in (surface_y - 1)..=(surface_y + i16::from(trunk_height) + 2) {
+                    let b = scratch.get_block(ChunkBlockPos::new(x as u8, y, z as u8));
+                    if match_block!("oak_leaves", b)
+                        || match_block!("spruce_leaves", b)
+                        || match_block!("birch_leaves", b)
+                    {
+                        leaves.insert((x - 8, z - 8, y)); // offset relative to the centred trunk
+                    }
+                }
+            }
+        }
+        leaves
+    }
+
+    /// Cross-chunk canopy completeness: every leaf an unclipped tree would have must be present once
+    /// the surrounding chunks are generated. This is the regression guard that keeps the
+    /// `overscan == MAX_CANOPY_RADIUS` gate honest — if a new (larger) tree shape exceeds the gate,
+    /// its overhang would be clipped and this fails. Trees are probed on flat ground so the
+    /// air-only placement rule (which legitimately drops leaves into solid terrain on slopes) does
+    /// not confound the check.
+    #[test]
+    fn canopy_is_complete_across_chunks() {
+        let generator = WorldGenerator::new(0);
+        let mut probed = 0;
+        let mut failures: Vec<String> = vec![];
+
+        'outer: for gx in -512..512i32 {
+            // Only trunks within MAX_CANOPY_RADIUS of a chunk edge produce a cross-chunk canopy.
+            let lx = gx.rem_euclid(16);
+            let r = biomes::trees::MAX_CANOPY_RADIUS;
+            if lx > r && lx < 16 - r {
+                continue;
+            }
+            for gz in -512..512i32 {
+                if probed >= 24 {
+                    break 'outer;
+                }
+                let (surface_y, sample) = generator.column(gx, gz);
+                let biome = generator.get_biome(sample, surface_y);
+                let Some(tree) = biome.tree_at(gx, gz, surface_y) else {
+                    continue;
+                };
+                if flat_around(&generator, gx, gz).is_none() {
+                    continue;
+                }
+
+                let kind = match biome.biome_id() {
+                    48 => biomes::trees::TreeKind::Spruce,
+                    _ => biomes::trees::TreeKind::Oak, // oak/birch share a shape
+                };
+                let truth = unbounded_canopy(surface_y, kind, tree.trunk_height);
+
+                let cx0 = gx >> 4;
+                let cz0 = gz >> 4;
+                for &(odx, odz, y) in &truth {
+                    let wx = gx + odx;
+                    let wz = gz + odz;
+                    let chunk = generator
+                        .generate_chunk(ChunkPos::new(wx >> 4, wz >> 4))
+                        .unwrap();
+                    let b = chunk.get_block(ChunkBlockPos::new(
+                        wx.rem_euclid(16) as u8,
+                        y,
+                        wz.rem_euclid(16) as u8,
+                    ));
+                    let present = match_block!("oak_leaves", b)
+                        || match_block!("spruce_leaves", b)
+                        || match_block!("birch_leaves", b);
+                    if !present {
+                        failures.push(format!(
+                            "tree@({gx},{gz}) biome={} chunk=({cx0},{cz0}) leaf off \
+                             ({odx},{odz},dy={}) missing, found {b:?}",
+                            biome.biome_id(),
+                            y - surface_y
+                        ));
+                    }
+                }
+                probed += 1;
+            }
+        }
+        assert!(
+            probed > 0,
+            "found no edge-aligned trees on flat ground to probe"
+        );
+        assert!(
+            failures.is_empty(),
+            "cross-chunk canopy gaps across {probed} trees:\n{}",
+            failures.join("\n")
+        );
+    }
+
     /// The climate model must produce both ocean basins (surface well below sea level) and raised
     /// continents (surface well above it) across a region — not the uniform mid-height terrain the
     /// previous single height field produced.
