@@ -1,30 +1,34 @@
 //! World generation.
 //!
-//! This is a port of the layered terrain pipeline from the upstream `feature/nicer-terrain`
-//! branch, adapted to FerrumC's current chunk model. The upstream branch rewrote the entire
-//! chunk/section model (`chunk_format`, `EditBatch`, per-section `block_counts`, etc.); rather
-//! than pull that in (which would conflict with the fluid system, palette, and network
-//! serialization), this port keeps the existing [`ferrumc_world::chunk::Chunk`] API and reproduces
-//! only the *generation algorithm*:
+//! A layered, climate-driven terrain pipeline built on FerrumC's existing
+//! [`ferrumc_world::chunk::Chunk`] API. Large-scale region layout (oceans, continents, biome bands)
+//! is driven by low-frequency climate noise rather than per-column choices, so generation produces
+//! broad contiguous regions instead of uniform noise (see [`climate`]).
 //!
 //! 1. Fill the column with stone up to [`MAX_GENERATED_HEIGHT`].
-//! 2. Carve an initial height field from broad height noise (`carving::initial_height`).
-//! 3. Apply erosion to lower the surface further (`carving::erosion`).
-//! 4. Per column, pick a biome from the noise/height and let it decorate the surface
-//!    (`biomes::{plains, ocean, mountain}`).
-//! 5. Carve caves (retained from FerrumC's existing generator; the upstream branch dropped them).
+//! 2. Carve the surface in a single pass (`carving`): the climate continentalness field sets an
+//!    absolute base height, a local detail field adds hills (its amplitude scaled by continentalness
+//!    and erosion), and the stone above the final surface is cleared.
+//! 3. Per column, pick a biome from the climate sample + surface height and let it decorate the
+//!    surface (`biomes`).
+//! 4. Flood every column below [`climate::SEA_LEVEL`] with water in one global pass, independent of
+//!    biome — so coastlines and inland basins fill naturally.
+//! 5. Place trees, including the canopies of trees rooted in neighbouring chunks.
+//! 6. Carve caves (retained from FerrumC's existing generator).
 //!
-//! The per-column surface height and noise values are passed around as plain local arrays
-//! (`Heightmap` / `ColumnNoise`) during a single `generate_chunk` call rather than being stored on
+//! The per-column surface height and climate sample are passed around as plain local arrays
+//! (`Heightmap` / `ColumnClimate`) during a single `generate_chunk` call rather than being stored on
 //! the chunk, since nothing outside generation needs them.
 
 mod biomes;
 mod carving;
 mod caves;
+mod climate;
 pub mod errors;
 mod interp;
 mod terrain_noise;
 
+use crate::climate::{Climate, ClimateSample, SEA_LEVEL};
 use crate::errors::WorldGenError;
 use crate::terrain_noise::NoiseGenerator;
 use ferrumc_world::block_state_id::BlockStateId;
@@ -33,11 +37,9 @@ use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 use noise::{MultiFractal, NoiseFn, RidgedMulti};
 
 /// The highest Y the generator fills before carving. The whole column is stone up to here, then
-/// height + erosion carve it back down to the real surface.
-pub const MAX_GENERATED_HEIGHT: i16 = 192;
-
-/// The nominal sea-level-ish baseline the height field is centred on.
-pub const BASELINE_HEIGHT: i16 = 82;
+/// the carving pass clears it back down to the real surface. Sized to comfortably exceed the
+/// tallest surface the climate model can produce (continental base + detail amplitude).
+pub const MAX_GENERATED_HEIGHT: i16 = 176;
 
 /// The lowest world Y (overworld floor). The bedrock layer sits here.
 const MIN_WORLD_Y: i16 = -64;
@@ -45,12 +47,9 @@ const MIN_WORLD_Y: i16 = -64;
 /// A per-column surface height map for one chunk (`[local_x][local_z]`).
 pub(crate) type Heightmap = [[i16; 16]; 16];
 
-/// Per-column noise values captured during carving, reused for biome selection.
-#[derive(Default, Clone, Copy)]
-pub(crate) struct ColumnNoise {
-    pub erosion: f32,
-    pub height: f32,
-}
+/// Per-column climate sample captured during carving, reused for biome selection. One entry per
+/// column of the chunk being generated.
+pub(crate) type ColumnClimate = [[ClimateSample; 16]; 16];
 
 /// Trait implemented by each biome's surface decorator.
 ///
@@ -92,26 +91,40 @@ pub(crate) trait BiomeGenerator {
         Self: Sized;
 }
 
-/// Terrain generator. Holds the noise samplers and the per-biome surface decorators; one instance
-/// is shared across all chunk generation for a world.
+/// Terrain generator. Holds the noise samplers, the climate model, and the per-biome surface
+/// decorators; one instance is shared across all chunk generation for a world.
 ///
-/// The biome decorators (`plains`, `ocean`, `mountain`) only depend on the world seed, so they are
-/// built once here rather than per column. Constructing them is not free — each builds its own
-/// fractal-noise samplers — so rebuilding them for every column was a significant per-chunk cost.
+/// The biome decorators only depend on the world seed, so they are built once here rather than per
+/// column. Constructing them is not free — each builds its own fractal-noise samplers — so
+/// rebuilding them for every column was a significant per-chunk cost.
 pub struct WorldGenerator {
-    height_noise: NoiseGenerator,
-    erosion_noise: NoiseGenerator,
+    /// Climate model: low-frequency continentalness/temperature/humidity driving region layout.
+    pub(crate) climate: Climate,
+    /// Erosion field (splined), used to damp local detail amplitude and to select biomes.
+    pub(crate) erosion_noise: NoiseGenerator,
+    /// Higher-frequency local detail layered on top of the continental base height.
+    pub(crate) detail_noise: NoiseGenerator,
     caves_layer: RidgedMulti<noise::OpenSimplex>,
+    // Pre-built biome decorators. Several biomes share a decorator type but differ by registry ID
+    // (ocean/deep_ocean, beach/snowy_beach, snowy_plains/snowy_taiga).
     plains: biomes::plains::PlainsBiome,
+    forest: biomes::forest::ForestBiome,
+    desert: biomes::desert::DesertBiome,
     ocean: biomes::ocean::OceanBiome,
+    deep_ocean: biomes::ocean::OceanBiome,
+    beach: biomes::beach::BeachBiome,
+    snowy_beach: biomes::beach::BeachBiome,
+    snowy_plains: biomes::snowy::SnowyBiome,
+    snowy_taiga: biomes::snowy::SnowyBiome,
     mountain: biomes::mountain::MountainBiome,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
-            height_noise: carving::initial_height::height_noise(seed.wrapping_add(2)),
+            climate: Climate::new(seed),
             erosion_noise: carving::erosion::erosion_noise(seed.wrapping_add(3)),
+            detail_noise: carving::initial_height::detail_noise(seed.wrapping_add(2)),
             caves_layer: RidgedMulti::<noise::OpenSimplex>::new((seed.wrapping_add(100)) as u32)
                 .set_frequency(0.01)
                 .set_lacunarity(2.5)
@@ -119,7 +132,14 @@ impl WorldGenerator {
                 .set_persistence(0.8)
                 .set_attenuation(0.3),
             plains: biomes::plains::PlainsBiome::new(seed),
-            ocean: biomes::ocean::OceanBiome::new(seed),
+            forest: biomes::forest::ForestBiome::new(seed),
+            desert: biomes::desert::DesertBiome::new(seed),
+            ocean: biomes::ocean::OceanBiome::with_id(seed, 35),
+            deep_ocean: biomes::ocean::OceanBiome::with_id(seed.wrapping_add(1), 13),
+            beach: biomes::beach::BeachBiome::with_id(3),
+            snowy_beach: biomes::beach::BeachBiome::with_id(45),
+            snowy_plains: biomes::snowy::SnowyBiome::plains(seed),
+            snowy_taiga: biomes::snowy::SnowyBiome::taiga(seed),
             mountain: biomes::mountain::MountainBiome::new(seed),
         }
     }
@@ -128,58 +148,97 @@ impl WorldGenerator {
     pub(crate) fn cave_noise(&self, x: f64, y: f64, z: f64) -> f64 {
         self.caves_layer.get([x, y, z])
     }
-    /// Selects the biome for a column from its captured noise/height. Returns a shared reference to
-    /// one of the pre-built decorators (see [`WorldGenerator`]); selection is pure, so the decorator
-    /// is borrowed rather than allocated per column.
-    fn get_biome(&self, noise: ColumnNoise, surface_y: i16) -> &dyn BiomeGenerator {
-        if surface_y < 50 {
-            return &self.ocean;
+
+    /// Selects the biome for a column from its climate sample and surface height. Returns a shared
+    /// reference to one of the pre-built decorators (see [`WorldGenerator`]); selection is pure, so
+    /// the decorator is borrowed rather than allocated per column.
+    ///
+    /// Water and coast are resolved by surface height relative to [`SEA_LEVEL`] first; the remaining
+    /// land is classified on a temperature × humidity grid, with the most rugged low-erosion peaks
+    /// becoming mountains. Because the climate fields are low-frequency, the result is broad bands.
+    fn get_biome(&self, c: ClimateSample, surface_y: i16) -> &dyn BiomeGenerator {
+        let cold = c.temperature < 0.30;
+
+        // Water and coastline. Submerged columns are ocean; the deepest basins (low continentalness
+        // or far below the surface) become deep ocean.
+        if surface_y < SEA_LEVEL {
+            return if c.continentalness < 0.20 || surface_y <= SEA_LEVEL - 18 {
+                &self.deep_ocean
+            } else {
+                &self.ocean
+            };
         }
-        if noise.erosion <= 0.3 {
+        if surface_y <= SEA_LEVEL + 2 {
+            return if cold { &self.snowy_beach } else { &self.beach };
+        }
+
+        // Land. Rugged, low-erosion high ground becomes mountains.
+        if c.erosion < 0.30 && surface_y >= 95 {
             return &self.mountain;
         }
-        &self.plains
-    }
 
-    /// Deterministic surface height and column noise for an arbitrary global column, composing both
-    /// carving stages. This is a pure function of the world seed and global coordinates (the carving
-    /// stages add no cross-column interpolation), so it can be evaluated for columns outside the
-    /// chunk being generated — which the cross-chunk tree-canopy overscan relies on to resolve trees
-    /// rooted in neighbouring chunks identically to how those chunks resolve them.
-    pub(crate) fn column(&self, global_x: i32, global_z: i32) -> (i16, ColumnNoise) {
-        let (base, height) = self.initial_surface(global_x, global_z);
-        let (surface, erosion) = self.eroded_surface(global_x, global_z, base);
-        (surface, ColumnNoise { erosion, height })
+        if cold {
+            return if c.humidity < 0.5 {
+                &self.snowy_plains
+            } else {
+                &self.snowy_taiga
+            };
+        }
+        if c.temperature < 0.62 {
+            return if c.humidity < 0.45 {
+                &self.plains
+            } else {
+                &self.forest
+            };
+        }
+        // Hot: dry → desert, otherwise forest.
+        if c.humidity < 0.40 {
+            &self.desert
+        } else {
+            &self.forest
+        }
     }
 
     pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
         let mut chunk = Chunk::new_empty();
 
-        // 1. Fill every section whose top is at or below MAX_GENERATED_HEIGHT with stone.
-        //    Section index i covers world Y [i*16-64, i*16-64+15]; fill while the section bottom is
-        //    below the generated ceiling.
+        // 1. Fill every section up to the generated ceiling with stone. Section coordinate `s`
+        //    covers world Y [s*16, s*16+15]; the overworld floor is at section -4 (Y -64).
         let stone = ferrumc_macros::block!("stone");
-        let top_section = (MAX_GENERATED_HEIGHT / 16) as i8; // 192/16 = 12
+        let top_section = (MAX_GENERATED_HEIGHT / 16) as i8; // 176/16 = 11
         for section_y in -4..top_section {
             chunk.fill_section(section_y, stone);
         }
 
-        // 2 + 3. Carve the surface height field (initial height, then erosion). These return the
-        //         per-column surface height and the noise values used, captured for biome
-        //         selection.
-        let mut heightmap: Heightmap = [[BASELINE_HEIGHT; 16]; 16];
-        let mut col_noise = [[ColumnNoise::default(); 16]; 16];
-        self.apply_initial_height(&mut chunk, pos, &mut heightmap, &mut col_noise);
-        self.apply_erosion(&mut chunk, pos, &mut heightmap, &mut col_noise);
+        // 2. Carve the surface in a single pass: compose each column's final height from the climate
+        //    continentalness base + erosion-scaled local detail, clear the stone above it, and
+        //    capture the surface height and climate sample for biome selection.
+        let mut heightmap: Heightmap = [[SEA_LEVEL; 16]; 16];
+        let mut col_climate: ColumnClimate = [[ClimateSample::default(); 16]; 16];
+        self.carve_surface(&mut chunk, pos, &mut heightmap, &mut col_climate);
 
-        // 4. Decorate each column according to its biome, recording the ID for step 4b.
+        // 3. Decorate each column according to its biome, recording the ID for step 5.
         let mut col_biome_ids = [[0u8; 16]; 16];
         for x in 0..16u8 {
             for z in 0..16u8 {
                 let surface_y = heightmap[x as usize][z as usize];
-                let biome = self.get_biome(col_noise[x as usize][z as usize], surface_y);
+                let biome = self.get_biome(col_climate[x as usize][z as usize], surface_y);
                 biome.decorate(&mut chunk, x, z, surface_y)?;
                 col_biome_ids[x as usize][z as usize] = biome.biome_id();
+            }
+        }
+
+        // 4. Flood every column whose surface is below the water level, in one biome-independent
+        //    pass. This is what gives natural coastlines and inland basins rather than tying water
+        //    to a single ocean biome. Decoration of submerged columns has already laid a sea/lake
+        //    bed (the ocean decorator), so this only fills the water above it.
+        let water = ferrumc_macros::block!("water", { level: 0 });
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                let surface_y = heightmap[x as usize][z as usize];
+                for y in (surface_y + 1)..=SEA_LEVEL {
+                    chunk.set_block(ChunkBlockPos::new(x, y, z), water);
+                }
             }
         }
 
@@ -194,8 +253,8 @@ impl WorldGenerator {
         let overscan = biomes::trees::MAX_CANOPY_RADIUS;
         for global_x in (base_x - overscan)..(base_x + 16 + overscan) {
             for global_z in (base_z - overscan)..(base_z + 16 + overscan) {
-                let (surface_y, noise) = self.column(global_x, global_z);
-                let biome = self.get_biome(noise, surface_y);
+                let (surface_y, sample) = self.column(global_x, global_z);
+                let biome = self.get_biome(sample, surface_y);
                 if let Some(tree) = biome.tree_at(global_x, global_z, surface_y) {
                     biomes::trees::place_tree(
                         &mut chunk,
@@ -378,11 +437,16 @@ mod tests {
         // Find a tree whose trunk sits on the western edge of its chunk (global x divisible by 16),
         // so its canopy overhangs the chunk to the west. Searching tree placement is cheap (no chunk
         // generation), so a wide scan reliably finds an edge-aligned tree.
+        // Restrict to the plains biome so the tree is a known oak (forest mixes in birch, taiga uses
+        // spruce), keeping the leaf-block assertion below unambiguous.
         let mut found = None;
-        'search: for gx in (0..2048i32).step_by(16) {
-            for gz in 0..256i32 {
-                let (surface_y, noise) = generator.column(gx, gz);
-                let biome = generator.get_biome(noise, surface_y);
+        'search: for gx in (0..8192i32).step_by(16) {
+            for gz in 0..512i32 {
+                let (surface_y, sample) = generator.column(gx, gz);
+                let biome = generator.get_biome(sample, surface_y);
+                if biome.biome_id() != 40 {
+                    continue;
+                }
                 if let Some(tree) = biome.tree_at(gx, gz, surface_y) {
                     found = Some((gx, gz, tree.surface_y, tree.trunk_height));
                     break 'search;
@@ -406,6 +470,103 @@ mod tests {
             match_block!("oak_leaves", block),
             "expected a canopy leaf from the neighbouring tree at local \
              ({local_x},{leaf_y},{local_z}) of chunk {neighbour:?}, found {block:?}"
+        );
+    }
+
+    /// The climate model must produce both ocean basins (surface well below sea level) and raised
+    /// continents (surface well above it) across a region — not the uniform mid-height terrain the
+    /// previous single height field produced.
+    #[test]
+    fn oceans_and_continents_exist() {
+        let generator = WorldGenerator::new(0);
+        let mut saw_ocean = false;
+        let mut saw_continent = false;
+        // The pure column function is cheap, so a wide sparse sweep is enough to span several
+        // continentalness regions at the ~600-block region scale.
+        for gx in (-4096..4096i32).step_by(64) {
+            for gz in (-4096..4096i32).step_by(64) {
+                let (surface_y, _) = generator.column(gx, gz);
+                if surface_y < SEA_LEVEL - 5 {
+                    saw_ocean = true;
+                }
+                if surface_y > SEA_LEVEL + 15 {
+                    saw_continent = true;
+                }
+            }
+        }
+        assert!(
+            saw_ocean && saw_continent,
+            "expected both ocean basins and raised continents \
+             (saw_ocean={saw_ocean}, saw_continent={saw_continent})"
+        );
+    }
+
+    /// Water must never appear above the world water level: the global flood pass fills only up to
+    /// [`SEA_LEVEL`]. Regression guard against the old per-biome flood that could leave water
+    /// stranded or fill to an inconsistent level.
+    #[test]
+    fn water_never_above_sea_level() {
+        let generator = WorldGenerator::new(7);
+        // Generate a spread of chunks likely to include coastline/ocean.
+        for cx in -4..4 {
+            for cz in -4..4 {
+                let chunk = generator.generate_chunk(ChunkPos::new(cx, cz)).unwrap();
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        for y in (SEA_LEVEL + 1)..MAX_GENERATED_HEIGHT {
+                            let b = chunk.get_block(ChunkBlockPos::new(x, y, z));
+                            assert!(
+                                !match_block!("water", b),
+                                "water found above sea level at ({x},{y},{z}) in chunk \
+                                 ({cx},{cz})"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Biomes must form a varied layout over a large region: at least a few distinct biomes should
+    /// appear, confirming the climate grid is actually partitioning the world rather than collapsing
+    /// to one biome.
+    #[test]
+    fn biome_variety_over_region() {
+        let generator = WorldGenerator::new(0);
+        let mut seen = std::collections::HashSet::new();
+        for gx in (-8192..8192i32).step_by(128) {
+            for gz in (-8192..8192i32).step_by(128) {
+                let (surface_y, sample) = generator.column(gx, gz);
+                seen.insert(generator.get_biome(sample, surface_y).biome_id());
+            }
+        }
+        assert!(
+            seen.len() >= 3,
+            "expected at least 3 distinct biomes over the region, saw {}: {:?}",
+            seen.len(),
+            seen
+        );
+    }
+
+    /// Coastlines must be sandy: a column just above sea level should classify as a beach (or its
+    /// snowy variant), so land never meets water with a grass cliff.
+    #[test]
+    fn coast_classifies_as_beach() {
+        let generator = WorldGenerator::new(0);
+        let mut saw_beach = false;
+        'scan: for gx in (-8192..8192i32).step_by(8) {
+            for gz in (-8192..8192i32).step_by(8) {
+                let (surface_y, sample) = generator.column(gx, gz);
+                let id = generator.get_biome(sample, surface_y).biome_id();
+                if id == 3 || id == 45 {
+                    saw_beach = true;
+                    break 'scan;
+                }
+            }
+        }
+        assert!(
+            saw_beach,
+            "expected at least one beach column along a coastline"
         );
     }
 }

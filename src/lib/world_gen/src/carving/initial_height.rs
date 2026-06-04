@@ -1,58 +1,92 @@
-//! Initial height carving: turns the broad height-noise field into a per-column surface height,
-//! centred on [`crate::BASELINE_HEIGHT`], and clears the stone above it.
+//! Local detail noise and surface composition.
+//!
+//! The broad base height comes from the climate continentalness field ([`crate::climate`]); this
+//! module owns the higher-frequency *detail* field layered on top of it and the per-column
+//! composition that combines base height, detail, and erosion into a final surface height.
 
+use crate::climate::ClimateSample;
 use crate::terrain_noise::NoiseGenerator;
-use crate::{BASELINE_HEIGHT, ColumnNoise, Heightmap, WorldGenerator};
+use crate::{Heightmap, WorldGenerator};
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::ChunkPos;
 
-/// Peak-to-trough amplitude (in blocks) of the base height field. The surface varies by roughly
-/// `+/- HEIGHT_AMPLITUDE` around [`crate::BASELINE_HEIGHT`] before erosion. Chosen so plains have
-/// visible rolling hills rather than looking superflat.
-const HEIGHT_AMPLITUDE: f32 = 48.0;
+/// Maximum peak-to-baseline amplitude (in blocks) of the local detail field, reached on flat
+/// inland (low erosion, high continentalness). Oceans and high-erosion regions scale well below
+/// this. Large enough that inland terrain reads as proper hills rather than superflat.
+const MAX_DETAIL_AMPLITUDE: f32 = 37.0;
 
-/// Builds the height-noise sampler.
+/// Minimum detail amplitude (in blocks), applied even in deep ocean so the sea floor is not
+/// perfectly flat.
+const MIN_DETAIL_AMPLITUDE: f32 = 3.0;
+
+/// Continentalness at and above which a column is treated as fully inland for the purpose of
+/// scaling detail amplitude. Below it, amplitude ramps down toward the ocean floor.
+const INLAND_CONTINENTALNESS: f32 = 0.42;
+
+/// How much erosion damps the detail amplitude: at erosion 1.0 the amplitude is reduced by this
+/// fraction, flattening high-erosion regions into plains/plateaus.
+const EROSION_FLATTENING: f32 = 0.7;
+
+/// Builds the local detail-noise sampler.
 ///
-/// The frequency is the *effective* world-space frequency: a value of `0.0125` gives terrain
-/// features on the order of ~80 blocks across (1 / 0.0125), i.e. gentle hills a player notices
-/// while walking. (The previous value of 0.01 combined with an extra `/32` divisor at the call
-/// site collapsed the effective frequency to ~0.0003 — features spanning thousands of blocks,
-/// which read as completely flat.)
-pub(crate) fn height_noise(seed: u64) -> NoiseGenerator {
+/// The frequency gives features on the order of ~80 blocks across (1 / 0.0125) — gentle hills a
+/// player notices while walking — layered on top of the much broader continentalness base.
+pub(crate) fn detail_noise(seed: u64) -> NoiseGenerator {
     NoiseGenerator::new(seed, 0.0125, 4, None)
 }
 
 impl WorldGenerator {
-    /// Pure per-column initial surface height from the height noise, returned with the raw noise
-    /// value. Depends only on the world seed and global coordinates (no cross-column interaction),
-    /// so it can be evaluated for any column — including ones outside the chunk being generated.
-    pub(crate) fn initial_surface(&self, global_x: i32, global_z: i32) -> (i16, f32) {
-        // Sample directly in world space; the sampler's frequency sets the feature scale.
-        let height_noise = self.height_noise.get(global_x as f32, global_z as f32);
-        // Map noise [0,1] -> a signed offset of +/- HEIGHT_AMPLITUDE around the baseline.
-        let offset = ((height_noise * 2.0) - 1.0) * HEIGHT_AMPLITUDE;
-        (BASELINE_HEIGHT + offset as i16, height_noise)
+    /// Pure per-column surface height and climate sample. Composes the continentalness base height,
+    /// the erosion-and-continentalness-scaled local detail, and records every climate axis for biome
+    /// selection. Depends only on the world seed and global coordinates, so it can be evaluated for
+    /// any column — including ones outside the chunk being generated.
+    pub(crate) fn column(&self, global_x: i32, global_z: i32) -> (i16, ClimateSample) {
+        let continentalness = self.climate.continentalness(global_x, global_z);
+        let base = self.climate.continental_height(continentalness);
+
+        let erosion = self.erosion_noise.get(global_x as f32, global_z as f32);
+        let (temperature, humidity) = self.climate.sample(global_x, global_z);
+
+        // Detail amplitude: ramps from MIN at/below the ocean toward MAX fully inland, then damped
+        // by erosion so flat regions stay flat.
+        let landness = (continentalness / INLAND_CONTINENTALNESS).clamp(0.0, 1.0);
+        let amplitude = (MIN_DETAIL_AMPLITUDE
+            + (MAX_DETAIL_AMPLITUDE - MIN_DETAIL_AMPLITUDE) * landness)
+            * (1.0 - EROSION_FLATTENING * erosion);
+
+        let detail =
+            ((self.detail_noise.get(global_x as f32, global_z as f32) * 2.0) - 1.0) * amplitude;
+
+        let surface = (base + detail) as i16;
+        (
+            surface,
+            ClimateSample {
+                continentalness,
+                temperature,
+                humidity,
+                erosion,
+            },
+        )
     }
 
-    /// First carving pass: sets each column's surface height from the height noise and clears the
-    /// stone above it. Writes the resulting heights into `heightmap` and records the raw noise in
-    /// `col_noise`.
-    pub(crate) fn apply_initial_height(
+    /// Carving pass: composes each column's final surface height (see [`WorldGenerator::column`]),
+    /// clears the stone above it, and records the height and climate sample for biome selection.
+    pub(crate) fn carve_surface(
         &self,
         chunk: &mut Chunk,
         pos: ChunkPos,
         heightmap: &mut Heightmap,
-        col_noise: &mut [[ColumnNoise; 16]; 16],
+        col_climate: &mut [[ClimateSample; 16]; 16],
     ) {
         for local_x in 0..16u8 {
             for local_z in 0..16u8 {
                 let global_x = pos.x() * 16 + i32::from(local_x);
                 let global_z = pos.z() * 16 + i32::from(local_z);
 
-                let (surface_y, height_noise) = self.initial_surface(global_x, global_z);
+                let (surface_y, sample) = self.column(global_x, global_z);
 
                 heightmap[local_x as usize][local_z as usize] = surface_y;
-                col_noise[local_x as usize][local_z as usize].height = height_noise;
+                col_climate[local_x as usize][local_z as usize] = sample;
 
                 WorldGenerator::clear_above(chunk, local_x, local_z, surface_y);
             }

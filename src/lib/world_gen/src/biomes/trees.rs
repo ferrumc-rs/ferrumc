@@ -20,10 +20,15 @@ use ferrumc_world::pos::ChunkBlockPos;
 /// generation must overscan its neighbours by this many columns so cross-chunk canopies are placed.
 pub(crate) const MAX_CANOPY_RADIUS: i32 = 2;
 
-/// The kind of tree to place. Currently only oak; kept as an enum so additional shapes can be added
-/// without changing the [`Tree`] plumbing or the biome `tree_at` interface.
+/// The kind of tree to place. Kept as an enum so additional shapes can be added without changing
+/// the [`Tree`] plumbing or the biome `tree_at` interface.
 pub(crate) enum TreeKind {
+    /// Standard rounded oak. See [`place_oak_tree`].
     Oak,
+    /// Birch: the same shape as oak but with birch logs and leaves.
+    Birch,
+    /// Conical spruce/taiga tree with a stepped canopy and a pointed tip. See [`place_spruce_tree`].
+    Spruce,
 }
 
 /// A fully-resolved tree to place at a known global column: its shape, the surface height its trunk
@@ -41,11 +46,40 @@ pub(crate) struct Tree {
 /// inside the chunk are written; everything else is clipped.
 pub(crate) fn place_tree(chunk: &mut Chunk, cx: i32, cz: i32, tree: &Tree) {
     match tree.kind {
-        TreeKind::Oak => place_oak_tree(chunk, cx, cz, tree.surface_y, tree.trunk_height),
+        TreeKind::Oak => {
+            let log = block!("oak_log", { axis: "y" });
+            let leaves =
+                block!("oak_leaves", { distance: 1, persistent: false, waterlogged: false });
+            place_oak_tree(
+                chunk,
+                cx,
+                cz,
+                tree.surface_y,
+                tree.trunk_height,
+                log,
+                leaves,
+            );
+        }
+        TreeKind::Birch => {
+            let log = block!("birch_log", { axis: "y" });
+            let leaves =
+                block!("birch_leaves", { distance: 1, persistent: false, waterlogged: false });
+            place_oak_tree(
+                chunk,
+                cx,
+                cz,
+                tree.surface_y,
+                tree.trunk_height,
+                log,
+                leaves,
+            );
+        }
+        TreeKind::Spruce => place_spruce_tree(chunk, cx, cz, tree.surface_y, tree.trunk_height),
     }
 }
 
-/// Places a standard oak tree with the trunk base at `surface_y + 1`.
+/// Places a standard rounded tree (oak/birch shape) with the trunk base at `surface_y + 1`. The
+/// `log` and `leaves` block states select the wood type.
 ///
 /// * `trunk_height` — number of log blocks (4–6 is typical).
 ///
@@ -56,10 +90,15 @@ pub(crate) fn place_tree(chunk: &mut Chunk, cx: i32, cz: i32, tree: &Tree) {
 /// The trunk is a single column, so it is only written when it lies inside this chunk; leaves are
 /// placed only into air, leaving existing blocks (logs from an overlapping tree, stone peeking
 /// through, etc.) untouched.
-fn place_oak_tree(chunk: &mut Chunk, cx: i32, cz: i32, surface_y: i16, trunk_height: u8) {
-    let log = block!("oak_log", { axis: "y" });
-    let leaves = block!("oak_leaves", { distance: 1, persistent: false, waterlogged: false });
-
+fn place_oak_tree(
+    chunk: &mut Chunk,
+    cx: i32,
+    cz: i32,
+    surface_y: i16,
+    trunk_height: u8,
+    log: BlockStateId,
+    leaves: BlockStateId,
+) {
     let top_y = surface_y + i16::from(trunk_height);
 
     // Trunk: surface + 1 to surface + trunk_height (inclusive). Only this chunk's own trunks land
@@ -78,6 +117,57 @@ fn place_oak_tree(chunk: &mut Chunk, cx: i32, cz: i32, surface_y: i16, trunk_hei
     // Two narrow leaf layers (3×3 minus diagonal corners = diamond cross).
     for dy in [0i16, 1] {
         place_leaf_ring(chunk, cx, cz, top_y + dy, 1, leaves);
+    }
+}
+
+/// Places a conical spruce tree with the trunk base at `surface_y + 1`.
+///
+/// * `trunk_height` — number of log blocks (6–8 is typical); the canopy is taller and narrower than
+///   the oak shape, tapering from a 5×5 base ring up to a single-block tip one block above the top
+///   log.
+///
+/// The canopy is built as alternating wide (radius 2) and narrow (radius 1) rings climbing the
+/// trunk, so it reads as the stepped silhouette of a conifer. As with the oak shape, the trunk is
+/// only written when in bounds and leaves are placed only into air.
+fn place_spruce_tree(chunk: &mut Chunk, cx: i32, cz: i32, surface_y: i16, trunk_height: u8) {
+    let log = block!("spruce_log", { axis: "y" });
+    let leaves = block!("spruce_leaves", { distance: 1, persistent: false, waterlogged: false });
+
+    let top_y = surface_y + i16::from(trunk_height);
+
+    // Trunk.
+    if (0..16).contains(&cx) && (0..16).contains(&cz) {
+        for dy in 1..=i16::from(trunk_height) {
+            chunk.set_block(ChunkBlockPos::new(cx as u8, surface_y + dy, cz as u8), log);
+        }
+    }
+
+    // Stepped canopy: start two blocks below the top log and climb, alternating a wide ring and a
+    // narrow ring so the silhouette tapers. The canopy spans the upper portion of the trunk.
+    let canopy_height = i16::from(trunk_height).min(6);
+    for step in 0..canopy_height {
+        let y = top_y - 1 - step;
+        // Wide rings on even steps from the bottom, narrowing toward the top.
+        let radius = if step >= canopy_height - 2 {
+            0 // top: single column of leaves above the trunk handled by the tip below
+        } else if (canopy_height - 1 - step) % 2 == 0 {
+            2
+        } else {
+            1
+        };
+        if radius == 0 {
+            continue;
+        }
+        place_leaf_ring(chunk, cx, cz, y, radius, leaves);
+    }
+
+    // Narrow cap and pointed tip.
+    place_leaf_ring(chunk, cx, cz, top_y, 1, leaves);
+    if (0..16).contains(&cx) && (0..16).contains(&cz) {
+        let tip = ChunkBlockPos::new(cx as u8, top_y + 1, cz as u8);
+        if match_block!("air", chunk.get_block(tip)) {
+            chunk.set_block(tip, leaves);
+        }
     }
 }
 

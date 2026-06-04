@@ -1,28 +1,48 @@
-//! Ocean biome: a sand + sandstone bed, flooded with water up to the world water level.
+//! Ocean biome: a sand + sandstone sea bed. The water itself is no longer placed here — a single
+//! global pass floods every column below [`crate::climate::SEA_LEVEL`] during chunk generation
+//! (see [`crate::WorldGenerator::generate_chunk`]), so the ocean decorator only lays the floor.
+//!
+//! The same decorator backs both `ocean` and `deep_ocean`; the selection layer
+//! ([`crate::WorldGenerator::get_biome`]) builds the variant with the appropriate biome ID.
 
+use crate::BiomeGenerator;
 use crate::errors::WorldGenError;
 use crate::terrain_noise::NoiseGenerator;
-use crate::{BASELINE_HEIGHT, BiomeGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::ChunkBlockPos;
-use rand::Rng;
-use rand::SeedableRng;
 
 pub(crate) struct OceanBiome {
     sand_depth_noise: NoiseGenerator,
     sand_height_offset_noise: NoiseGenerator,
-    world_water_level: i16,
+    /// Registry biome ID — `35` (ocean) or `13` (deep_ocean).
+    id: u8,
+}
+
+impl OceanBiome {
+    /// Builds an ocean variant with the given registry biome ID. Used by the selection layer to
+    /// distinguish shallow `ocean` from `deep_ocean` while sharing the floor-laying logic.
+    pub(crate) fn with_id(seed: u64, id: u8) -> Self {
+        OceanBiome {
+            sand_depth_noise: NoiseGenerator::new(seed, 0.1, 4, None),
+            sand_height_offset_noise: NoiseGenerator::new(seed.wrapping_add(1), 0.1, 4, None),
+            id,
+        }
+    }
 }
 
 impl BiomeGenerator for OceanBiome {
     fn biome_id(&self) -> u8 {
-        35 // minecraft:ocean
+        self.id
     }
 
     fn _biome_name(&self) -> String {
-        "ocean".to_string()
+        if self.id == 13 {
+            "deep_ocean".to_string()
+        } else {
+            "ocean".to_string()
+        }
     }
 
     fn decorate(
@@ -51,21 +71,10 @@ impl BiomeGenerator for OceanBiome {
                 block!("sandstone"),
             );
         }
-
-        // Flood with water from just above the surface up to the water level.
-        for y in (surface_y + 1)..=self.world_water_level {
-            chunk.set_block(ChunkBlockPos::new(x, y, z), block!("water", { level: 0 }));
-        }
         Ok(())
     }
 
     fn new(seed: u64) -> Self {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-        OceanBiome {
-            sand_depth_noise: NoiseGenerator::new(seed, 0.1, 4, None),
-            sand_height_offset_noise: NoiseGenerator::new(seed + 1, 0.1, 4, None),
-            // A water level a fixed distance below the baseline, jittered slightly per world.
-            world_water_level: BASELINE_HEIGHT - rng.gen_range(38..=42) as i16,
-        }
+        OceanBiome::with_id(seed, 35)
     }
 }
