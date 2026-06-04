@@ -21,10 +21,16 @@ resolve them.
    snow, …).
 4. **Flood water** — one global pass fills every column whose surface is below `SEA_LEVEL`,
    independent of biome.
-5. **Place trees** — including the canopies of trees rooted in neighbouring chunks (see
-   [Trees](#trees-and-cross-chunk-canopies)).
-6. **Carve caves** — 3D ridged-noise caves (retained from the previous generator).
-7. **Bedrock floor** — an unbreakable layer at `Y = -64`, laid last so caves cannot punch through.
+5. **Carve caves** — 3D ridged-noise caves (`caves.rs`). Carved *before* trees so a cave can never
+   hollow out a trunk or canopy that was already placed.
+6. **Surface finish** — on each column's *post-cave* top: re-cover exposed dirt with grass, and lay
+   snow on snowy biomes and high mountain peaks (see [Surface finish](#surface-finish)).
+7. **Place trees** — including the canopies of trees rooted in neighbouring chunks (see
+   [Trees](#trees-and-cross-chunk-canopies)). Columns where a cave opens at the surface are skipped.
+8. **Vegetation** — scatter ground plants (grass, flowers, desert plants) on the finished surface
+   (see [Vegetation](#vegetation)).
+9. **Biome data** — the dominant biome ID is written to the chunk sections.
+10. **Bedrock floor** — an unbreakable layer at `Y = -64`, laid last so caves cannot punch through.
 
 The per-column surface height and climate sample are passed around as local arrays (`Heightmap`,
 `ColumnClimate`) for the duration of one `generate_chunk` call; nothing outside generation needs
@@ -45,9 +51,10 @@ space and normalised to `[0, 1]`:
 The continentalness → height spline control points:
 
 ```
-0.00 → 30   deep ocean floor
-0.30 → 48   continental shelf
-0.42 → 62   coastline (just below sea level)
+0.00 → 16   deep ocean floor (~47 below sea level)
+0.18 → 30   ocean basin
+0.32 → 48   continental shelf
+0.42 → 60   coastline (just below sea level)
 0.50 → 68   low inland
 0.70 → 88   hills
 1.00 → 112  high inland
@@ -68,19 +75,26 @@ surface    = base + detail
 `detail_noise` (`0.0125`, ~80-block features) is the higher-frequency layer that adds the hills a
 player notices while walking. Its amplitude is scaled down in oceans (low `landness`) and in
 high-erosion regions, so the sea floor and eroded plateaus stay flat while inland low-erosion ground
-gets proper relief. `MIN_DETAIL_AMPLITUDE` / `MAX_DETAIL_AMPLITUDE` bound it (currently `3` / `37`).
+gets proper relief. `MIN_DETAIL_AMPLITUDE` / `MAX_DETAIL_AMPLITUDE` bound it (currently `3` / `37`),
+and `EROSION_FLATTENING` (`0.92`) is kept high so high-erosion regions — including most plains —
+read as genuinely flat; mountains stay tall because they are selected from *low*-erosion ground.
+
+Erosion also pulls the surface *down* by up to `EROSION_HEIGHT_DROP` (`14`) blocks at full erosion,
+coupling elevation to erosion the way vanilla does: high-erosion ground is both flat and low-lying
+(so plains sit low and gentle), while low-erosion mountains keep their full continental base height.
 
 ## Biomes
 
-`WorldGenerator::get_biome` classifies each column from its climate sample and surface height,
-returning a shared reference to one of the pre-built decorators. Because the climate fields are
-low-frequency, the result is broad bands rather than per-column noise.
+`WorldGenerator::classify` maps each column's climate sample and surface height to a pair: the
+surface **decorator** to run and the **registry biome ID** to record. These usually coincide, but
+one shared ocean decorator backs many ocean registry variants whose ID is chosen separately (see
+below). Because the climate fields are low-frequency, the result is broad bands rather than
+per-column noise.
 
 Selection order:
 
 1. **Water / coast**, by surface height relative to `SEA_LEVEL`:
-   - `surface < SEA_LEVEL` → ocean; the deepest basins (low continentalness or far below the
-     surface) → deep ocean.
+   - `surface < SEA_LEVEL` → an ocean variant (see [Ocean variants](#ocean-variants)).
    - `surface <= SEA_LEVEL + 2` → beach (snowy beach where cold).
 2. **Mountains** — rugged, low-erosion high ground (`erosion < 0.30 && surface >= 95`).
 3. **Land climate grid** — on temperature × humidity:
@@ -95,18 +109,32 @@ Each biome's surface cover is placed by a decorator in `biomes/` implementing `B
 | plains | 40 | `plains.rs` | grass/dirt, sparse oak |
 | forest | 21 | `forest.rs` | grass/dirt, dense oak + birch mix |
 | desert | 14 | `desert.rs` | sand over sandstone, treeless |
-| ocean | 35 | `ocean.rs` | sand + sandstone sea bed |
-| deep_ocean | 13 | `ocean.rs` | same decorator, different ID |
+| ocean variants | see below | `ocean.rs` | sand + sandstone sea bed (one decorator, many IDs) |
 | beach | 3 | `beach.rs` | sand strip over sandstone |
 | snowy_beach | 45 | `beach.rs` | same decorator, different ID |
-| snowy_plains | 46 | `snowy.rs` | snowy grass + snow layer, treeless |
-| snowy_taiga | 48 | `snowy.rs` | snowy grass + snow layer, spruce |
-| windswept_hills | 62 | `mountain.rs` | bare stone, snow cap above `Y = 110` |
+| snowy_plains | 46 | `snowy.rs` | snowy grass + dirt; snow laid by the surface-finish pass, treeless |
+| snowy_taiga | 48 | `snowy.rs` | snowy grass + dirt; snow laid by the surface-finish pass, spruce |
+| windswept_hills | 62 | `mountain.rs` | bare stone; snow cap above `Y = 110` laid by the surface-finish pass |
 
 Registry IDs are the indices of the biome in the dynamic biome registry sent during configuration
 (see `assets/data/registry_packets.json`). Mixed-biome sections are not yet encoded on the network
 path, so each chunk is filled with a single dominant biome (the most common of the 16 biome-cell
 columns).
+
+### Ocean variants
+
+The sea bed is identical for every ocean, so a single `ocean.rs` decorator serves all of them and
+`WorldGenerator::ocean_variant_id` picks the registry ID from temperature and depth (only the ID,
+and thus the client's water colour, differs). A column counts as *deep* when `continentalness < 0.20`
+or `surface <= SEA_LEVEL - 18`.
+
+| Temperature | Shallow | Deep |
+| --- | --- | --- |
+| `< 0.15` (frozen) | frozen_ocean (22) | deep_frozen_ocean (11) |
+| `< 0.35` (cold) | cold_ocean (6) | deep_cold_ocean (9) |
+| `< 0.55` | ocean (35) | deep_ocean (13) |
+| `< 0.75` (lukewarm) | lukewarm_ocean (29) | deep_lukewarm_ocean (12) |
+| else (warm) | warm_ocean (58) | warm_ocean (58) — no deep warm variant exists |
 
 ## Water
 
@@ -115,6 +143,25 @@ surface is below `SEA_LEVEL` (63), filling from the surface up to the water leve
 produces natural coastlines and inland basins, and it decouples the water level from biome selection
 (an earlier design flooded only inside the ocean biome and to a different level, which left a band of
 "dry sea bed" where the two disagreed).
+
+## Surface finish
+
+Caves are carved before trees and can open at the surface (cave mouths), stripping the cover off a
+biome's surface and leaving bare dirt — and, if cover blocks like snow had already been placed,
+leaving them floating where the old surface used to be. To avoid both, surface cover that depends on
+the *final* shape of the ground is applied in one per-column pass **after** carving, working on the
+column's actual post-cave top block:
+
+- **Grass** — for grassy biomes (`WorldGenerator::grass_cover_for` returns a grass block for plains,
+  forest, and the snowy biomes), a bare-dirt top is converted to the biome's grass block. Columns
+  whose surface was never carved already have grass on top and are unchanged.
+- **Snow** — a snow layer is laid on the real top of snowy biomes (always) and of mountain peaks
+  above `MOUNTAIN_SNOW_LINE` (`Y = 110`), only into the air directly above the surface. Because it
+  follows the post-cave top, snow never floats over a cave mouth (the bug this replaced: the snowy
+  decorator used to place snow at the pre-cave `surface_y + 1`, which caves then undercut).
+
+Everything is keyed on the column's own biome, so the pass is deterministic and needs no cross-chunk
+lookup.
 
 ## Trees and cross-chunk canopies
 
@@ -142,6 +189,34 @@ The overscan width equals `MAX_CANOPY_RADIUS` exactly, so this constant is a har
 Leaves are placed only into air, so adjacent solid terrain on a slope can legitimately occlude part
 of a low canopy — this is expected and is not a chunk-boundary clip.
 
+### Interaction with caves
+
+Caves are carved *before* trees, so a cave can never hollow out a trunk or canopy that was already
+placed. Trees are then kept clear of cave mouths: the placement loop skips any column where
+`WorldGenerator::cave_opening_at_surface` reports a cave at the surface, so no tree sprouts over (or
+is undercut by) a hole. That gate samples the continuous cave noise directly (not the per-chunk
+interpolation grid), so it is a seed-pure function every chunk agrees on — at the cost of a small
+approximation against the actual carve.
+
+## Vegetation
+
+Ground plants are scattered in a final pass (`biomes/vegetation.rs`) after trees, so they land on
+the real, post-cave surface and never inside a trunk or a cave. Every plant occupies a single column
+(cacti stack vertically but stay in one column), so — unlike tree canopies — there is no cross-chunk
+overhang and no overscan is needed. Placement is a pure per-column function of the world seed and the
+global column (a salted hash, the same mix the tree placer uses), so it is stable and reproducible.
+
+Each column's surface block decides what, if anything, grows:
+
+| Biome | Ground | Plants |
+| --- | --- | --- |
+| plains (40), forest (21) | grass block | ~3% flowers (dandelion / poppy / cornflower / oxeye daisy), ferns in forest, then ~short grass; rest bare |
+| desert (14) | sand | sparse cacti (1–2 tall) and dead bushes |
+
+Other biomes (oceans, beaches, snowy, mountains) grow nothing for now. Snowy biomes are skipped
+naturally: their surface block is the snow layer, not a grass block, so the grassland rule does not
+match.
+
 ## Key constants
 
 | Constant | Location | Value | Meaning |
@@ -149,6 +224,9 @@ of a low canopy — this is expected and is not a chunk-boundary clip.
 | `SEA_LEVEL` | `climate.rs` | 63 | Global water level. |
 | `MAX_GENERATED_HEIGHT` | `lib.rs` | 176 | Stone-fill ceiling; exceeds the tallest possible surface. |
 | `MIN_WORLD_Y` | `lib.rs` | -64 | Overworld floor / bedrock layer. |
+| `MOUNTAIN_SNOW_LINE` | `lib.rs` | 110 | Surface height above which mountain peaks are snow-capped. |
+| `EROSION_FLATTENING` | `carving/initial_height.rs` | 0.92 | How strongly erosion flattens terrain. |
+| `EROSION_HEIGHT_DROP` | `carving/initial_height.rs` | 14 | How far erosion lowers the surface. |
 | `MAX_CANOPY_RADIUS` | `biomes/trees.rs` | 2 | Tree overscan contract (see above). |
 
 ## Tuning notes
@@ -156,16 +234,18 @@ of a low canopy — this is expected and is not a chunk-boundary clip.
 - **Region scale** is set by the climate frequencies in `Climate::new`. Lower frequency → larger
   oceans/continents and biome bands.
 - **Land/ocean ratio and coast shape** are set by the continentalness spline control points.
-- **Hilliness** is set by `MIN/MAX_DETAIL_AMPLITUDE` and `EROSION_FLATTENING` in
-  `carving/initial_height.rs`.
-- **Biome boundaries** are the thresholds in `get_biome`.
+- **Hilliness / plains flatness** is set by `MIN/MAX_DETAIL_AMPLITUDE` and `EROSION_FLATTENING` in
+  `carving/initial_height.rs` (higher `EROSION_FLATTENING` → flatter plains).
+- **Biome boundaries** are the thresholds in `classify` (and `ocean_variant_id` for oceans).
 
 ## Files
 
-- `lib.rs` — pipeline orchestration, biome selection, water pass.
+- `lib.rs` — pipeline orchestration, biome classification (`classify`, `ocean_variant_id`), water
+  pass, surface finish (grass + snow), cave-mouth tree gate.
 - `climate.rs` — climate noise fields, continentalness spline, `SEA_LEVEL`.
 - `carving/initial_height.rs` — detail noise and surface composition (`column`, `carve_surface`).
 - `carving/erosion.rs` — erosion noise field.
 - `terrain_noise.rs` — `NoiseGenerator` (fBm) and `Spline` helpers.
-- `biomes/` — per-biome decorators, shared tree placement, and tree shapes.
+- `biomes/` — per-biome decorators, shared tree placement, tree shapes, and ground vegetation
+  (`vegetation.rs`).
 - `caves.rs` — cave carving.

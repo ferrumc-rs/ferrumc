@@ -79,12 +79,8 @@ impl BiomeGenerator for SnowyBiome {
             chunk.set_block(ChunkBlockPos::new(x, surface_y - i, z), block!("dirt"));
         }
 
-        // A single layer of snow on top of the grass.
-        chunk.set_block(
-            ChunkBlockPos::new(x, surface_y + 1, z),
-            block!("snow", { layers: 1 }),
-        );
-
+        // The snow layer on top is laid by the post-cave surface-finish pass in `generate_chunk`,
+        // so it sits on the real (possibly cave-carved) surface rather than floating.
         Ok(())
     }
 

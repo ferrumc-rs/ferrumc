@@ -58,9 +58,10 @@ impl Climate {
             temperature: NoiseGenerator::new(seed.wrapping_add(23), 0.0012, 3, None),
             humidity: NoiseGenerator::new(seed.wrapping_add(37), 0.0013, 3, None),
             continental_spline: Spline::new(vec![
-                (0.00, 30.0),  // deep ocean floor
-                (0.30, 48.0),  // continental shelf
-                (0.42, 62.0),  // coastline, just below sea level
+                (0.00, 16.0),  // deep ocean floor (~47 below sea level)
+                (0.18, 30.0),  // ocean basin
+                (0.32, 48.0),  // continental shelf
+                (0.42, 60.0),  // coastline, just below sea level
                 (0.50, 68.0),  // low inland
                 (0.70, 88.0),  // hills
                 (1.00, 112.0), // high inland

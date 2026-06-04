@@ -2,8 +2,11 @@
 //! global pass floods every column below [`crate::climate::SEA_LEVEL`] during chunk generation
 //! (see [`crate::WorldGenerator::generate_chunk`]), so the ocean decorator only lays the floor.
 //!
-//! The same decorator backs both `ocean` and `deep_ocean`; the selection layer
-//! ([`crate::WorldGenerator::get_biome`]) builds the variant with the appropriate biome ID.
+//! A single decorator backs every ocean variant (ocean, deep ocean, cold/lukewarm/warm/frozen and
+//! their deep forms): the sea bed is identical, and only the recorded registry biome ID differs.
+//! That ID is chosen by the selection layer from temperature and depth
+//! (`WorldGenerator::ocean_variant_id`); the decorator's own [`OceanBiome::biome_id`] is just a
+//! placeholder default.
 
 use crate::BiomeGenerator;
 use crate::errors::WorldGenError;
@@ -16,33 +19,15 @@ use ferrumc_world::pos::ChunkBlockPos;
 pub(crate) struct OceanBiome {
     sand_depth_noise: NoiseGenerator,
     sand_height_offset_noise: NoiseGenerator,
-    /// Registry biome ID — `35` (ocean) or `13` (deep_ocean).
-    id: u8,
-}
-
-impl OceanBiome {
-    /// Builds an ocean variant with the given registry biome ID. Used by the selection layer to
-    /// distinguish shallow `ocean` from `deep_ocean` while sharing the floor-laying logic.
-    pub(crate) fn with_id(seed: u64, id: u8) -> Self {
-        OceanBiome {
-            sand_depth_noise: NoiseGenerator::new(seed, 0.1, 4, None),
-            sand_height_offset_noise: NoiseGenerator::new(seed.wrapping_add(1), 0.1, 4, None),
-            id,
-        }
-    }
 }
 
 impl BiomeGenerator for OceanBiome {
     fn biome_id(&self) -> u8 {
-        self.id
+        35 // minecraft:ocean — placeholder; the actual variant ID comes from ocean_variant_id.
     }
 
     fn _biome_name(&self) -> String {
-        if self.id == 13 {
-            "deep_ocean".to_string()
-        } else {
-            "ocean".to_string()
-        }
+        "ocean".to_string()
     }
 
     fn decorate(
@@ -75,6 +60,9 @@ impl BiomeGenerator for OceanBiome {
     }
 
     fn new(seed: u64) -> Self {
-        OceanBiome::with_id(seed, 35)
+        OceanBiome {
+            sand_depth_noise: NoiseGenerator::new(seed, 0.1, 4, None),
+            sand_height_offset_noise: NoiseGenerator::new(seed.wrapping_add(1), 0.1, 4, None),
+        }
     }
 }

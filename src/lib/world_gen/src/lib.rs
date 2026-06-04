@@ -13,8 +13,11 @@
 //!    surface (`biomes`).
 //! 4. Flood every column below [`climate::SEA_LEVEL`] with water in one global pass, independent of
 //!    biome — so coastlines and inland basins fill naturally.
-//! 5. Place trees, including the canopies of trees rooted in neighbouring chunks.
-//! 6. Carve caves (retained from FerrumC's existing generator).
+//! 5. Carve caves (`caves`), before trees so a cave can never hollow out a placed trunk.
+//! 6. Re-cover any dirt a cave exposed at the surface of a grassy biome with grass.
+//! 7. Place trees, including the canopies of trees rooted in neighbouring chunks; columns where a
+//!    cave opens at the surface are skipped so no tree sprouts over a hole.
+//! 8. Scatter ground vegetation (grass, flowers, desert plants) on the finished surface.
 //!
 //! The per-column surface height and climate sample are passed around as plain local arrays
 //! (`Heightmap` / `ColumnClimate`) during a single `generate_chunk` call rather than being stored on
@@ -43,6 +46,10 @@ pub const MAX_GENERATED_HEIGHT: i16 = 176;
 
 /// The lowest world Y (overworld floor). The bedrock layer sits here.
 const MIN_WORLD_Y: i16 = -64;
+
+/// Surface height at and above which mountain (windswept_hills) peaks are capped with snow. Applied
+/// in the post-cave surface-finish pass so the cap sits on the real top, never floating over a cave.
+const MOUNTAIN_SNOW_LINE: i16 = 110;
 
 /// A per-column surface height map for one chunk (`[local_x][local_z]`).
 pub(crate) type Heightmap = [[i16; 16]; 16];
@@ -105,18 +112,20 @@ pub struct WorldGenerator {
     /// Higher-frequency local detail layered on top of the continental base height.
     pub(crate) detail_noise: NoiseGenerator,
     caves_layer: RidgedMulti<noise::OpenSimplex>,
-    // Pre-built biome decorators. Several biomes share a decorator type but differ by registry ID
-    // (ocean/deep_ocean, beach/snowy_beach, snowy_plains/snowy_taiga).
+    // Pre-built biome decorators. Some decorators back several registry biomes that differ only in
+    // ID (one `ocean` decorator serves every ocean variant; `beach`/`snowy_beach` share a shape);
+    // the recorded ID is resolved in `classify`.
     plains: biomes::plains::PlainsBiome,
     forest: biomes::forest::ForestBiome,
     desert: biomes::desert::DesertBiome,
     ocean: biomes::ocean::OceanBiome,
-    deep_ocean: biomes::ocean::OceanBiome,
     beach: biomes::beach::BeachBiome,
     snowy_beach: biomes::beach::BeachBiome,
     snowy_plains: biomes::snowy::SnowyBiome,
     snowy_taiga: biomes::snowy::SnowyBiome,
     mountain: biomes::mountain::MountainBiome,
+    /// Scatters ground vegetation (grass, flowers, desert plants) in a pass after trees.
+    vegetation: biomes::vegetation::Vegetation,
 }
 
 impl WorldGenerator {
@@ -134,13 +143,13 @@ impl WorldGenerator {
             plains: biomes::plains::PlainsBiome::new(seed),
             forest: biomes::forest::ForestBiome::new(seed),
             desert: biomes::desert::DesertBiome::new(seed),
-            ocean: biomes::ocean::OceanBiome::with_id(seed, 35),
-            deep_ocean: biomes::ocean::OceanBiome::with_id(seed.wrapping_add(1), 13),
+            ocean: biomes::ocean::OceanBiome::new(seed),
             beach: biomes::beach::BeachBiome::with_id(3),
             snowy_beach: biomes::beach::BeachBiome::with_id(45),
             snowy_plains: biomes::snowy::SnowyBiome::plains(seed),
             snowy_taiga: biomes::snowy::SnowyBiome::taiga(seed),
             mountain: biomes::mountain::MountainBiome::new(seed),
+            vegetation: biomes::vegetation::Vegetation::new(seed.wrapping_add(53)),
         }
     }
 
@@ -149,54 +158,101 @@ impl WorldGenerator {
         self.caves_layer.get([x, y, z])
     }
 
-    /// Selects the biome for a column from its climate sample and surface height. Returns a shared
-    /// reference to one of the pre-built decorators (see [`WorldGenerator`]); selection is pure, so
-    /// the decorator is borrowed rather than allocated per column.
+    /// Classifies a column from its climate sample and surface height, returning the surface
+    /// decorator to run and the registry biome ID to record. Selection is pure, so the decorator is
+    /// borrowed (not allocated) per column and every chunk agrees on every column.
+    ///
+    /// Decorator and ID usually coincide (`id == decorator.biome_id()`), but ocean uses one shared
+    /// sea-bed decorator across many registry variants whose ID is chosen from temperature and depth
+    /// by [`WorldGenerator::ocean_variant_id`].
     ///
     /// Water and coast are resolved by surface height relative to [`SEA_LEVEL`] first; the remaining
     /// land is classified on a temperature × humidity grid, with the most rugged low-erosion peaks
     /// becoming mountains. Because the climate fields are low-frequency, the result is broad bands.
-    fn get_biome(&self, c: ClimateSample, surface_y: i16) -> &dyn BiomeGenerator {
+    fn classify(&self, c: ClimateSample, surface_y: i16) -> (&dyn BiomeGenerator, u8) {
         let cold = c.temperature < 0.30;
 
-        // Water and coastline. Submerged columns are ocean; the deepest basins (low continentalness
-        // or far below the surface) become deep ocean.
+        // Water and coastline. Submerged columns are ocean variants chosen by temperature/depth.
         if surface_y < SEA_LEVEL {
-            return if c.continentalness < 0.20 || surface_y <= SEA_LEVEL - 18 {
-                &self.deep_ocean
-            } else {
-                &self.ocean
-            };
+            let deep = c.continentalness < 0.20 || surface_y <= SEA_LEVEL - 18;
+            return (&self.ocean, Self::ocean_variant_id(c.temperature, deep));
         }
         if surface_y <= SEA_LEVEL + 2 {
-            return if cold { &self.snowy_beach } else { &self.beach };
+            let beach: &dyn BiomeGenerator = if cold { &self.snowy_beach } else { &self.beach };
+            return (beach, beach.biome_id());
         }
 
         // Land. Rugged, low-erosion high ground becomes mountains.
-        if c.erosion < 0.30 && surface_y >= 95 {
-            return &self.mountain;
-        }
-
-        if cold {
-            return if c.humidity < 0.5 {
+        let land: &dyn BiomeGenerator = if c.erosion < 0.30 && surface_y >= 95 {
+            &self.mountain
+        } else if cold {
+            if c.humidity < 0.5 {
                 &self.snowy_plains
             } else {
                 &self.snowy_taiga
-            };
-        }
-        if c.temperature < 0.62 {
-            return if c.humidity < 0.45 {
+            }
+        } else if c.temperature < 0.62 {
+            if c.humidity < 0.45 {
                 &self.plains
             } else {
                 &self.forest
-            };
-        }
-        // Hot: dry → desert, otherwise forest.
-        if c.humidity < 0.40 {
+            }
+        } else if c.humidity < 0.40 {
+            // Hot and dry.
             &self.desert
         } else {
             &self.forest
+        };
+        (land, land.biome_id())
+    }
+
+    /// The decorator for a column, ignoring the recorded ID (used by tree placement, which only
+    /// needs `tree_at`).
+    fn biome_decorator(&self, c: ClimateSample, surface_y: i16) -> &dyn BiomeGenerator {
+        self.classify(c, surface_y).0
+    }
+
+    /// Picks the registry biome ID for a submerged column from temperature and depth. The sea bed is
+    /// identical across variants; only the ID (and thus the client's water colour) differs.
+    fn ocean_variant_id(temperature: f32, deep: bool) -> u8 {
+        // (shallow, deep) registry IDs per temperature band.
+        let (shallow, deep_id) = if temperature < 0.15 {
+            (22, 11) // frozen_ocean, deep_frozen_ocean
+        } else if temperature < 0.35 {
+            (6, 9) // cold_ocean, deep_cold_ocean
+        } else if temperature < 0.55 {
+            (35, 13) // ocean, deep_ocean
+        } else if temperature < 0.75 {
+            (29, 12) // lukewarm_ocean, deep_lukewarm_ocean
+        } else {
+            (58, 58) // warm_ocean (no deep warm variant exists)
+        };
+        if deep { deep_id } else { shallow }
+    }
+
+    /// The grass block a biome covers its surface with, or `None` for biomes without grass. Used by
+    /// the grass-fill pass to re-cover dirt that cave carving exposed at the surface.
+    fn grass_cover_for(biome_id: u8) -> Option<BlockStateId> {
+        match biome_id {
+            40 | 21 => Some(ferrumc_macros::block!("grass_block", { snowy: false })), // plains, forest
+            46 | 48 => Some(ferrumc_macros::block!("grass_block", { snowy: true })), // snowy_plains, snowy_taiga
+            _ => None,
         }
+    }
+
+    /// Whether a cave opens at the column's surface, used as a pure gate so trees do not sprout over
+    /// (or get undercut by) a cave mouth. This samples the continuous cave noise directly rather than
+    /// the per-chunk interpolation grid `generate_caves` uses, so it is a seed-pure function of the
+    /// column (every chunk agrees) at the cost of a small approximation against the actual carve.
+    fn cave_opening_at_surface(&self, global_x: i32, global_z: i32, surface_y: i16) -> bool {
+        // Slightly below the carve threshold (0.6) so trees keep clear of cave-mouth rims, not just
+        // the hole itself.
+        const GATE: f64 = 0.55;
+        self.cave_noise(
+            f64::from(global_x) / 2.0,
+            f64::from(surface_y) / 2.0,
+            f64::from(global_z) / 2.0,
+        ) > GATE
     }
 
     pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
@@ -217,14 +273,15 @@ impl WorldGenerator {
         let mut col_climate: ColumnClimate = [[ClimateSample::default(); 16]; 16];
         self.carve_surface(&mut chunk, pos, &mut heightmap, &mut col_climate);
 
-        // 3. Decorate each column according to its biome, recording the ID for step 5.
+        // 3. Decorate each column according to its biome, recording the ID for the biome-data step.
         let mut col_biome_ids = [[0u8; 16]; 16];
         for x in 0..16u8 {
             for z in 0..16u8 {
                 let surface_y = heightmap[x as usize][z as usize];
-                let biome = self.get_biome(col_climate[x as usize][z as usize], surface_y);
+                let (biome, biome_id) =
+                    self.classify(col_climate[x as usize][z as usize], surface_y);
                 biome.decorate(&mut chunk, x, z, surface_y)?;
-                col_biome_ids[x as usize][z as usize] = biome.biome_id();
+                col_biome_ids[x as usize][z as usize] = biome_id;
             }
         }
 
@@ -242,19 +299,69 @@ impl WorldGenerator {
             }
         }
 
-        // 4c. Place trees, including the canopies of trees rooted in neighbouring chunks.
-        //     A tree's canopy can overhang up to MAX_CANOPY_RADIUS blocks past its trunk, so this
-        //     scans that far beyond the chunk edges. Tree placement is a pure function of the world
-        //     seed and the trunk's global column, so every chunk resolves the same trees and writes
-        //     only the blocks that fall within its own bounds — no cross-chunk writes, no shared
-        //     state, no locking. Trunk columns outside this chunk are clipped by `place_tree`.
+        // 5. Carve caves through the solid terrain. Done before trees so a cave can never carve away
+        //    an already-placed trunk or canopy; trees are then gated away from cave mouths below.
+        self.generate_caves(&mut chunk, pos);
+
+        // 6. Finish the surface after carving: re-grass exposed dirt and lay snow on the real top.
+        //    Both are applied to the *post-cave* top of each column, so a cave that opened the
+        //    surface gets a grassy rim and snow that follows the carved ground rather than floating
+        //    where the original surface used to be. Keyed on each column's own biome, so it is
+        //    deterministic and needs no cross-chunk lookup.
+        let snow = ferrumc_macros::block!("snow", { layers: 1 });
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                let id = col_biome_ids[x as usize][z as usize];
+                // Find the topmost solid (non-air, non-water) block in the column.
+                let mut top_y = None;
+                for y in (MIN_WORLD_Y..=MAX_GENERATED_HEIGHT).rev() {
+                    let pos = ChunkBlockPos::new(x, y, z);
+                    let b = chunk.get_block(pos);
+                    if ferrumc_macros::match_block!("air", b)
+                        || ferrumc_macros::match_block!("water", b)
+                    {
+                        continue;
+                    }
+                    // Re-cover bare dirt with the biome's grass.
+                    if ferrumc_macros::match_block!("dirt", b)
+                        && let Some(grass) = Self::grass_cover_for(id)
+                    {
+                        chunk.set_block(pos, grass);
+                    }
+                    top_y = Some(y);
+                    break;
+                }
+                // Lay a snow layer on the real top of snowy biomes (always) and mountain peaks
+                // (above the snow line), only into the air directly above the surface.
+                if let Some(y) = top_y {
+                    let wants_snow = matches!(id, 46 | 48) || (id == 62 && y >= MOUNTAIN_SNOW_LINE);
+                    if wants_snow {
+                        let above = ChunkBlockPos::new(x, y + 1, z);
+                        if ferrumc_macros::match_block!("air", chunk.get_block(above)) {
+                            chunk.set_block(above, snow);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 7. Place trees, including the canopies of trees rooted in neighbouring chunks.
+        //    A tree's canopy can overhang up to MAX_CANOPY_RADIUS blocks past its trunk, so this
+        //    scans that far beyond the chunk edges. Tree placement is a pure function of the world
+        //    seed and the trunk's global column, so every chunk resolves the same trees and writes
+        //    only the blocks that fall within its own bounds — no cross-chunk writes, no shared
+        //    state, no locking. Trunk columns outside this chunk are clipped by `place_tree`.
+        //    Columns where a cave opens at the surface are skipped so no tree sprouts over a hole.
         let base_x = pos.x() * 16;
         let base_z = pos.z() * 16;
         let overscan = biomes::trees::MAX_CANOPY_RADIUS;
         for global_x in (base_x - overscan)..(base_x + 16 + overscan) {
             for global_z in (base_z - overscan)..(base_z + 16 + overscan) {
                 let (surface_y, sample) = self.column(global_x, global_z);
-                let biome = self.get_biome(sample, surface_y);
+                if self.cave_opening_at_surface(global_x, global_z, surface_y) {
+                    continue;
+                }
+                let biome = self.biome_decorator(sample, surface_y);
                 if let Some(tree) = biome.tree_at(global_x, global_z, surface_y) {
                     biomes::trees::place_tree(
                         &mut chunk,
@@ -266,7 +373,13 @@ impl WorldGenerator {
             }
         }
 
-        // 4b. Write biome IDs into the chunk's section biome data.
+        // 8. Scatter ground vegetation (grass, flowers, desert plants) on the finished surface.
+        //    Runs after trees so plants land on real ground and never inside a trunk; every plant is
+        //    a single column, so no cross-chunk overscan is needed.
+        self.vegetation
+            .decorate(&mut chunk, base_x, base_z, &col_biome_ids);
+
+        // 9. Write biome IDs into the chunk's section biome data.
         //     Mixed-biome sections require a network encoding path that is not yet implemented,
         //     so all sections are set to a single uniform biome. The dominant biome among the
         //     16 biome-cell columns (4×4 grid, one per 4-block square) is used; for most
@@ -286,11 +399,8 @@ impl WorldGenerator {
             .unwrap_or(40); // plains as fallback
         chunk.fill_biome(dominant_biome);
 
-        // 5. Carve caves through the solid terrain (retained feature).
-        self.generate_caves(&mut chunk, pos);
-
-        // 6. Lay an unbreakable bedrock floor at the bottom of the world (Y = -64). Done last so
-        //    cave carving cannot punch through it.
+        // 10. Lay an unbreakable bedrock floor at the bottom of the world (Y = -64). Done last so
+        //     cave carving cannot punch through it.
         let bedrock = ferrumc_macros::block!("bedrock");
         for x in 0..16u8 {
             for z in 0..16u8 {
@@ -443,8 +553,8 @@ mod tests {
         'search: for gx in (0..8192i32).step_by(16) {
             for gz in 0..512i32 {
                 let (surface_y, sample) = generator.column(gx, gz);
-                let biome = generator.get_biome(sample, surface_y);
-                if biome.biome_id() != 40 {
+                let (biome, id) = generator.classify(sample, surface_y);
+                if id != 40 {
                     continue;
                 }
                 if let Some(tree) = biome.tree_at(gx, gz, surface_y) {
@@ -556,7 +666,12 @@ mod tests {
                     break 'outer;
                 }
                 let (surface_y, sample) = generator.column(gx, gz);
-                let biome = generator.get_biome(sample, surface_y);
+                // Match generation: a cave mouth at the surface suppresses the tree, so do not probe
+                // those columns (their canopy is intentionally absent).
+                if generator.cave_opening_at_surface(gx, gz, surface_y) {
+                    continue;
+                }
+                let (biome, id) = generator.classify(sample, surface_y);
                 let Some(tree) = biome.tree_at(gx, gz, surface_y) else {
                     continue;
                 };
@@ -564,7 +679,7 @@ mod tests {
                     continue;
                 }
 
-                let kind = match biome.biome_id() {
+                let kind = match id {
                     48 => biomes::trees::TreeKind::Spruce,
                     _ => biomes::trees::TreeKind::Oak, // oak/birch share a shape
                 };
@@ -588,9 +703,8 @@ mod tests {
                         || match_block!("birch_leaves", b);
                     if !present {
                         failures.push(format!(
-                            "tree@({gx},{gz}) biome={} chunk=({cx0},{cz0}) leaf off \
+                            "tree@({gx},{gz}) biome={id} chunk=({cx0},{cz0}) leaf off \
                              ({odx},{odz},dy={}) missing, found {b:?}",
-                            biome.biome_id(),
                             y - surface_y
                         ));
                     }
@@ -673,7 +787,7 @@ mod tests {
         for gx in (-8192..8192i32).step_by(128) {
             for gz in (-8192..8192i32).step_by(128) {
                 let (surface_y, sample) = generator.column(gx, gz);
-                seen.insert(generator.get_biome(sample, surface_y).biome_id());
+                seen.insert(generator.classify(sample, surface_y).1);
             }
         }
         assert!(
@@ -693,7 +807,7 @@ mod tests {
         'scan: for gx in (-8192..8192i32).step_by(8) {
             for gz in (-8192..8192i32).step_by(8) {
                 let (surface_y, sample) = generator.column(gx, gz);
-                let id = generator.get_biome(sample, surface_y).biome_id();
+                let id = generator.classify(sample, surface_y).1;
                 if id == 3 || id == 45 {
                     saw_beach = true;
                     break 'scan;
@@ -703,6 +817,186 @@ mod tests {
         assert!(
             saw_beach,
             "expected at least one beach column along a coastline"
+        );
+    }
+
+    /// Caves must never undercut a tree: trees are placed after caves and gated away from cave
+    /// mouths, so every tree trunk sits on solid ground. Regression guard against the old ordering
+    /// that carved caves last and could hollow out a trunk or the block beneath it.
+    #[test]
+    fn trees_not_undercut_by_caves() {
+        let generator = WorldGenerator::new(0);
+        for cx in -3..3 {
+            for cz in -3..3 {
+                let chunk = generator.generate_chunk(ChunkPos::new(cx, cz)).unwrap();
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        // Find the lowest log in the column, if any.
+                        let mut lowest_log = None;
+                        for y in MIN_WORLD_Y..MAX_GENERATED_HEIGHT {
+                            let b = chunk.get_block(ChunkBlockPos::new(x, y, z));
+                            if match_block!("oak_log", b)
+                                || match_block!("birch_log", b)
+                                || match_block!("spruce_log", b)
+                            {
+                                lowest_log = Some(y);
+                                break;
+                            }
+                        }
+                        if let Some(y) = lowest_log {
+                            let below = chunk.get_block(ChunkBlockPos::new(x, y - 1, z));
+                            assert!(
+                                !match_block!("air", below) && !match_block!("cave_air", below),
+                                "tree trunk at ({x},{y},{z}) in chunk ({cx},{cz}) is undercut by \
+                                 air below it ({below:?})"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Snow must never float: it is laid in the post-cave surface-finish pass on the real top of
+    /// each column, so every snow block must rest on a solid block. Regression guard against the old
+    /// behaviour that placed snow at the pre-cave surface, which caves then undercut.
+    #[test]
+    fn snow_never_floats() {
+        let generator = WorldGenerator::new(0);
+        for cx in -3..3 {
+            for cz in -3..3 {
+                let chunk = generator.generate_chunk(ChunkPos::new(cx, cz)).unwrap();
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        for y in (MIN_WORLD_Y + 1)..MAX_GENERATED_HEIGHT {
+                            if match_block!("snow", chunk.get_block(ChunkBlockPos::new(x, y, z))) {
+                                let below = chunk.get_block(ChunkBlockPos::new(x, y - 1, z));
+                                assert!(
+                                    !match_block!("air", below)
+                                        && !match_block!("cave_air", below)
+                                        && !match_block!("water", below),
+                                    "floating snow at ({x},{y},{z}) in chunk ({cx},{cz}); \
+                                     block below is {below:?}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Ground vegetation must rest on valid ground: grass/fern/flowers on a grass block, cactus on
+    /// sand or another cactus, dead bush on sand. Also a sanity check that some short grass is
+    /// actually placed, so the pass is not silently doing nothing.
+    #[test]
+    fn vegetation_sits_on_valid_ground() {
+        let generator = WorldGenerator::new(0);
+        let mut short_grass_seen = 0u32;
+        for cx in -4..4 {
+            for cz in -4..4 {
+                let chunk = generator.generate_chunk(ChunkPos::new(cx, cz)).unwrap();
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        for y in (MIN_WORLD_Y + 1)..MAX_GENERATED_HEIGHT {
+                            let b = chunk.get_block(ChunkBlockPos::new(x, y, z));
+                            let below = chunk.get_block(ChunkBlockPos::new(x, y - 1, z));
+                            if match_block!("short_grass", b) {
+                                short_grass_seen += 1;
+                            }
+                            if match_block!("short_grass", b)
+                                || match_block!("fern", b)
+                                || match_block!("dandelion", b)
+                                || match_block!("poppy", b)
+                                || match_block!("cornflower", b)
+                                || match_block!("oxeye_daisy", b)
+                            {
+                                assert!(
+                                    match_block!("grass_block", below),
+                                    "plant at ({x},{y},{z}) chunk ({cx},{cz}) not on grass: {below:?}"
+                                );
+                            }
+                            if match_block!("dead_bush", b) {
+                                assert!(
+                                    match_block!("sand", below),
+                                    "dead bush at ({x},{y},{z}) chunk ({cx},{cz}) not on sand: {below:?}"
+                                );
+                            }
+                            if match_block!("cactus", b) {
+                                assert!(
+                                    match_block!("sand", below) || match_block!("cactus", below),
+                                    "cactus at ({x},{y},{z}) chunk ({cx},{cz}) not on sand/cactus: {below:?}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert!(
+            short_grass_seen > 0,
+            "expected some short grass to be placed across the sampled chunks"
+        );
+    }
+
+    /// In grassy biomes, no column may end in bare dirt exposed to the sky: the grass-fill pass must
+    /// re-cover dirt that cave carving stripped. The topmost solid (non-air, non-water) block of
+    /// every column in a grassy chunk must not be plain dirt.
+    #[test]
+    fn no_exposed_dirt_top_in_grass_biomes() {
+        let generator = WorldGenerator::new(0);
+        for cx in -3..3 {
+            for cz in -3..3 {
+                let chunk = generator.generate_chunk(ChunkPos::new(cx, cz)).unwrap();
+                for x in 0..16u8 {
+                    for z in 0..16u8 {
+                        let (surface_y, sample) =
+                            generator.column(i32::from(x) + cx * 16, i32::from(z) + cz * 16);
+                        let id = generator.classify(sample, surface_y).1;
+                        if WorldGenerator::grass_cover_for(id).is_none() {
+                            continue; // not a grassy column
+                        }
+                        for y in (MIN_WORLD_Y..=MAX_GENERATED_HEIGHT).rev() {
+                            let b = chunk.get_block(ChunkBlockPos::new(x, y, z));
+                            if match_block!("air", b) || match_block!("water", b) {
+                                continue;
+                            }
+                            assert!(
+                                !match_block!("dirt", b),
+                                "bare dirt exposed at top of grassy column ({x},{y},{z}) in chunk \
+                                 ({cx},{cz}); grass-fill should have covered it"
+                            );
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Oceans must come in more than one climate flavour across a large region (frozen/cold/ocean/
+    /// lukewarm/warm and their deep forms), driven by the temperature field.
+    #[test]
+    fn ocean_biomes_have_variety() {
+        let generator = WorldGenerator::new(0);
+        // The set of ocean registry IDs the variant mapping can emit.
+        let ocean_ids: std::collections::HashSet<u8> =
+            [22u8, 11, 6, 9, 35, 13, 29, 12, 58].into_iter().collect();
+        let mut seen = std::collections::HashSet::new();
+        for gx in (-8192..8192i32).step_by(64) {
+            for gz in (-8192..8192i32).step_by(64) {
+                let (surface_y, sample) = generator.column(gx, gz);
+                let id = generator.classify(sample, surface_y).1;
+                if ocean_ids.contains(&id) {
+                    seen.insert(id);
+                }
+            }
+        }
+        assert!(
+            seen.len() >= 3,
+            "expected at least 3 distinct ocean biomes over the region, saw {}: {:?}",
+            seen.len(),
+            seen
         );
     }
 }

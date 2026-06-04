@@ -10,3 +10,4 @@ pub(crate) mod plains;
 pub(crate) mod snowy;
 pub(crate) mod tree_placement;
 pub(crate) mod trees;
+pub(crate) mod vegetation;

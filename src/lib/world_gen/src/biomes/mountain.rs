@@ -1,14 +1,10 @@
-//! Mountain biome (windswept hills): bare stone, capped with snow above the snow line.
+//! Mountain biome (windswept hills): bare stone. Snow capping above the snow line is applied by the
+//! post-cave surface-finish pass in `generate_chunk`, so the cap sits on the real (possibly carved)
+//! surface rather than floating.
 
 use crate::BiomeGenerator;
 use crate::errors::WorldGenError;
-use ferrumc_macros::block;
-use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
-use ferrumc_world::pos::ChunkBlockPos;
-
-/// Surface height at and above which peaks are capped with snow.
-const SNOW_LINE: i16 = 110;
 
 pub(crate) struct MountainBiome {}
 
@@ -21,20 +17,8 @@ impl BiomeGenerator for MountainBiome {
         "mountain".to_string()
     }
 
-    fn decorate(
-        &self,
-        chunk: &mut Chunk,
-        x: u8,
-        z: u8,
-        surface_y: i16,
-    ) -> Result<(), WorldGenError> {
-        // Bare stone is already in place from the carving stage; cap high peaks with snow.
-        if surface_y >= SNOW_LINE {
-            chunk.set_block(
-                ChunkBlockPos::new(x, surface_y + 1, z),
-                block!("snow", { layers: 1 }),
-            );
-        }
+    fn decorate(&self, _: &mut Chunk, _: u8, _: u8, _: i16) -> Result<(), WorldGenError> {
+        // Bare stone is already in place from the carving stage; snow capping is handled later.
         Ok(())
     }
 

@@ -24,8 +24,15 @@ const MIN_DETAIL_AMPLITUDE: f32 = 3.0;
 const INLAND_CONTINENTALNESS: f32 = 0.42;
 
 /// How much erosion damps the detail amplitude: at erosion 1.0 the amplitude is reduced by this
-/// fraction, flattening high-erosion regions into plains/plateaus.
-const EROSION_FLATTENING: f32 = 0.7;
+/// fraction, flattening high-erosion regions into plains/plateaus. Kept high so plains read as
+/// genuinely flat; mountains stay tall because they are selected from *low*-erosion ground, where
+/// this damping barely applies.
+const EROSION_FLATTENING: f32 = 0.92;
+
+/// How far erosion pulls the surface *down* (in blocks) at erosion 1.0. This couples elevation to
+/// erosion the way vanilla does: high-erosion ground is both flat (above) and low-lying (here), so
+/// plains sit low and gentle, while low-erosion mountains keep their full continental base height.
+const EROSION_HEIGHT_DROP: f32 = 14.0;
 
 /// Builds the local detail-noise sampler.
 ///
@@ -57,7 +64,11 @@ impl WorldGenerator {
         let detail =
             ((self.detail_noise.get(global_x as f32, global_z as f32) * 2.0) - 1.0) * amplitude;
 
-        let surface = (base + detail) as i16;
+        // Pull high-erosion (flat) ground down so plains sit low; mountains (low erosion) keep their
+        // full base height.
+        let erosion_drop = erosion * EROSION_HEIGHT_DROP;
+
+        let surface = (base + detail - erosion_drop) as i16;
         (
             surface,
             ClimateSample {
