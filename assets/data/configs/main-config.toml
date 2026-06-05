@@ -66,6 +66,13 @@ chunks_per_tick_min = 16
 #                  Matches vanilla behaviour at a higher CPU cost.
 #   "simplified" - Cheaper approximation: uniform spread with no hole steering.
 algorithm = "vanilla"
+# Settle "hanging" fluids (e.g. a cave that breached an ocean, a perched spring) the first time a
+# chunk loads near a player. Set to false to skip that pass; generated fluids then stay static until
+# directly disturbed.
+settle_on_load = true
+# Maximum number of fluid ticks processed per game tick (0 = unbounded). Spreads a large cascade over
+# several ticks instead of freezing one. Lower this if fluid activity still causes tick overruns.
+max_ticks_per_tick = 2048
 
 [dashboard]
 # The port the dashboard will run on.

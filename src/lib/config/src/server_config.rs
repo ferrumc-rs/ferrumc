@@ -109,11 +109,39 @@ pub enum FluidAlgorithm {
 }
 
 /// The fluid simulation configuration section from [ServerConfig].
-#[derive(Default, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FluidConfig {
     /// Which spreading algorithm to use. Defaults to `vanilla`.
     #[serde(default)]
     pub algorithm: FluidAlgorithm,
+    /// Whether generated "hanging" fluids (e.g. a cave that breached an ocean, a perched spring) are
+    /// settled the first time a chunk loads near a player. Turn off to skip that pass entirely if its
+    /// cost is unwelcome; generated fluids then stay static until directly disturbed.
+    #[serde(default = "default_settle_on_load")]
+    pub settle_on_load: bool,
+    /// Maximum number of fluid ticks processed in a single game tick. A large cascade is spread
+    /// across several ticks (settling slightly slower) rather than freezing one tick. `0` means
+    /// unbounded.
+    #[serde(default = "default_max_fluid_ticks_per_tick")]
+    pub max_ticks_per_tick: u32,
+}
+
+fn default_settle_on_load() -> bool {
+    true
+}
+
+fn default_max_fluid_ticks_per_tick() -> u32 {
+    2048
+}
+
+impl Default for FluidConfig {
+    fn default() -> Self {
+        Self {
+            algorithm: FluidAlgorithm::default(),
+            settle_on_load: default_settle_on_load(),
+            max_ticks_per_tick: default_max_fluid_ticks_per_tick(),
+        }
+    }
 }
 
 fn create_config() -> ServerConfig {

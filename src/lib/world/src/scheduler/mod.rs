@@ -77,6 +77,29 @@ impl ChunkTickQueue {
         self.pending = remaining;
     }
 
+    /// Drains at most `budget` due ticks into `out`, leaving any remaining due ticks queued (they
+    /// stay due and will be returned by a later drain). Returns how many were drained.
+    fn drain_due_capped(
+        &mut self,
+        current_tick: u64,
+        out: &mut Vec<ScheduledTick>,
+        budget: usize,
+    ) -> usize {
+        let mut taken = 0;
+        let mut remaining = Vec::with_capacity(self.pending.len());
+        for tick in self.pending.drain(..) {
+            if taken < budget && tick.target_tick <= current_tick {
+                self.seen.remove(&(tick.pos, tick.kind, tick.target_tick));
+                out.push(tick);
+                taken += 1;
+            } else {
+                remaining.push(tick);
+            }
+        }
+        self.pending = remaining;
+        taken
+    }
+
     fn is_empty(&self) -> bool {
         self.pending.is_empty()
     }
@@ -147,6 +170,47 @@ impl BlockTickScheduler {
         result
     }
 
+    /// Like [`drain_due`](Self::drain_due) but drains at most `max_ticks` due ticks in total this
+    /// call, leaving any remaining due ticks queued for a later call. This lets the caller bound how
+    /// much work a single game tick performs, so a large fluid cascade is spread across several ticks
+    /// (settling a little slower) instead of freezing one tick for hundreds of milliseconds.
+    ///
+    /// Chunks are visited in map order until the budget is exhausted, so a chunk with a huge backlog
+    /// can defer later chunks to subsequent ticks; forward progress is still guaranteed because every
+    /// remaining tick stays due. `max_ticks == 0` means unbounded (equivalent to `drain_due`).
+    pub fn drain_due_capped(
+        &mut self,
+        current_tick: u64,
+        max_ticks: usize,
+    ) -> Vec<(ChunkPos, Vec<ScheduledTick>)> {
+        if max_ticks == 0 {
+            return self.drain_due(current_tick);
+        }
+        let mut result = Vec::new();
+        let mut emptied = Vec::new();
+        let mut budget = max_ticks;
+
+        for (chunk_pos, queue) in self.chunks.iter_mut() {
+            if budget > 0 {
+                let mut due = Vec::new();
+                let taken = queue.drain_due_capped(current_tick, &mut due, budget);
+                budget -= taken;
+                if !due.is_empty() {
+                    result.push((*chunk_pos, due));
+                }
+            }
+            if queue.is_empty() {
+                emptied.push(*chunk_pos);
+            }
+        }
+
+        for chunk_pos in emptied {
+            self.chunks.remove(&chunk_pos);
+        }
+
+        result
+    }
+
     /// Total number of chunks that currently have pending ticks. Primarily for diagnostics.
     pub fn active_chunk_count(&self) -> usize {
         self.chunks.len()
@@ -181,6 +245,52 @@ mod tests {
         assert_eq!(due[0].1.len(), 1);
         assert_eq!(due[0].1[0].pos, pos(0, 64, 0));
         assert_eq!(sched.pending_count(), 0);
+    }
+
+    #[test]
+    fn drain_due_capped_bounds_and_defers() {
+        let mut sched = BlockTickScheduler::new();
+        // Five ticks all due at tick 1, spread across two chunks so the budget must span chunks.
+        for i in 0..5 {
+            sched.schedule(pos(i, 64, 0), TickKind::FluidSpread, 0, 1);
+        }
+        for i in 0..5 {
+            sched.schedule(pos(100 + i, 64, 0), TickKind::FluidSpread, 0, 1);
+        }
+        assert_eq!(sched.pending_count(), 10);
+
+        // A capped drain returns at most the budget, leaving the rest still due.
+        let first: usize = sched
+            .drain_due_capped(1, 4)
+            .iter()
+            .map(|(_, t)| t.len())
+            .sum();
+        assert_eq!(first, 4, "capped drain must not exceed the budget");
+        assert_eq!(sched.pending_count(), 6, "the rest stay queued and due");
+
+        let second: usize = sched
+            .drain_due_capped(1, 4)
+            .iter()
+            .map(|(_, t)| t.len())
+            .sum();
+        assert_eq!(second, 4);
+        let third: usize = sched
+            .drain_due_capped(1, 4)
+            .iter()
+            .map(|(_, t)| t.len())
+            .sum();
+        assert_eq!(third, 2, "only the remaining due ticks are returned");
+        assert_eq!(sched.pending_count(), 0);
+
+        // A budget of 0 means unbounded.
+        sched.schedule(pos(0, 64, 0), TickKind::FluidSpread, 0, 1);
+        sched.schedule(pos(1, 64, 0), TickKind::FluidSpread, 0, 1);
+        let all: usize = sched
+            .drain_due_capped(1, 0)
+            .iter()
+            .map(|(_, t)| t.len())
+            .sum();
+        assert_eq!(all, 2);
     }
 
     #[test]

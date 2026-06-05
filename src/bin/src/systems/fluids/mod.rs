@@ -156,6 +156,10 @@ pub fn settle_loaded_fluids(
     state: Res<GlobalStateResource>,
     dim: Res<ActiveDimension>,
 ) {
+    if !get_global_config().fluids.settle_on_load {
+        return;
+    }
+
     let current = tick.get();
     let dim = *dim;
     let mut budget = SETTLE_CHUNKS_PER_TICK;
@@ -623,7 +627,10 @@ pub fn process_fluid_ticks(
     }
 
     let current = tick.get();
-    let due = scheduler.0.drain_due(current);
+    // Bound how many fluid ticks one game tick processes so a large cascade is spread over several
+    // ticks instead of freezing one. Remaining due ticks stay queued and are picked up next tick.
+    let budget = get_global_config().fluids.max_ticks_per_tick as usize;
+    let due = scheduler.0.drain_due_capped(current, budget);
     if due.is_empty() {
         return;
     }
