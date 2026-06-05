@@ -1072,8 +1072,16 @@ mod tests {
             .set_block_and_fetch(water_pos, TEST_DIM_NAME, fluid_block(FluidKind::Water, 0))
             .expect("set flowing water");
 
+        // Seed the placed water *and its neighbours*, exactly as the block-placement handler does
+        // (`seed_fluid_tick` wakes neighbours). The lava sits directly below the water, so seeding
+        // neighbours is what schedules the lava to tick and harden. Doing this explicitly keeps the
+        // test independent of the generated terrain around the origin — it must not rely on water
+        // happening to spread onto a block adjacent to the lava to wake it.
         let mut scheduler = BlockTickScheduler::new();
         scheduler.schedule(water_pos, TickKind::FluidSpread, 0, 0);
+        for neighbour in fluid_neighbours(water_pos) {
+            scheduler.schedule(neighbour, TickKind::FluidSpread, 0, 0);
+        }
         run_to_steady_state(global, &mut scheduler, EvalMode::Serial);
 
         let result =

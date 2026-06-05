@@ -56,6 +56,10 @@ fn can_flow_down_into<V: BlockView>(kind: FluidKind, pos: BlockPos, view: &V) ->
 ///
 /// This is a bounded breadth-first search (vanilla's `getSlopeDistance` is the recursive
 /// equivalent). `origin` is excluded from being treated as its own hole.
+/// Upper bound on the search radius the stack-backed BFS supports. The largest `slope_find_distance`
+/// any fluid uses is 4 (water); this leaves generous headroom while keeping the fixed buffers small.
+const MAX_SLOPE_LIMIT: usize = 8;
+
 fn slope_distance<V: BlockView>(
     kind: FluidKind,
     origin: BlockPos,
@@ -63,33 +67,55 @@ fn slope_distance<V: BlockView>(
     limit: u8,
     view: &V,
 ) -> u8 {
-    use std::collections::HashSet;
-    use std::collections::VecDeque;
+    // The search is purely horizontal (every step is in `HORIZONTAL`, so y never changes) and bounded
+    // to `limit` steps from the origin. Every cell it can reach therefore lies in a
+    // `(2*limit+1)²` window in the x/z plane at the origin's y. That lets the visited set and the BFS
+    // queue live on the stack as fixed-size arrays keyed by a cell's offset from the origin — no
+    // per-call heap allocation, which matters because this runs up to four times per ticking fluid
+    // block. The logic (FIFO BFS, mark-on-first-sight, first hole at minimum depth) is identical to
+    // the previous `HashSet`/`VecDeque` version; keying by `(dx, dz)` is equivalent to `(x, y, z)`
+    // because every visited cell shares the origin's y.
+    let limit = (limit as usize).min(MAX_SLOPE_LIMIT) as u8;
 
-    // `from` is one block out from the origin already, so it sits at depth 1.
-    let mut visited: HashSet<(i32, i32, i32)> = HashSet::new();
-    visited.insert((origin.pos.x, origin.pos.y, origin.pos.z));
-    visited.insert((from.pos.x, from.pos.y, from.pos.z));
+    const SIDE: usize = 2 * MAX_SLOPE_LIMIT + 1;
+    const CELLS: usize = SIDE * SIDE;
+    let mut visited = [false; CELLS];
+    // A cell at the origin's y mapped to its slot; offsets are bounded by `limit` <= MAX_SLOPE_LIMIT.
+    let slot = |p: BlockPos| -> usize {
+        let dx = (p.pos.x - origin.pos.x + MAX_SLOPE_LIMIT as i32) as usize;
+        let dz = (p.pos.z - origin.pos.z + MAX_SLOPE_LIMIT as i32) as usize;
+        dx * SIDE + dz
+    };
+
+    visited[slot(origin)] = true;
+    visited[slot(from)] = true;
 
     // If the starting cell itself is a hole, distance is 1.
     if can_flow_down_into(kind, from, view) {
         return 1;
     }
 
-    let mut queue: VecDeque<(BlockPos, u8)> = VecDeque::new();
-    queue.push_back((from, 1));
+    // FIFO queue; at most one entry per reachable cell, so `CELLS` slots always suffice.
+    let mut queue: [(BlockPos, u8); CELLS] = [(from, 0); CELLS];
+    let mut head = 0usize;
+    let mut tail = 0usize;
+    queue[tail] = (from, 1);
+    tail += 1;
 
-    while let Some((cell, depth)) = queue.pop_front() {
+    while head < tail {
+        let (cell, depth) = queue[head];
+        head += 1;
         if depth >= limit {
             // Cannot expand further; this branch contributes no hole within range.
             continue;
         }
         for &offset in HORIZONTAL.iter() {
             let next = cell + offset;
-            let key = (next.pos.x, next.pos.y, next.pos.z);
-            if !visited.insert(key) {
+            let s = slot(next);
+            if visited[s] {
                 continue;
             }
+            visited[s] = true;
             // Can only flow across cells that are open to this fluid.
             if !is_replaceable_by(kind, view.block_at(next)) {
                 continue;
@@ -99,7 +125,8 @@ fn slope_distance<V: BlockView>(
                 // BFS guarantees the first hole reached is at the minimum distance.
                 return next_depth;
             }
-            queue.push_back((next, next_depth));
+            queue[tail] = (next, next_depth);
+            tail += 1;
         }
     }
 
