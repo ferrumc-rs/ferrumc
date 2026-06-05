@@ -107,6 +107,11 @@ impl Chunk {
         }
     }
 
+    /// Returns the chunk's vertical extent (minimum Y and total height).
+    pub fn dimensions(&self) -> ChunkHeight {
+        self.height
+    }
+
     /// Gets a block in the chunk.
     ///
     /// # Arguments
