@@ -115,16 +115,22 @@ impl World {
     /// storage backend. This should be run after inserting or updating a large number of chunks
     /// to ensure that the data is properly saved to disk.
     pub fn sync(&self) -> Result<(), WorldError> {
-        for pair in self.cache.iter() {
-            let k = pair.key();
-            let v = pair.value();
-            if v.sections.iter().any(|c| c.dirty) {
-                trace!("Chunk at {:?} is dirty, saving.", k.0);
-            } else {
+        for mut pair in self.cache.iter_mut() {
+            if !pair.value().sections.iter().any(|c| c.dirty) {
                 continue;
             }
-            trace!("Syncing chunk: {:?}", k.0);
-            save_chunk_internal(self, k.0, &k.1, v)?;
+            let pos = pair.key().0;
+            let dim = pair.key().1.clone();
+            trace!("Syncing chunk: {:?}", pos);
+            save_chunk_internal(self, pos, &dim, pair.value())?;
+            // Mark the chunk clean now that it is persisted, so the next sync only writes chunks that
+            // changed since. Without this every chunk ever modified stays dirty forever and every sync
+            // re-serialises and rewrites the entire accumulated set — a cost that grows without bound
+            // as the world is explored and was overrunning the sync budget by seconds.
+            pair.value_mut()
+                .sections
+                .iter_mut()
+                .for_each(|c| c.dirty = false);
         }
 
         sync_internal(self)
