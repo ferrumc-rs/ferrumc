@@ -49,8 +49,10 @@ fn borders_open(chunk: &Chunk, x: u8, y: i16, z: u8, min_y: i16) -> bool {
 ///
 /// Cross-chunk neighbours are intentionally ignored: a frontier on a chunk edge is caught when the
 /// neighbouring chunk is itself settled, which keeps this a pure single-chunk scan that needs no
-/// world access and never triggers neighbour generation. Sections that are entirely air hold no fluid
-/// and are skipped, so the scan stays cheap for the mostly empty upper world.
+/// world access and never triggers neighbour generation. Any section that holds no fluid (all air,
+/// all stone, cave stone+air, …) is skipped via a cheap palette-only check, so the per-cell scan only
+/// touches the few sections that actually contain fluid — most chunks carry none and cost almost
+/// nothing.
 pub fn fluid_frontier_cells(chunk: &Chunk, chunk_pos: ChunkPos) -> Vec<BlockPos> {
     let dims = chunk.dimensions();
     let min_y = dims.min_y;
@@ -59,8 +61,11 @@ pub fn fluid_frontier_cells(chunk: &Chunk, chunk_pos: ChunkPos) -> Vec<BlockPos>
 
     let mut out = Vec::new();
     for (si, section) in chunk.sections.iter().enumerate() {
-        // An all-air section contains no fluid, so it cannot hold any frontier cell.
-        if section.block_count() == 0 {
+        // Skip any section that holds no fluid at all (all air, all stone, cave stone+air, …) using a
+        // palette-only check, so the per-cell scan below only runs on the few sections that actually
+        // contain fluid. This is what keeps settling cheap for the overwhelming majority of chunks,
+        // which carry no fluid anywhere in their solid volume.
+        if !section.any_block(|b| fluid_state(b).is_some()) {
             continue;
         }
         let section_base_y = min_y + (si as i16) * 16;
