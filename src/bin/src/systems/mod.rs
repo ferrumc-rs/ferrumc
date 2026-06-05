@@ -18,6 +18,7 @@ mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod tick_counter;
+pub mod tps_broadcast;
 pub(crate) mod update_player_ping;
 pub mod world_sync;
 
@@ -46,6 +47,9 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(send_entity_updates::handle);
 
     schedule.add_systems(day_cycle::tick_daylight_cycle);
+
+    // Stream the measured server TPS to clients (shown on F3) once per second.
+    schedule.add_systems(tps_broadcast::broadcast_tps);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
