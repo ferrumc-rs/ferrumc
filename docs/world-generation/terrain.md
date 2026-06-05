@@ -66,22 +66,37 @@ Per column (`carving/initial_height.rs`, `WorldGenerator::column`):
 
 ```
 base       = continental_spline(continentalness)        # absolute base height
+flat       = flatness(erosion)                           # 0 = rugged, 1 = flat (steep mid-section)
+rugged     = 1 - flat
+target     = min(base, PLAINS_LEVEL)                     # only pull down, never lift ocean floors
+land_base  = base + (target - base) * flat               # high land settles toward the plains level
 landness   = clamp(continentalness / 0.42, 0, 1)         # 0 in ocean, 1 fully inland
-amplitude  = (MIN + (MAX - MIN) * landness) * (1 - 0.7 * erosion)
+amplitude  = MIN + (MAX - MIN) * landness * rugged       # MIN floor everywhere
 detail     = (detail_noise * 2 - 1) * amplitude          # ~80-block hills
-surface    = base + detail
+surface    = land_base + detail
 ```
 
-`detail_noise` (`0.0125`, ~80-block features) is the higher-frequency layer that adds the hills a
-player notices while walking. Its amplitude is scaled down in oceans (low `landness`) and in
-high-erosion regions, so the sea floor and eroded plateaus stay flat while inland low-erosion ground
-gets proper relief. `MIN_DETAIL_AMPLITUDE` / `MAX_DETAIL_AMPLITUDE` bound it (currently `3` / `37`),
-and `EROSION_FLATTENING` (`0.92`) is kept high so high-erosion regions — including most plains —
-read as genuinely flat; mountains stay tall because they are selected from *low*-erosion ground.
+Elevation and ruggedness are both driven by **erosion** through a single `flatness(erosion)` factor:
 
-Erosion also pulls the surface *down* by up to `EROSION_HEIGHT_DROP` (`14`) blocks at full erosion,
-coupling elevation to erosion the way vanilla does: high-erosion ground is both flat and low-lying
-(so plains sit low and gentle), while low-erosion mountains keep their full continental base height.
+- **Low erosion → rugged.** `flat ≈ 0`, so the column keeps its full continental base height and full
+  detail amplitude. These are the mountains (the biome classifier selects them from the same
+  low-erosion band).
+- **High erosion → flat.** `flat ≈ 1`, so the column is pulled down toward `PLAINS_LEVEL` (`70`, just
+  above sea level) and its detail collapses to the `MIN_DETAIL_AMPLITUDE` floor. These are the plains.
+
+Pulling plains down to their own low level — rather than letting them inherit the continental base —
+is what stops them riding high just because they border raised ground. The pull is *downward only*
+(`min(base, PLAINS_LEVEL)`), so ocean floors are never lifted.
+
+`flatness` has a deliberately **steep middle section** (the `0.18 → 0.30` erosion band). As the smooth
+erosion field crosses it, the surface height changes over just a few blocks, so the boundary between
+low plains and rugged high ground reads as an abrupt **terrace edge / fault** rather than a gentle
+ramp — adding terrain variety. The riser sits at the same erosion value the classifier uses to pick
+mountains, so the height step and the biome change line up.
+
+`detail_noise` (`0.0125`, ~80-block features) is the higher-frequency layer that adds the hills a
+player notices while walking; `MIN_DETAIL_AMPLITUDE` / `MAX_DETAIL_AMPLITUDE` bound it (currently
+`3` / `37`). The `MIN` floor is always present so even flat plains and the sea bed are never dead flat.
 
 ## Biomes
 
@@ -225,8 +240,7 @@ match.
 | `MAX_GENERATED_HEIGHT` | `lib.rs` | 176 | Stone-fill ceiling; exceeds the tallest possible surface. |
 | `MIN_WORLD_Y` | `lib.rs` | -64 | Overworld floor / bedrock layer. |
 | `MOUNTAIN_SNOW_LINE` | `lib.rs` | 110 | Surface height above which mountain peaks are snow-capped. |
-| `EROSION_FLATTENING` | `carving/initial_height.rs` | 0.92 | How strongly erosion flattens terrain. |
-| `EROSION_HEIGHT_DROP` | `carving/initial_height.rs` | 14 | How far erosion lowers the surface. |
+| `PLAINS_LEVEL` | `carving/initial_height.rs` | 70 | Low elevation that high-erosion (flat) land is pulled down toward. |
 | `MAX_CANOPY_RADIUS` | `biomes/trees.rs` | 2 | Tree overscan contract (see above). |
 
 ## Tuning notes
@@ -234,8 +248,11 @@ match.
 - **Region scale** is set by the climate frequencies in `Climate::new`. Lower frequency → larger
   oceans/continents and biome bands.
 - **Land/ocean ratio and coast shape** are set by the continentalness spline control points.
-- **Hilliness / plains flatness** is set by `MIN/MAX_DETAIL_AMPLITUDE` and `EROSION_FLATTENING` in
-  `carving/initial_height.rs` (higher `EROSION_FLATTENING` → flatter plains).
+- **Plains height and the plains/mountain fault** are set by `PLAINS_LEVEL` and the `flatness` control
+  points in `carving/initial_height.rs`: lower `PLAINS_LEVEL` → lower plains; a steeper `flatness`
+  riser → a sharper terrace/cliff between plains and high ground.
+- **Hilliness** is bounded by `MIN/MAX_DETAIL_AMPLITUDE` in `carving/initial_height.rs`; ruggedness is
+  driven by erosion via `flatness` (low erosion → full hills).
 - **Biome boundaries** are the thresholds in `classify` (and `ocean_variant_id` for oceans).
 
 ## Files

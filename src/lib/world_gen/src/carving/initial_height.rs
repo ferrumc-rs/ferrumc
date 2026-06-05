@@ -23,16 +23,39 @@ const MIN_DETAIL_AMPLITUDE: f32 = 3.0;
 /// scaling detail amplitude. Below it, amplitude ramps down toward the ocean floor.
 const INLAND_CONTINENTALNESS: f32 = 0.42;
 
-/// How much erosion damps the detail amplitude: at erosion 1.0 the amplitude is reduced by this
-/// fraction, flattening high-erosion regions into plains/plateaus. Kept high so plains read as
-/// genuinely flat; mountains stay tall because they are selected from *low*-erosion ground, where
-/// this damping barely applies.
-const EROSION_FLATTENING: f32 = 0.92;
+/// Gentle plains elevation, a little above [`crate::climate::SEA_LEVEL`], that flat (high-erosion)
+/// land is pulled down toward. Decoupling plains from the continental base height is what stops them
+/// from riding high just because they border raised or mountainous ground — they settle at their own
+/// low level instead of ramping smoothly up to the peaks.
+const PLAINS_LEVEL: f32 = 70.0;
 
-/// How far erosion pulls the surface *down* (in blocks) at erosion 1.0. This couples elevation to
-/// erosion the way vanilla does: high-erosion ground is both flat (above) and low-lying (here), so
-/// plains sit low and gentle, while low-erosion mountains keep their full continental base height.
-const EROSION_HEIGHT_DROP: f32 = 14.0;
+/// Maps the erosion value to a "flatness" factor in `[0, 1]`: `0` = fully rugged (the column keeps
+/// its continental base height and full local detail, i.e. mountains), `1` = fully flat (the column
+/// is pulled down to [`PLAINS_LEVEL`] with only minimal detail, i.e. plains).
+///
+/// The steep middle section is deliberate: as the smooth erosion field crosses it, the surface height
+/// changes over just a few blocks, turning what would be a gentle ramp into an abrupt terrace edge —
+/// a "fault" between low plains and the rugged high ground. The riser sits around the same erosion
+/// value the biome classifier uses to pick mountains, so the height step and the biome change line up.
+fn flatness(erosion: f32) -> f32 {
+    // (erosion, factor) control points; the steep 0.18→0.30 segment is the fault.
+    const PTS: [(f32, f32); 4] = [(0.10, 0.0), (0.18, 0.40), (0.30, 0.92), (1.00, 1.0)];
+    if erosion <= PTS[0].0 {
+        return PTS[0].1;
+    }
+    let last = PTS.len() - 1;
+    if erosion >= PTS[last].0 {
+        return PTS[last].1;
+    }
+    for window in PTS.windows(2) {
+        let (x0, y0) = window[0];
+        let (x1, y1) = window[1];
+        if erosion >= x0 && erosion <= x1 {
+            return y0 + (y1 - y0) * ((erosion - x0) / (x1 - x0));
+        }
+    }
+    PTS[last].1
+}
 
 /// Builds the local detail-noise sampler.
 ///
@@ -54,21 +77,29 @@ impl WorldGenerator {
         let erosion = self.erosion_noise.get(global_x as f32, global_z as f32);
         let (temperature, humidity) = self.climate.sample(global_x, global_z);
 
-        // Detail amplitude: ramps from MIN at/below the ocean toward MAX fully inland, then damped
-        // by erosion so flat regions stay flat.
+        // Erosion drives both elevation and ruggedness through one factor. High-erosion land is
+        // pulled down toward PLAINS_LEVEL and flattened; low-erosion land keeps its full continental
+        // base height and detail (mountains). The steep `flatness` curve makes the transition abrupt
+        // — a fault between low plains and high ground rather than a smooth ramp.
+        let flat = flatness(erosion);
+        let ruggedness = 1.0 - flat;
+
+        // Pull only *downward*: blend toward the plains level when it is below the base, so raised
+        // inland flattens into low plains but ocean floors are never lifted.
+        let target = base.min(PLAINS_LEVEL);
+        let land_base = base + (target - base) * flat;
+
+        // Detail amplitude: ramps from MIN at/below the ocean toward MAX fully inland, with the
+        // variable part scaled by ruggedness so plains stay gentle while mountains keep full hills.
+        // The MIN floor is always present so even flat ground (and the sea bed) is never dead flat.
         let landness = (continentalness / INLAND_CONTINENTALNESS).clamp(0.0, 1.0);
-        let amplitude = (MIN_DETAIL_AMPLITUDE
-            + (MAX_DETAIL_AMPLITUDE - MIN_DETAIL_AMPLITUDE) * landness)
-            * (1.0 - EROSION_FLATTENING * erosion);
+        let amplitude = MIN_DETAIL_AMPLITUDE
+            + (MAX_DETAIL_AMPLITUDE - MIN_DETAIL_AMPLITUDE) * landness * ruggedness;
 
         let detail =
             ((self.detail_noise.get(global_x as f32, global_z as f32) * 2.0) - 1.0) * amplitude;
 
-        // Pull high-erosion (flat) ground down so plains sit low; mountains (low erosion) keep their
-        // full base height.
-        let erosion_drop = erosion * EROSION_HEIGHT_DROP;
-
-        let surface = (base + detail - erosion_drop) as i16;
+        let surface = (land_base + detail) as i16;
         (
             surface,
             ClimateSample {

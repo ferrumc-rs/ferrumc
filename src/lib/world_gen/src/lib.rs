@@ -312,9 +312,13 @@ impl WorldGenerator {
         for x in 0..16u8 {
             for z in 0..16u8 {
                 let id = col_biome_ids[x as usize][z as usize];
-                // Find the topmost solid (non-air, non-water) block in the column.
+                // Find the topmost solid (non-air, non-water) block in the column. Nothing solid is
+                // ever placed above the carved surface height (decoration writes at or below it, the
+                // water flood is skipped here, and caves only remove), so the scan can start there
+                // instead of at the generated ceiling — skipping ~100 air blocks per column.
+                let scan_top = heightmap[x as usize][z as usize].min(MAX_GENERATED_HEIGHT);
                 let mut top_y = None;
-                for y in (MIN_WORLD_Y..=MAX_GENERATED_HEIGHT).rev() {
+                for y in (MIN_WORLD_Y..=scan_top).rev() {
                     let pos = ChunkBlockPos::new(x, y, z);
                     let b = chunk.get_block(pos);
                     if ferrumc_macros::match_block!("air", b)
@@ -357,7 +361,18 @@ impl WorldGenerator {
         let overscan = biomes::trees::MAX_CANOPY_RADIUS;
         for global_x in (base_x - overscan)..(base_x + 16 + overscan) {
             for global_z in (base_z - overscan)..(base_z + 16 + overscan) {
-                let (surface_y, sample) = self.column(global_x, global_z);
+                // Interior columns were already evaluated during carving; reuse the stored height and
+                // climate sample instead of recomputing the multi-octave noise fields. Only the
+                // overscan ring outside this chunk needs a fresh `column()` call.
+                let (surface_y, sample) = if (base_x..base_x + 16).contains(&global_x)
+                    && (base_z..base_z + 16).contains(&global_z)
+                {
+                    let lx = (global_x - base_x) as usize;
+                    let lz = (global_z - base_z) as usize;
+                    (heightmap[lx][lz], col_climate[lx][lz])
+                } else {
+                    self.column(global_x, global_z)
+                };
                 if self.cave_opening_at_surface(global_x, global_z, surface_y) {
                     continue;
                 }
