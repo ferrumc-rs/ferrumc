@@ -1,0 +1,25 @@
+# Standalone (its own `[workspace]`) dev-only load-testing tool. It is intentionally NOT a member
+# of the main FerrumC workspace: it pulls the large `azalea` dependency tree, which should never be
+# compiled as part of the main build, CI, or release. Run it explicitly from this directory:
+#
+#   cargo run --release -- --server 127.0.0.1:25565 --bots 100
+#
+# Pinned to azalea 0.14 (Minecraft 1.21.8 / protocol 772) to match FerrumC's protocol version.
+[workspace]
+
+[package]
+name = "ferrumc-stress-bot"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# azalea 0.14.0 targets Minecraft 1.21.8 (protocol 772). Pinned exactly: newer azalea releases
+# follow the latest Minecraft version and will not connect to a 1.21.8 server without a translating
+# proxy (ViaProxy).
+azalea = "=0.14.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+rand = "0.8"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
