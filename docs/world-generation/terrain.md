@@ -159,6 +159,15 @@ produces natural coastlines and inland basins, and it decouples the water level 
 (an earlier design flooded only inside the ocean biome and to a different level, which left a band of
 "dry sea bed" where the two disagreed).
 
+The flood is a static fill: generation places the water but never runs the fluid simulation, so where
+later carving leaves a fluid body open to air — a cave breaching the side of an ocean, or (in future)
+a spring perched on a ledge — the water sits "hanging" in non-equilibrium until something ticks it.
+Rather than simulating fluids during generation (expensive, and most of every ocean is already at
+rest), those edge cells are settled lazily the first time the chunk loads near a player, mirroring
+vanilla. The fluid system scans each newly loaded chunk once for fluid cells bordering open space and
+seeds a one-off tick for each; the settled interior is left alone. See the fluid settle pass
+(`systems/fluids` → `settle_loaded_fluids`, and `ferrumc_world::fluid::settle::fluid_frontier_cells`).
+
 ## Surface finish
 
 Caves are carved before trees and can open at the surface (cave mouths), stripping the cover off a
