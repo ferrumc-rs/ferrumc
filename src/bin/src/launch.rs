@@ -15,11 +15,14 @@ use tracing::{error, info};
 
 /// Creates the initial server state with all required components.
 pub fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
-    // Fixed seed for world generation. This seed ensures you spawn above land at the default spawn point.
-    const SEED: u64 = 380;
+    // A fresh random world seed each launch. The chosen value is logged so a world worth keeping can
+    // be reproduced by pinning the seed. (Persisted chunks are not regenerated, so a new seed only
+    // shapes terrain that has not been generated yet.)
+    let seed: u64 = rand::random();
+    info!("World generation seed: {seed}");
     Ok(ServerState {
         world: World::new(&get_global_config().database.db_path),
-        terrain_generator: WorldGenerator::new(SEED),
+        terrain_generator: WorldGenerator::new(seed),
         shut_down: false.into(),
         players: PlayerList::default(),
         thread_pool: ThreadPool::new(),
