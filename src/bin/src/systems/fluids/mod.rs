@@ -249,14 +249,31 @@ pub fn seed_fluid_tick(
         state: state.clone(),
         dim,
     };
+    seed_fluid_tick_with_view(scheduler, &view, current_tick, pos);
+}
+
+/// Like [`seed_fluid_tick`] but reuses an existing [`WorldBlockView`] instead of constructing one.
+///
+/// Building a [`WorldBlockView`] clones the [`GlobalState`] handle (an `Arc` bump). Hot paths seed
+/// many positions back to back — applying a batch of changes wakes the six neighbours of every
+/// changed block — so building the view once and passing it in turns what was an `Arc` clone per
+/// seeded position into a single clone for the whole batch. The reads themselves are unaffected: the
+/// view always reflects the live world (it reads the chunk cache on each call), so reusing it across
+/// the intervening `apply_change` writes is equivalent to rebuilding it every time.
+fn seed_fluid_tick_with_view(
+    scheduler: &mut BlockTickScheduler,
+    view: &WorldBlockView,
+    current_tick: u64,
+    pos: BlockPos,
+) {
     let block = view.block_at(pos);
-    let Some(rules) = rules_for_block(block, dim.0) else {
+    let Some(rules) = rules_for_block(block, view.dim.0) else {
         debug_assert!(!is_fluid(block), "rules_for_block disagreed with is_fluid");
         return;
     };
     // A lava block already touching water solidifies almost immediately rather than waiting out its
     // spread cadence.
-    let delay = if would_react(pos, &view) {
+    let delay = if would_react(pos, view) {
         REACTION_DELAY
     } else {
         rules.tick_delay
@@ -290,12 +307,18 @@ pub fn seed_on_block_break(
 ) {
     let current = tick.get();
     let dim = *dim;
+    // One view for the whole batch of break events: each seed below would otherwise clone the state
+    // handle, and a break wakes seven positions (the block plus its six neighbours).
+    let view = WorldBlockView {
+        state: state.0.clone(),
+        dim,
+    };
     for event in events.read() {
         let pos = event.position;
         // The broken position itself (in case it is now exposed to a fluid) and its neighbours.
-        seed_fluid_tick(&mut scheduler.0, &state.0, dim, current, pos);
+        seed_fluid_tick_with_view(&mut scheduler.0, &view, current, pos);
         for neighbour in neighbours(pos) {
-            seed_fluid_tick(&mut scheduler.0, &state.0, dim, current, neighbour);
+            seed_fluid_tick_with_view(&mut scheduler.0, &view, current, neighbour);
         }
     }
 }
@@ -551,6 +574,14 @@ fn apply_changes(
     // Fallback cadence for re-ticking a changed block whose new state is not itself fluid.
     let fallback_delay = FluidRules::for_kind(FluidKind::Water, dim.0).tick_delay;
 
+    // One view for the whole batch. Neighbour waking below reads through it after each
+    // `apply_change` write; because the view reads the live chunk cache (never a snapshot), reusing
+    // it is equivalent to rebuilding it per seed but without the per-seed state-handle clone.
+    let view = WorldBlockView {
+        state: state.clone(),
+        dim,
+    };
+
     for change in changes {
         if !apply_change(state, dim, change) {
             continue;
@@ -569,10 +600,10 @@ fn apply_changes(
             scheduler.schedule(change.pos, TickKind::FluidSpread, current, delay);
         }
 
-        // Wake fluid neighbours so the update propagates outward. `seed_fluid_tick` skips
+        // Wake fluid neighbours so the update propagates outward. `seed_fluid_tick_with_view` skips
         // non-fluid neighbours and picks the reaction cadence for lava that now touches water.
         for neighbour in fluid_neighbours(change.pos) {
-            seed_fluid_tick(scheduler, state, dim, current, neighbour);
+            seed_fluid_tick_with_view(scheduler, &view, current, neighbour);
         }
     }
 }
