@@ -18,6 +18,7 @@ use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::tick::TickCounter;
 use ferrumc_core::transform::position::Position;
+use ferrumc_macros::block;
 use ferrumc_messages::BlockBrokenEvent;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
@@ -40,6 +41,14 @@ use tracing::{error, trace};
 /// Vanilla reacts essentially on the next block update; a 1-tick delay keeps that "instant on
 /// contact" feel rather than making lava wait out its slow 30-tick spread cadence.
 const REACTION_DELAY: u64 = 1;
+
+/// Block returned when a fluid tick reads into a chunk that is not currently loaded in memory.
+///
+/// The fluid algorithm treats it as a solid wall, so fluid never spreads out of the actively loaded
+/// region and a tick therefore never triggers chunk generation or disk IO on the tick thread. When a
+/// neighbouring chunk later loads near a player, the settle pass ([`settle_loaded_fluids`]) re-seeds
+/// its boundary, letting the flow continue from there.
+const UNLOADED_BARRIER: BlockStateId = block!("stone");
 
 /// Minimum number of due ticks in a batch before the parallel evaluation path is used.
 ///
@@ -198,18 +207,14 @@ struct WorldBlockView {
 
 impl BlockView for WorldBlockView {
     fn block_at(&self, pos: BlockPos) -> BlockStateId {
-        match ferrumc_utils::world::load_or_generate_chunk(
-            &self.state,
-            pos.chunk(),
-            self.dim.name(),
-        ) {
-            Ok(chunk) => chunk.get_block(pos.chunk_block_pos()),
-            Err(err) => {
-                // A failed chunk load is treated as air so the algorithm degrades gracefully
-                // rather than panicking inside the tick loop.
-                trace!("[fluid] failed to read block at {:?}: {}", pos.pos, err);
-                BlockStateId::default()
-            }
+        // Read only from already-loaded chunks. A fluid tick must never generate (or even disk-load)
+        // a chunk: doing so put 1.3 ms of terrain generation on the tick thread for every block a
+        // cascade probed across an unloaded boundary, which was the dominant cause of tick overruns.
+        // An unloaded neighbour reads back as a solid wall, so the flow simply stops at the loaded
+        // boundary and resumes when that chunk is loaded and settled.
+        match self.state.world.cached_chunk(pos.chunk(), self.dim.name()) {
+            Some(chunk) => chunk.get_block(pos.chunk_block_pos()),
+            None => UNLOADED_BARRIER,
         }
     }
 }
@@ -307,8 +312,12 @@ fn apply_change(state: &GlobalState, dim: ActiveDimension, change: &FluidChange)
     let chunk_pos = change.pos.chunk();
     let block_pos = change.pos.chunk_block_pos();
 
-    match ferrumc_utils::world::load_or_generate_mut(state, chunk_pos, dim.name()) {
-        Ok(mut chunk) => {
+    // Write only into an already-loaded chunk; a fluid change must never generate terrain. With the
+    // read side ([`WorldBlockView::block_at`]) treating unloaded chunks as walls, the kernels never
+    // produce a change for an unloaded cell anyway, so this is just a safety net that also keeps the
+    // tick thread free of generation/IO.
+    match state.world.cached_chunk_mut(chunk_pos, dim.name()) {
+        Some(mut chunk) => {
             let current = chunk.get_block(block_pos);
             // Nothing to do if the block is already what we'd write.
             if current == change.new_block {
@@ -328,13 +337,7 @@ fn apply_change(state: &GlobalState, dim: ActiveDimension, change: &FluidChange)
             chunk.set_block(block_pos, change.new_block);
             true
         }
-        Err(err) => {
-            error!(
-                "[fluid] failed to apply change at {:?}: {}",
-                change.pos.pos, err
-            );
-            false
-        }
+        None => false,
     }
 }
 
@@ -482,19 +485,15 @@ fn evaluate_serial(
 /// independent of task scheduling order (after [`reduce_changes`] applies its deterministic
 /// tie-breaking).
 ///
-/// Before fanning out, every chunk that the batch could read (each ticking block's chunk and its
-/// six neighbours' chunks) is loaded/generated **serially on the calling thread**. This is
-/// essential: `load_or_generate_chunk` writes to the chunk cache and storage backend when a chunk
-/// is missing, which is not safe to do concurrently (it would contend on the LMDB writer and the
-/// DashMap shard). Pre-warming guarantees the parallel phase only ever hits cached chunks, making
-/// it a genuine read-only phase.
+/// No pre-warming is needed: [`WorldBlockView::block_at`] reads the chunk cache only and never
+/// generates or disk-loads, so every worker thread does pure concurrent cache reads (a miss reads
+/// back as a wall). That keeps the parallel phase a genuine read-only phase with no contention on the
+/// LMDB writer or a DashMap shard.
 fn evaluate_parallel(
     state: &GlobalState,
     dim: ActiveDimension,
     positions: &[BlockPos],
 ) -> Vec<FluidChange> {
-    prewarm_chunks(state, dim, positions);
-
     let worker_count = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
@@ -521,46 +520,6 @@ fn evaluate_parallel(
         all.extend(partial);
     }
     reduce_changes(all)
-}
-
-/// Horizontal radius (in blocks) that a single fluid tick may read.
-///
-/// The current six-neighbour model only needs radius 1, but the vanilla-style spread we are moving
-/// toward does a bounded slope search (`getSlopeDistance`, default depth 4) to find the nearest
-/// hole. Pre-warming to this radius now means the parallel read phase stays a genuine read-only
-/// phase once the new kernel lands: every chunk the search can touch is already cached, so no
-/// worker thread triggers chunk generation (which writes, and is unsafe to do concurrently).
-///
-/// Kept slightly larger than vanilla's depth-4 search so a downward probe at the rim of the search
-/// box still lands on a pre-warmed chunk.
-const FLUID_SEARCH_RADIUS: i32 = 5;
-
-/// Loads or generates, on the calling thread, every chunk the parallel evaluation phase might read.
-///
-/// A fluid tick reads a horizontal box of half-width [`FLUID_SEARCH_RADIUS`] around the ticking
-/// block (plus one below, for downward probes). The set of chunks touched is therefore every chunk
-/// spanned by that box for every ticking position. Doing this serially up front removes all chunk
-/// generation/insertion from the parallel phase, leaving only cache reads there.
-fn prewarm_chunks(state: &GlobalState, dim: ActiveDimension, positions: &[BlockPos]) {
-    use std::collections::HashSet;
-    let r = FLUID_SEARCH_RADIUS;
-    let mut chunks = HashSet::new();
-    for &pos in positions {
-        // The search is horizontal, so we only need to span chunks in x/z. Iterate every chunk
-        // column the half-width-`r` box covers (robust even if `r` exceeds a chunk width).
-        let min = (pos + (-r, 0, -r)).chunk();
-        let max = (pos + (r, 0, r)).chunk();
-        for cx in min.x()..=max.x() {
-            for cz in min.z()..=max.z() {
-                chunks.insert(ferrumc_world::pos::ChunkPos::new(cx, cz));
-            }
-        }
-    }
-    for chunk_pos in chunks {
-        // The result is intentionally discarded; the call's side effect (populating the cache) is
-        // what matters. Errors are ignored here and surfaced later when the block is read.
-        let _ = ferrumc_utils::world::load_or_generate_chunk(state, chunk_pos, dim.name());
-    }
 }
 
 /// Applies reduced changes to the world, broadcasts them, and re-schedules follow-up ticks.
@@ -1198,8 +1157,8 @@ mod tests {
         }
         println!("batch size: {} positions", positions.len());
 
-        // Warm the cache once so neither path pays generation cost during timing.
-        prewarm_chunks(global, TEST_DIM, &positions);
+        // The fills above already loaded every chunk into the cache, so the timed evaluation does
+        // pure cache reads (the fluid view never generates).
 
         let iterations = 20;
 

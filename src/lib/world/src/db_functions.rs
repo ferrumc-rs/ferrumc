@@ -76,6 +76,19 @@ impl World {
         }
     }
 
+    /// Returns a read guard for a chunk **only if it is already resident in the in-memory cache**,
+    /// without ever loading from disk or generating. Used by hot paths (e.g. fluid ticks) that must
+    /// only operate on actively loaded chunks and must never trigger generation/IO on the tick thread.
+    pub fn cached_chunk(&'_ self, pos: ChunkPos, dimension: &str) -> Option<RefChunk<'_>> {
+        self.cache.get(&(pos, dimension.to_string()))
+    }
+
+    /// Mutable counterpart of [`World::cached_chunk`]: a write guard only if the chunk is already in
+    /// the cache, never loading or generating.
+    pub fn cached_chunk_mut(&'_ self, pos: ChunkPos, dimension: &str) -> Option<MutChunk<'_>> {
+        self.cache.get_mut(&(pos, dimension.to_string()))
+    }
+
     /// Check if a chunk exists in the storage backend.
     ///
     /// It will first check if the chunk is in the cache and if it is, it will return true. If the
