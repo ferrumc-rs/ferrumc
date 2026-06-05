@@ -208,9 +208,19 @@ pub fn compute_fluid_tick_vanilla<V: BlockView>(
     // --- Downward flow takes priority: a full column. ---
     let below_pos = below(pos);
     if is_replaceable_by(kind, view.block_at(below_pos)) {
-        let falling = fluid_block(kind, rules.level_step.min(rules.max_spread_level));
-        if view.block_at(below_pos) != falling {
-            changes.push(FluidChange::flow(below_pos, falling, true));
+        let falling_level = rules.level_step.min(rules.max_spread_level);
+        // Only push the falling level when it would actually strengthen the cell below. A stronger
+        // cell — in particular a source (level 0) — must never be overwritten by the thinner falling
+        // level: doing so weakens it, and where that cell re-forms a source the next tick (two
+        // adjacent sources on solid ground) the two rules fight forever, oscillating the cell
+        // between source and flowing. Either way the column counts as occupied, so this returns
+        // without also spreading horizontally.
+        if can_spread_into(kind, below_pos, falling_level, view) {
+            changes.push(FluidChange::flow(
+                below_pos,
+                fluid_block(kind, falling_level),
+                true,
+            ));
         }
         return changes;
     }
@@ -553,6 +563,26 @@ mod tests {
             self_change.new_block,
             fluid_block(FluidKind::Water, 0),
             "flowing water between two sources on solid ground becomes a source"
+        );
+    }
+
+    /// Falling water must not overwrite a source directly below it. Regression for an infinite
+    /// oscillation: a cell flanked by two sources on solid ground re-forms a source every tick
+    /// (see [`flowing_water_between_two_sources_becomes_source`]); if the flowing water above then
+    /// overwrites that fresh source with the thinner falling level, the two rules fight forever and
+    /// the cell flips between source and flowing every tick. Downward flow may only strengthen the
+    /// cell below, never weaken a source.
+    #[test]
+    fn falling_water_does_not_overwrite_a_source_below() {
+        let mut view = MapView::new();
+        view.set(p(0, 64, 0), fluid_block(FluidKind::Water, 0)); // source below
+        view.set(p(0, 65, 0), fluid_block(FluidKind::Water, 3)); // flowing water above it
+
+        let changes = compute_fluid_tick_vanilla(p(0, 65, 0), &view, water());
+        assert!(
+            changes.iter().all(|c| c.pos != p(0, 64, 0)),
+            "the flowing cell above must not rewrite the source below it, changes: {:?}",
+            changes
         );
     }
 

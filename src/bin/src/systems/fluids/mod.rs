@@ -644,6 +644,23 @@ mod tests {
         const SLAB: i32 = 8;
         {
             let global = &state.0;
+            // Pre-generate every chunk the slab spans (each call acquires and releases its own
+            // guard), so the subsequent writes hit cached chunks. A fresh test world has no chunks
+            // stored, so set_block_and_fetch alone would fail with ChunkNotFound.
+            let mut seen = std::collections::HashSet::new();
+            for x in -SLAB..=SLAB {
+                for z in -SLAB..=SLAB {
+                    let chunk_pos = BlockPos::of(x, 63, z).chunk();
+                    if seen.insert((chunk_pos.x(), chunk_pos.z())) {
+                        let _ = ferrumc_utils::world::load_or_generate_chunk(
+                            global,
+                            chunk_pos,
+                            TEST_DIM_NAME,
+                        )
+                        .expect("generate chunk");
+                    }
+                }
+            }
             for x in -SLAB..=SLAB {
                 for z in -SLAB..=SLAB {
                     global
@@ -742,8 +759,18 @@ mod tests {
     ) {
         let start = std::time::Instant::now();
         let mut tick = 0u64;
+        // A settling simulation has no fixed tick budget, but it must terminate. This guard turns a
+        // non-convergence bug (e.g. a cell oscillating between two states forever) into a fast, clear
+        // test failure instead of an unbounded hang. It is far above any legitimate settling time
+        // for the small scenarios in this module.
+        const HANG_GUARD: u64 = 100_000;
         loop {
             tick += 1;
+            assert!(
+                tick <= HANG_GUARD,
+                "fluid simulation ({mode:?}) did not settle within {HANG_GUARD} ticks; \
+                 it is likely oscillating instead of converging"
+            );
             let due = scheduler.drain_due(tick);
             if due.is_empty() {
                 if scheduler.pending_count() == 0 {
