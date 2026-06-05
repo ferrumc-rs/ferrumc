@@ -114,23 +114,47 @@ impl World {
     /// This function will save all chunks in the cache to the storage backend and then sync the
     /// storage backend. This should be run after inserting or updating a large number of chunks
     /// to ensure that the data is properly saved to disk.
+    ///
+    /// All dirty chunks are serialised and written in a single batched transaction rather than one
+    /// transaction per chunk. A commit is the costly part of an LMDB write (it updates the meta
+    /// page and, on a sync boundary, hits the disk), so collapsing a whole sync into one commit
+    /// turns N commits into one and was a major source of the world-sync schedule overrunning its
+    /// budget when many chunks were dirty.
     pub fn sync(&self) -> Result<(), WorldError> {
-        for mut pair in self.cache.iter_mut() {
+        // Serialise dirty chunks first (read-only over the cache), collecting their storage keys so
+        // they can be marked clean once the single batched write has persisted them.
+        let mut batch: Vec<(u128, Vec<u8>)> = Vec::new();
+        let mut written: Vec<(ChunkPos, String)> = Vec::new();
+        for pair in self.cache.iter() {
             if !pair.value().sections.iter().any(|c| c.dirty) {
                 continue;
             }
             let pos = pair.key().0;
             let dim = pair.key().1.clone();
             trace!("Syncing chunk: {:?}", pos);
-            save_chunk_internal(self, pos, &dim, pair.value())?;
-            // Mark the chunk clean now that it is persisted, so the next sync only writes chunks that
-            // changed since. Without this every chunk ever modified stays dirty forever and every sync
+            let encoded = yazi::compress(
+                &bitcode::encode(pair.value()),
+                yazi::Format::Zlib,
+                yazi::CompressionLevel::BestSpeed,
+            )?;
+            batch.push((create_key(&dim, pos), encoded));
+            written.push((pos, dim));
+        }
+
+        if !batch.is_empty() {
+            self.storage_backend
+                .batch_upsert("chunks".to_string(), batch)?;
+            // Mark the now-persisted chunks clean, so the next sync only writes chunks that changed
+            // since. Without this every chunk ever modified stays dirty forever and every sync
             // re-serialises and rewrites the entire accumulated set — a cost that grows without bound
-            // as the world is explored and was overrunning the sync budget by seconds.
-            pair.value_mut()
-                .sections
-                .iter_mut()
-                .for_each(|c| c.dirty = false);
+            // as the world is explored and was overrunning the sync budget by seconds. The sync runs
+            // on the single tick-loop thread, so no chunk can be re-dirtied between serialising it
+            // above and clearing the flag here.
+            for (pos, dim) in written {
+                if let Some(mut chunk) = self.cache.get_mut(&(pos, dim)) {
+                    chunk.sections.iter_mut().for_each(|c| c.dirty = false);
+                }
+            }
         }
 
         sync_internal(self)
