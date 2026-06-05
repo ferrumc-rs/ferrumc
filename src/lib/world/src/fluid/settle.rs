@@ -59,16 +59,46 @@ pub fn fluid_frontier_cells(chunk: &Chunk, chunk_pos: ChunkPos) -> Vec<BlockPos>
     let base_x = chunk_pos.x() * 16;
     let base_z = chunk_pos.z() * 16;
 
+    let is_fluid = |b| fluid_state(b).is_some();
+
     let mut out = Vec::new();
     for (si, section) in chunk.sections.iter().enumerate() {
         // Skip any section that holds no fluid at all (all air, all stone, cave stone+air, …) using a
         // palette-only check, so the per-cell scan below only runs on the few sections that actually
         // contain fluid. This is what keeps settling cheap for the overwhelming majority of chunks,
         // which carry no fluid anywhere in their solid volume.
-        if !section.any_block(|b| fluid_state(b).is_some()) {
+        if !section.any_block(is_fluid) {
             continue;
         }
         let section_base_y = min_y + (si as i16) * 16;
+
+        // Ocean-interior fast path: a section that is entirely one fluid (a deep-water layer) can
+        // only have a frontier along its *bottom* face — every in-section and upward neighbour is the
+        // same fluid, and fluid never flows up. So instead of scanning 4096 cells, check whether the
+        // section directly below contains any open cell at all; if not, the whole layer is interior
+        // and contributes nothing, and if so only its bottom row can flow down. Stacked deep-water
+        // layers therefore skip almost entirely.
+        if section.uniform_block().is_some_and(is_fluid) {
+            let below_has_open = si > 0 && chunk.sections[si - 1].any_block(is_open);
+            if !below_has_open || section_base_y <= min_y {
+                continue;
+            }
+            let y = section_base_y; // bottom row of this section
+            for x in 0..16u8 {
+                for z in 0..16u8 {
+                    if is_open(chunk.get_block(ChunkBlockPos::new(x, y - 1, z))) {
+                        out.push(BlockPos::of(
+                            base_x + i32::from(x),
+                            i32::from(y),
+                            base_z + i32::from(z),
+                        ));
+                    }
+                }
+            }
+            continue;
+        }
+
+        // General path: a mixed section (coastline, sea floor, cave-breached water) — scan each cell.
         for ly in 0..16i16 {
             let y = section_base_y + ly;
             for x in 0..16u8 {
@@ -133,6 +163,37 @@ mod tests {
             frontier,
             vec![BlockPos::of(7, 62, 5)],
             "only the water cell facing the carved opening should be a frontier, got {frontier:?}"
+        );
+    }
+
+    /// Exercises the ocean-interior fast path: a full water section resting on a solid section is
+    /// interior (no frontier), while the same water section resting on air flags its entire bottom
+    /// row for down-flow.
+    #[test]
+    fn uniform_water_section_only_flags_open_bottom() {
+        let water = fluid_block(FluidKind::Water, 0);
+
+        // Water section (y 0..=15) on a stone section (y -16..=-1): fully interior, no frontier.
+        let mut on_solid = Chunk::new_empty();
+        on_solid.fill_section(-1, block!("stone"));
+        on_solid.fill_section(0, water);
+        assert!(
+            fluid_frontier_cells(&on_solid, ChunkPos::new(0, 0)).is_empty(),
+            "a water section resting on solid ground is interior and has no frontier"
+        );
+
+        // Same water section but the section below is air: the whole bottom row can flow down.
+        let mut on_air = Chunk::new_empty();
+        on_air.fill_section(0, water);
+        let frontier = fluid_frontier_cells(&on_air, ChunkPos::new(0, 0));
+        assert_eq!(
+            frontier.len(),
+            256,
+            "a water section resting on air flags its entire bottom row"
+        );
+        assert!(
+            frontier.iter().all(|p| p.pos.y == 0),
+            "all down-flow frontier cells sit on the section's bottom row (y = 0)"
         );
     }
 

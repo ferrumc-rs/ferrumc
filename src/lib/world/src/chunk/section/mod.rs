@@ -192,6 +192,17 @@ impl ChunkSection {
     pub fn any_block(&self, pred: impl Fn(BlockStateId) -> bool) -> bool {
         self.inner.any_block(pred)
     }
+
+    /// Returns the single block state filling this section if it is uniform (one block in every
+    /// cell), or `None` if it holds a mix. Lets callers special-case a whole-section-of-one-block
+    /// without inspecting individual cells.
+    #[inline]
+    pub fn uniform_block(&self) -> Option<BlockStateId> {
+        match &self.inner {
+            ChunkSectionType::Uniform(data) => Some(data.get_block()),
+            _ => None,
+        }
+    }
 }
 
 impl TryFrom<&Section> for ChunkSection {
