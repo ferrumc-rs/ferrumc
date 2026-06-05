@@ -23,6 +23,11 @@ use crate::terrain_noise::{NoiseGenerator, Spline};
 /// naturally. Matches the vanilla overworld sea level.
 pub const SEA_LEVEL: i16 = 63;
 
+/// Half-width, in raw river-noise units, of the band around the river field's `0.5` contour that is
+/// treated as a river. The physical width depends on the noise gradient; this value yields rivers a
+/// handful of blocks wide that wind across the landscape.
+const RIVER_HALF_WIDTH: f32 = 0.055;
+
 /// The climate values sampled for a single column, carried alongside its surface height for biome
 /// selection. All fields are normalised to `[0, 1]`.
 #[derive(Clone, Copy, Default)]
@@ -35,6 +40,11 @@ pub(crate) struct ClimateSample {
     pub humidity: f32,
     /// Surface ruggedness from the erosion field: low → rugged/hilly, high → flat.
     pub erosion: f32,
+    /// River carve factor in `[0, 1]`: `0` away from rivers, rising toward `1` along a river's
+    /// centreline. It is the strength used to lower the surface into the channel (see
+    /// [`crate::WorldGenerator::column`]) and to classify a column as a river biome. Always `0` over
+    /// ocean and high ground, so a non-zero value unambiguously marks a lowland river column.
+    pub river: f32,
 }
 
 /// Holds the low-frequency climate samplers and the continentalness→height spline. Built once per
@@ -43,6 +53,9 @@ pub(crate) struct Climate {
     continentalness: NoiseGenerator,
     temperature: NoiseGenerator,
     humidity: NoiseGenerator,
+    /// Low-frequency field whose `0.5` contour traces river centrelines. Independent of the climate
+    /// axes so rivers wander across biomes rather than following them.
+    river: NoiseGenerator,
     /// Maps continentalness `[0, 1]` to an absolute base surface height. The control points place a
     /// deep ocean floor at the low end, a shelf and coastline around the sea level, and rising
     /// inland terrain at the high end.
@@ -57,6 +70,9 @@ impl Climate {
             continentalness: NoiseGenerator::new(seed.wrapping_add(11), 0.0015, 4, None),
             temperature: NoiseGenerator::new(seed.wrapping_add(23), 0.0012, 3, None),
             humidity: NoiseGenerator::new(seed.wrapping_add(37), 0.0013, 3, None),
+            // ~1/0.004 ≈ 250-block period, so rivers recur across the landscape; a second octave
+            // gives the centreline some wander instead of near-straight runs.
+            river: NoiseGenerator::new(seed.wrapping_add(91), 0.004, 2, None),
             continental_spline: Spline::new(vec![
                 (0.00, 16.0),  // deep ocean floor (~47 below sea level)
                 (0.18, 30.0),  // ocean basin
@@ -81,6 +97,16 @@ impl Climate {
     /// Raw continentalness value in `[0, 1]` for a column.
     pub(crate) fn continentalness(&self, global_x: i32, global_z: i32) -> f32 {
         self.continentalness.get(global_x as f32, global_z as f32)
+    }
+
+    /// River strength in `[0, 1]` for a column: `0` outside the river band, rising to `1` at the
+    /// centreline (the river field's `0.5` contour). This is the proximity to the centreline only;
+    /// the caller gates it to lowland columns before using it (see
+    /// [`crate::WorldGenerator::column`]).
+    pub(crate) fn river_strength(&self, global_x: i32, global_z: i32) -> f32 {
+        let v = self.river.get(global_x as f32, global_z as f32);
+        let dist = (v - 0.5).abs();
+        ((RIVER_HALF_WIDTH - dist) / RIVER_HALF_WIDTH).max(0.0)
     }
 
     /// Absolute base surface height for a column from its continentalness value, before local detail

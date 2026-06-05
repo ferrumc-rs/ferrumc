@@ -124,6 +124,9 @@ pub struct WorldGenerator {
     snowy_plains: biomes::snowy::SnowyBiome,
     snowy_taiga: biomes::snowy::SnowyBiome,
     mountain: biomes::mountain::MountainBiome,
+    /// Lays the bed of carved river channels. One decorator serves both `river` and `frozen_river`;
+    /// the registry ID is chosen from temperature in [`WorldGenerator::classify`].
+    river: biomes::river::RiverBiome,
     /// Scatters ground vegetation (grass, flowers, desert plants) in a pass after trees.
     vegetation: biomes::vegetation::Vegetation,
 }
@@ -149,6 +152,7 @@ impl WorldGenerator {
             snowy_plains: biomes::snowy::SnowyBiome::plains(seed),
             snowy_taiga: biomes::snowy::SnowyBiome::taiga(seed),
             mountain: biomes::mountain::MountainBiome::new(seed),
+            river: biomes::river::RiverBiome::new(seed),
             vegetation: biomes::vegetation::Vegetation::new(seed.wrapping_add(53)),
         }
     }
@@ -171,6 +175,17 @@ impl WorldGenerator {
     /// becoming mountains. Because the climate fields are low-frequency, the result is broad bands.
     fn classify(&self, c: ClimateSample, surface_y: i16) -> (&dyn BiomeGenerator, u8) {
         let cold = c.temperature < 0.30;
+
+        // Rivers take precedence over the height-based water test below. A river column whose
+        // channel was actually carved below sea level holds water, so it is classified as a river
+        // here rather than being mistaken for ocean. `c.river` is non-zero only on lowland columns
+        // (the carve gate excludes the sea and high ground), so this never claims real ocean; and
+        // requiring the carved surface to be below sea level keeps the river biome aligned with the
+        // visible water channel, leaving the dry banks to their surrounding land biome. Cold rivers
+        // record `frozen_river`; the bed decorator is shared.
+        if c.river > 0.0 && surface_y < SEA_LEVEL {
+            return (&self.river, if cold { 24 } else { 41 });
+        }
 
         // Water and coastline. Submerged columns are ocean variants chosen by temperature/depth.
         if surface_y < SEA_LEVEL {
@@ -448,6 +463,32 @@ mod tests {
     fn generates_without_error() {
         let generator = WorldGenerator::new(0);
         assert!(generator.generate_chunk(ChunkPos::new(0, 0)).is_ok());
+    }
+
+    #[test]
+    fn rivers_generate_and_are_water_filled() {
+        let g = WorldGenerator::new(0);
+        let mut rivers = 0u32;
+        for x in -128..128 {
+            for z in -128..128 {
+                let (surface_y, sample) = g.column(x, z);
+                let (_decorator, id) = g.classify(sample, surface_y);
+                if id == 41 || id == 24 {
+                    rivers += 1;
+                    // A column is only ever classified as a river where its channel was carved below
+                    // sea level, so the river biome always coincides with water rather than spilling
+                    // onto dry banks.
+                    assert!(
+                        surface_y < SEA_LEVEL,
+                        "river column ({x},{z}) is not below sea level (surface={surface_y})"
+                    );
+                }
+            }
+        }
+        assert!(
+            rivers > 0,
+            "expected some river columns in the sampled region"
+        );
     }
 
     #[test]

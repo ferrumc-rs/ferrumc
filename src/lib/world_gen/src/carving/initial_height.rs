@@ -4,7 +4,7 @@
 //! module owns the higher-frequency *detail* field layered on top of it and the per-column
 //! composition that combines base height, detail, and erosion into a final surface height.
 
-use crate::climate::ClimateSample;
+use crate::climate::{ClimateSample, SEA_LEVEL};
 use crate::terrain_noise::NoiseGenerator;
 use crate::{Heightmap, WorldGenerator};
 use ferrumc_world::chunk::Chunk;
@@ -22,6 +22,28 @@ const MIN_DETAIL_AMPLITUDE: f32 = 3.0;
 /// Continentalness at and above which a column is treated as fully inland for the purpose of
 /// scaling detail amplitude. Below it, amplitude ramps down toward the ocean floor.
 const INLAND_CONTINENTALNESS: f32 = 0.42;
+
+/// How far below [`SEA_LEVEL`] a river's centreline bed is carved. The channel fills with water from
+/// the global sea-level flood, so a few blocks gives a visible river without deep gorges.
+const RIVER_DEPTH: i16 = 4;
+
+/// Land heights between which rivers fade out: at or below [`RIVER_FADE_LOW`] they carve at full
+/// strength, at or above [`RIVER_FADE_HIGH`] not at all. Confining rivers to lowlands stops deep
+/// canyons from slicing through hills and mountains.
+const RIVER_FADE_LOW: f32 = 66.0;
+const RIVER_FADE_HIGH: f32 = 88.0;
+
+/// Combines a river's centreline proximity with land-height gating: rivers only carve on land above
+/// sea level, and fade to nothing as the land rises toward mountains. Returns the carve/biome factor
+/// in `[0, 1]`.
+fn river_carve_factor(strength: f32, land_surface: f32) -> f32 {
+    if strength <= 0.0 || land_surface <= f32::from(SEA_LEVEL) + 1.0 {
+        return 0.0;
+    }
+    let height_fade =
+        ((RIVER_FADE_HIGH - land_surface) / (RIVER_FADE_HIGH - RIVER_FADE_LOW)).clamp(0.0, 1.0);
+    strength * height_fade
+}
 
 /// Gentle plains elevation, a little above [`crate::climate::SEA_LEVEL`], that flat (high-erosion)
 /// land is pulled down toward. Decoupling plains from the continental base height is what stops them
@@ -99,7 +121,20 @@ impl WorldGenerator {
         let detail =
             ((self.detail_noise.get(global_x as f32, global_z as f32) * 2.0) - 1.0) * amplitude;
 
-        let surface = (land_base + detail) as i16;
+        // Base land surface before rivers.
+        let base_surface = land_base + detail;
+
+        // Rivers lower the surface into a channel along the river contour, which the global
+        // sea-level flood then fills with water. Gated to lowland columns (never the sea, fading out
+        // toward mountains), so rivers wind through plains and forests rather than gashing peaks.
+        // The same factor classifies the column as a river biome, so channel and biome coincide.
+        let river = river_carve_factor(
+            self.climate.river_strength(global_x, global_z),
+            base_surface,
+        );
+        let bed = f32::from(SEA_LEVEL - RIVER_DEPTH);
+        let surface = (base_surface + (bed - base_surface) * river) as i16;
+
         (
             surface,
             ClimateSample {
@@ -107,6 +142,7 @@ impl WorldGenerator {
                 temperature,
                 humidity,
                 erosion,
+                river,
             },
         )
     }
