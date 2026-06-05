@@ -38,6 +38,9 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
 
     // Process scheduled fluid ticks: evaluate spreading, apply, broadcast, re-schedule.
     schedule.add_systems(fluids::seed_on_block_break);
+    // Settle generated "hanging" fluids in newly loaded chunks (cave-breached oceans, perched
+    // springs) the first time a player is near, mirroring vanilla's settle-on-load.
+    schedule.add_systems(fluids::settle_loaded_fluids);
     schedule.add_systems(fluids::process_fluid_ticks);
 
     schedule.add_systems(send_entity_updates::handle);

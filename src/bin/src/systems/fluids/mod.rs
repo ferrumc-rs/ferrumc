@@ -15,6 +15,7 @@
 use bevy_ecs::prelude::MessageReader;
 use bevy_ecs::prelude::{Entity, Query, Res, ResMut, Resource};
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::tick::TickCounter;
 use ferrumc_core::transform::position::Position;
 use ferrumc_messages::BlockBrokenEvent;
@@ -29,9 +30,9 @@ use ferrumc_world::dimension::Dimension;
 use ferrumc_world::fluid::is_fluid;
 use ferrumc_world::fluid::spread::{fluid_neighbours, would_react, BlockView, FluidChange};
 use ferrumc_world::fluid::{fluid_state, FluidKind, FluidRules};
-use ferrumc_world::pos::BlockPos;
+use ferrumc_world::pos::{BlockPos, ChunkPos};
 use ferrumc_world::scheduler::{BlockTickScheduler, ScheduledTick, TickKind};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tracing::{error, trace};
 
 /// Delay (in ticks) before a lava block that has just touched water resolves its solidification.
@@ -108,6 +109,79 @@ impl FluidTickControl {
             true
         } else {
             false
+        }
+    }
+}
+
+/// How many freshly loaded chunks [`settle_loaded_fluids`] scans per tick. Bounds the one-time settle
+/// cost so a burst of newly loaded chunks (a player joining or flying) cannot overrun the tick; any
+/// excess chunks are picked up on later ticks.
+const SETTLE_CHUNKS_PER_TICK: usize = 4;
+
+/// Tracks which chunks have already had their generated fluids settled, so each is scanned at most
+/// once. Keyed by chunk coordinates, matching [`ChunkReceiver::loaded`].
+///
+/// The set only grows as the world is explored (bounded by the explored area). Pruning entries when a
+/// chunk unloads everywhere is a possible future refinement; re-settling an already-flowed chunk is
+/// harmless (its fluids are already in equilibrium) but wasteful, which is what this set avoids.
+#[derive(Resource, Default)]
+pub struct FluidSettleTracker {
+    settled: HashSet<(i32, i32)>,
+}
+
+/// Settles "hanging" fluids in chunks that have newly loaded near a player.
+///
+/// Terrain generation places fluids but never runs the simulation, so a cave that breached an ocean
+/// (or, later, a spring perched on a ledge) leaves fluid frozen mid-air until something ticks it.
+/// This system scans each newly loaded chunk once for fluid cells bordering open space
+/// ([`ferrumc_world::fluid::settle::fluid_frontier_cells`]) and seeds a one-off fluid tick for each,
+/// so the fluid flows the first time a player is near — mirroring vanilla's settle-on-load — while
+/// leaving the (already-settled) fluid interior untouched. A per-tick chunk budget
+/// ([`SETTLE_CHUNKS_PER_TICK`]) keeps the scan from overrunning the tick when many chunks load at
+/// once.
+pub fn settle_loaded_fluids(
+    query: Query<&ChunkReceiver>,
+    mut tracker: ResMut<FluidSettleTracker>,
+    mut scheduler: ResMut<FluidScheduler>,
+    tick: Res<TickCounter>,
+    state: Res<GlobalStateResource>,
+    dim: Res<ActiveDimension>,
+) {
+    let current = tick.get();
+    let dim = *dim;
+    let mut budget = SETTLE_CHUNKS_PER_TICK;
+
+    'outer: for receiver in query.iter() {
+        for &coords in receiver.loaded.iter() {
+            if budget == 0 {
+                break 'outer;
+            }
+            // Claim the chunk; skip if another player (or an earlier tick) already settled it.
+            if !tracker.settled.insert(coords) {
+                continue;
+            }
+
+            let pos = ChunkPos::new(coords.0, coords.1);
+            // Compute the frontier in a tight scope so the chunk read guard is released before
+            // seeding (which itself loads chunks through the world view — holding the guard across it
+            // could re-enter the same DashMap shard and deadlock).
+            let frontier = {
+                let chunk =
+                    match ferrumc_utils::world::load_or_generate_chunk(&state.0, pos, dim.name()) {
+                        Ok(chunk) => chunk,
+                        Err(e) => {
+                            error!("Failed to load chunk {:?} for fluid settle: {}", coords, e);
+                            tracker.settled.remove(&coords); // allow a retry on a later tick
+                            continue;
+                        }
+                    };
+                ferrumc_world::fluid::settle::fluid_frontier_cells(&chunk, pos)
+            };
+
+            for cell in frontier {
+                seed_fluid_tick(&mut scheduler.0, &state.0, dim, current, cell);
+            }
+            budget -= 1;
         }
     }
 }
@@ -1146,6 +1220,56 @@ mod tests {
         println!(
             "speedup: {:.2}x",
             serial.as_secs_f64() / parallel.as_secs_f64()
+        );
+    }
+
+    /// `settle_loaded_fluids` seeds a fluid tick for a hanging fluid in a newly loaded chunk, and
+    /// does so only once: the second run is a no-op because the chunk is already tracked as settled.
+    #[test]
+    fn settle_seeds_hanging_fluid_once() {
+        let mut world = World::new();
+        let (state, _tmp) = create_test_state();
+
+        // Pre-generate a chunk, then place a water block high in the air column (air directly below
+        // it) — an unambiguous down-flow frontier independent of the generated surface.
+        let coords = (3, 5);
+        let cpos = ChunkPos::new(coords.0, coords.1);
+        let _ = ferrumc_utils::world::load_or_generate_chunk(&state.0, cpos, TEST_DIM_NAME)
+            .expect("generate chunk");
+        let water_pos = BlockPos::of(coords.0 * 16 + 8, 150, coords.1 * 16 + 8);
+        state
+            .0
+            .world
+            .set_block_and_fetch(water_pos, TEST_DIM_NAME, fluid_block(FluidKind::Water, 0))
+            .expect("place hanging water");
+
+        world.insert_resource(state.clone());
+        world.insert_resource(TickCounter::new());
+        world.insert_resource(TEST_DIM);
+        world.insert_resource(FluidScheduler::default());
+        world.insert_resource(FluidSettleTracker::default());
+
+        // A player whose loaded set includes the chunk.
+        let mut receiver = ChunkReceiver::default();
+        receiver.loaded.insert(coords);
+        world.spawn(receiver);
+
+        let mut schedule = Schedule::default();
+        schedule.add_systems(settle_loaded_fluids);
+
+        schedule.run(&mut world);
+        let after_first = world.resource::<FluidScheduler>().0.pending_count();
+        assert!(
+            after_first > 0,
+            "settle should have seeded the hanging water cell, pending={after_first}"
+        );
+
+        // Running again must not re-scan the chunk (it is already settled), so nothing changes.
+        schedule.run(&mut world);
+        let after_second = world.resource::<FluidScheduler>().0.pending_count();
+        assert_eq!(
+            after_first, after_second,
+            "an already-settled chunk must not be re-scanned (first={after_first}, second={after_second})"
         );
     }
 }
