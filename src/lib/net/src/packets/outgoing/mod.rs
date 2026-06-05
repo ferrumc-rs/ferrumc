@@ -59,6 +59,7 @@ pub mod unload_chunk;
 pub mod hurt_animation;
 pub mod respawn;
 pub mod set_health;
+pub mod set_ticking_state;
 pub mod update_time;
 
 pub mod level_event;

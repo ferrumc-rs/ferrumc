@@ -18,6 +18,7 @@ use ferrumc_config::server_config::FluidAlgorithm;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
+pub mod settle;
 pub mod spread;
 pub mod vanilla;
 

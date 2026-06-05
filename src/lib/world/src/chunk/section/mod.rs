@@ -11,7 +11,7 @@ use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::block;
 
-mod biome;
+pub(crate) mod biome;
 mod direct;
 pub mod network;
 mod paletted;
@@ -92,6 +92,23 @@ impl ChunkSectionType {
             Self::Direct(data) => data.block_count(),
         }
     }
+
+    /// Whether any distinct block state in the section satisfies `pred` (palette-only check). See
+    /// [`ChunkSection::any_block`].
+    pub fn any_block(&self, pred: impl Fn(BlockStateId) -> bool) -> bool {
+        match self {
+            Self::Uniform(data) => pred(data.get_block()),
+            // Inspect the palette entries only, not every cell.
+            Self::Paletted(data) => data
+                .palette
+                .palette
+                .iter()
+                .flatten()
+                .any(|(id, _)| pred(*id)),
+            // Direct sections keep no compact palette; be conservative and let the caller scan.
+            Self::Direct(_) => true,
+        }
+    }
 }
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
@@ -164,6 +181,27 @@ impl ChunkSection {
     #[inline]
     pub fn block_count(&self) -> u16 {
         self.inner.block_count()
+    }
+
+    /// Returns whether any block state present in this section satisfies `pred`, inspecting only the
+    /// section's distinct states (its palette) rather than all 4096 cells. For [`DirectSection`]s,
+    /// which keep no compact palette, it conservatively returns `true`. This is a cheap pre-filter
+    /// for whole-section scans that want to skip sections that cannot contain a block of interest
+    /// (e.g. the vast all-stone or all-air sections when looking for fluids).
+    #[inline]
+    pub fn any_block(&self, pred: impl Fn(BlockStateId) -> bool) -> bool {
+        self.inner.any_block(pred)
+    }
+
+    /// Returns the single block state filling this section if it is uniform (one block in every
+    /// cell), or `None` if it holds a mix. Lets callers special-case a whole-section-of-one-block
+    /// without inspecting individual cells.
+    #[inline]
+    pub fn uniform_block(&self) -> Option<BlockStateId> {
+        match &self.inner {
+            ChunkSectionType::Uniform(data) => Some(data.get_block()),
+            _ => None,
+        }
     }
 }
 

@@ -69,10 +69,10 @@ impl Heightmaps {
         heightmaps: &Option<Heightmaps>,
     ) -> LengthPrefixedVec<NetworkHeightmap> {
         const BITS_PER_ENTRY: usize = 9;
-        const ENTRIES_PER_LONG: usize = 64 / 9;
-        const NUMBER_OF_ENTRIES: usize = 16 * 16;
-        const NUMBER_OF_LONGS: usize =
-            NUMBER_OF_ENTRIES + (ENTRIES_PER_LONG - 1) / ENTRIES_PER_LONG;
+        const ENTRIES_PER_LONG: usize = 64 / BITS_PER_ENTRY; // 7 entries per u64
+        const NUMBER_OF_ENTRIES: usize = 16 * 16; // 256
+                                                  // Ceiling division: ceil(256 / 7) = 37 longs.
+        const NUMBER_OF_LONGS: usize = NUMBER_OF_ENTRIES.div_ceil(ENTRIES_PER_LONG);
 
         let mut world_surface = vec![0u64; NUMBER_OF_LONGS];
         let mut motion_blocking = vec![0u64; NUMBER_OF_LONGS];

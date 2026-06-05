@@ -18,6 +18,7 @@ mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod tick_counter;
+pub mod tps_broadcast;
 pub(crate) mod update_player_ping;
 pub mod world_sync;
 
@@ -38,11 +39,17 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
 
     // Process scheduled fluid ticks: evaluate spreading, apply, broadcast, re-schedule.
     schedule.add_systems(fluids::seed_on_block_break);
+    // Settle generated "hanging" fluids in newly loaded chunks (cave-breached oceans, perched
+    // springs) the first time a player is near, mirroring vanilla's settle-on-load.
+    schedule.add_systems(fluids::settle_loaded_fluids);
     schedule.add_systems(fluids::process_fluid_ticks);
 
     schedule.add_systems(send_entity_updates::handle);
 
     schedule.add_systems(day_cycle::tick_daylight_cycle);
+
+    // Stream the measured server TPS to clients (shown on F3) once per second.
+    schedule.add_systems(tps_broadcast::broadcast_tps);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);

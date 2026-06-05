@@ -1,4 +1,4 @@
-//! Plains biome: grass over dirt, with sparse oak trees.
+//! Forest biome: grass over dirt, densely covered in a mix of oak and birch trees.
 
 use crate::BiomeGenerator;
 use crate::biomes::tree_placement::TreePlacer;
@@ -10,22 +10,38 @@ use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::ChunkBlockPos;
 
-/// Minimum surface height for a tree to spawn. Columns below this are close to water and should
-/// remain treeless (they are often on beach/ocean transitions).
+/// Minimum surface height for a tree (kept above the waterline as in the other wooded biomes).
 const TREE_MIN_SURFACE_Y: i16 = 64;
 
-pub(crate) struct PlainsBiome {
+pub(crate) struct ForestBiome {
+    seed: u64,
     dirt_depth_noise: NoiseGenerator,
     trees: TreePlacer,
 }
 
-impl BiomeGenerator for PlainsBiome {
+impl ForestBiome {
+    /// Picks oak vs birch for the tree at a column, deterministically from the seed and position so
+    /// the choice is stable across the chunks that resolve this tree. Roughly a third are birch.
+    fn tree_kind(&self, gx: i32, gz: i32) -> TreeKind {
+        let mut h = self.seed ^ 0x9e37_79b9_7f4a_7c15;
+        h ^= (gx as u64).wrapping_mul(0xff51_afd7_ed55_8ccd);
+        h ^= (gz as u64).wrapping_mul(0xc4ce_b9fe_1a85_ec53);
+        h ^= h >> 29;
+        if h.is_multiple_of(3) {
+            TreeKind::Birch
+        } else {
+            TreeKind::Oak
+        }
+    }
+}
+
+impl BiomeGenerator for ForestBiome {
     fn biome_id(&self) -> u8 {
-        40 // minecraft:plains
+        21 // minecraft:forest
     }
 
     fn _biome_name(&self) -> String {
-        "plains".to_string()
+        "forest".to_string()
     }
 
     fn decorate(
@@ -53,17 +69,19 @@ impl BiomeGenerator for PlainsBiome {
             return None;
         }
         Some(Tree {
-            kind: TreeKind::Oak,
+            kind: self.tree_kind(global_x, global_z),
             surface_y,
-            trunk_height: self.trees.trunk_height(global_x, global_z, 4, 3),
+            trunk_height: self.trees.trunk_height(global_x, global_z, 5, 3),
         })
     }
 
     fn new(seed: u64) -> Self {
-        PlainsBiome {
+        ForestBiome {
+            seed,
             dirt_depth_noise: NoiseGenerator::new(seed, 0.1, 4, None),
-            // Sparse oaks: wide spacing, large grove patches with open clearings between them.
-            trees: TreePlacer::new(seed.wrapping_add(7), 0.012, 4, 0.70, TREE_MIN_SURFACE_Y),
+            // Dense canopy: tight spacing and a low density threshold so most of the biome is wooded
+            // with only small clearings.
+            trees: TreePlacer::new(seed.wrapping_add(13), 0.02, 3, 0.30, TREE_MIN_SURFACE_Y),
         }
     }
 }

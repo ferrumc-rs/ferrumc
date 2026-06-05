@@ -1,6 +1,16 @@
 use bevy_ecs::prelude::Component;
+use crossbeam_queue::SegQueue;
 use std::collections::{HashSet, VecDeque};
+use std::sync::Arc;
 use typename::TypeName;
+
+/// An encoded chunk packet produced off the tick thread, ready to be sent to a client.
+///
+/// The tuple is `(chunk coordinates, encoded bytes)`. `None` bytes signal that the background job
+/// failed to load/generate or encode the chunk; the sender then clears it from
+/// [`ChunkReceiver::pending`] without sending anything, leaving the chunk calculator free to
+/// re-queue it on a later tick.
+pub type EncodedChunk = ((i32, i32), Option<Vec<u8>>);
 
 #[derive(TypeName, Component)]
 pub struct ChunkReceiver {
@@ -9,6 +19,13 @@ pub struct ChunkReceiver {
     pub loaded: HashSet<(i32, i32)>,
     pub unloading: VecDeque<(i32, i32)>,
     pub chunks_per_tick: f32,
+    /// Chunk coordinates handed to the thread pool whose encoded packet has not yet come back.
+    /// Tracked so neither the chunk sender nor the chunk calculator resubmits an in-flight chunk.
+    pub pending: HashSet<(i32, i32)>,
+    /// Lock-free queue that thread-pool jobs push their finished, encoded chunk packets onto; the
+    /// chunk sender drains it each tick. Shared with each job via [`Arc`] so generation/encoding can
+    /// run off the tick thread without blocking it.
+    pub results: Arc<SegQueue<EncodedChunk>>,
 }
 
 impl Default for ChunkReceiver {
@@ -26,6 +43,8 @@ impl ChunkReceiver {
             dirty: VecDeque::new(),
             // 32.5 chunks per tick is enough to send 650 chunks per second (20 ticks per second)
             chunks_per_tick: 32.5,
+            pending: HashSet::new(),
+            results: Arc::new(SegQueue::new()),
         }
     }
 }
