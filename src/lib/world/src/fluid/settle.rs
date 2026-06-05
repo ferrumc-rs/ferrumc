@@ -10,9 +10,18 @@
 
 use crate::block_state_id::BlockStateId;
 use crate::chunk::Chunk;
-use crate::fluid::fluid_state;
+use crate::dimension::Dimension;
+use crate::fluid::spread::{fluid_neighbours, BlockView};
+use crate::fluid::{compute_tick, fluid_state, is_fluid, is_solid_obstacle, FluidRules};
 use crate::pos::{BlockPos, ChunkBlockPos, ChunkPos};
+use ferrumc_config::server_config::FluidAlgorithm;
 use ferrumc_macros::block;
+use std::collections::VecDeque;
+
+/// Block a fluid tick reads when it probes outside the chunk being settled. The kernel treats it as a
+/// solid wall, so generation-time settling never reaches into neighbouring (possibly ungenerated)
+/// chunks; cross-chunk flow at the seam is left to the on-load settle pass once both sides exist.
+const SETTLE_BARRIER: BlockStateId = block!("stone");
 
 /// An empty cell a fluid could flow into (air or void air). Same-fluid and solid cells are
 /// deliberately not counted: a fully submerged interior cell is already in equilibrium and must not
@@ -121,6 +130,128 @@ pub fn fluid_frontier_cells(chunk: &Chunk, chunk_pos: ChunkPos) -> Vec<BlockPos>
     out
 }
 
+/// A read-only [`BlockView`] over a single chunk: in-chunk cells read from the chunk, everything
+/// outside reads back as [`SETTLE_BARRIER`] so a settle never escapes the chunk.
+struct ChunkLocalView<'a> {
+    chunk: &'a Chunk,
+    base_x: i32,
+    base_z: i32,
+}
+
+impl ChunkLocalView<'_> {
+    /// Local `(x, z)` of a world position if it lies within this chunk's column footprint.
+    fn local_xz(&self, pos: BlockPos) -> Option<(u8, u8)> {
+        let lx = pos.pos.x - self.base_x;
+        let lz = pos.pos.z - self.base_z;
+        if (0..16).contains(&lx) && (0..16).contains(&lz) {
+            Some((lx as u8, lz as u8))
+        } else {
+            None
+        }
+    }
+}
+
+impl BlockView for ChunkLocalView<'_> {
+    fn block_at(&self, pos: BlockPos) -> BlockStateId {
+        match self.local_xz(pos) {
+            Some((x, z)) => self
+                .chunk
+                .get_block(ChunkBlockPos::new(x, pos.pos.y as i16, z)),
+            None => SETTLE_BARRIER,
+        }
+    }
+}
+
+/// Flows the fluids inside a freshly generated `chunk` to a steady state, in isolation (chunk borders
+/// act as walls), mutating the chunk in place. This is the generation-time counterpart to the on-load
+/// settle: run on the chunk-generation worker thread so the chunk arrives already settled and no fluid
+/// simulation is needed on the game-tick thread for it.
+///
+/// `max_changes` bounds the work so a pathological chunk cannot stall generation; if the budget is hit
+/// the chunk is left partially settled and the on-load pass (if enabled) finishes the remainder. A
+/// budget of `0` means unbounded.
+///
+/// Cross-chunk flow is intentionally not resolved here (no neighbour data exists at generation time);
+/// the seam is handled by the on-load settle once both chunks are loaded.
+pub fn settle_chunk(
+    chunk: &mut Chunk,
+    chunk_pos: ChunkPos,
+    dim: Dimension,
+    algorithm: FluidAlgorithm,
+    max_changes: usize,
+) {
+    let base_x = chunk_pos.x() * 16;
+    let base_z = chunk_pos.z() * 16;
+
+    // Seed the work queue with the cells that are out of equilibrium (a fluid bordering open space).
+    let mut queue: VecDeque<BlockPos> =
+        fluid_frontier_cells(chunk, chunk_pos).into_iter().collect();
+    if queue.is_empty() {
+        return;
+    }
+
+    let in_chunk = |p: BlockPos| -> Option<(u8, u8)> {
+        let lx = p.pos.x - base_x;
+        let lz = p.pos.z - base_z;
+        ((0..16).contains(&lx) && (0..16).contains(&lz)).then_some((lx as u8, lz as u8))
+    };
+
+    let mut applied = 0usize;
+    while let Some(pos) = queue.pop_front() {
+        if max_changes != 0 && applied >= max_changes {
+            break;
+        }
+        let Some((x, z)) = in_chunk(pos) else {
+            continue;
+        };
+        let here = chunk.get_block(ChunkBlockPos::new(x, pos.pos.y as i16, z));
+        let Some(state) = fluid_state(here) else {
+            continue;
+        };
+        let rules = FluidRules::for_kind(state.kind, dim);
+
+        // Compute this cell's changes against the current chunk (read-only), then apply them.
+        let changes = {
+            let view = ChunkLocalView {
+                chunk,
+                base_x,
+                base_z,
+            };
+            compute_tick(algorithm, pos, &view, rules)
+        };
+
+        for change in changes {
+            // Never write outside the chunk (cross-chunk seam left for the on-load pass).
+            let Some((cx, cz)) = in_chunk(change.pos) else {
+                continue;
+            };
+            let bp = ChunkBlockPos::new(cx, change.pos.pos.y as i16, cz);
+            let current = chunk.get_block(bp);
+            if current == change.new_block {
+                continue;
+            }
+            // Same guard as the live apply: a plain fluid flow must not eat a solid block (reactions,
+            // which turn fluid into rock, are allowed).
+            if is_fluid(change.new_block) && is_solid_obstacle(current) {
+                continue;
+            }
+            chunk.set_block(bp, change.new_block);
+            applied += 1;
+
+            // Re-examine the changed cell (if it may keep evolving) and its in-chunk neighbours so the
+            // adjustment ripples to a steady state, mirroring the live system's neighbour wake.
+            if change.reschedule {
+                queue.push_back(change.pos);
+            }
+            for n in fluid_neighbours(change.pos) {
+                if in_chunk(n).is_some() {
+                    queue.push_back(n);
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -195,6 +326,67 @@ mod tests {
             frontier.iter().all(|p| p.pos.y == 0),
             "all down-flow frontier cells sit on the section's bottom row (y = 0)"
         );
+    }
+
+    /// `settle_chunk` flows a hanging source to a steady state in place: a source on a floor with air
+    /// around it spreads across the floor; an unbounded budget settles it fully.
+    #[test]
+    fn settle_chunk_flows_a_source_across_the_floor() {
+        let mut chunk = Chunk::new_empty();
+        // Stone floor at y=64 across the whole chunk, air above.
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                chunk.set_block(ChunkBlockPos::new(x, 64, z), block!("stone"));
+            }
+        }
+        chunk.set_block(
+            ChunkBlockPos::new(8, 65, 8),
+            fluid_block(FluidKind::Water, 0),
+        );
+
+        settle_chunk(
+            &mut chunk,
+            ChunkPos::new(0, 0),
+            Dimension::Overworld,
+            FluidAlgorithm::Vanilla,
+            0,
+        );
+
+        // The source must have spread to its four horizontal neighbours on the floor.
+        for (nx, nz) in [(7u8, 8u8), (9, 8), (8, 7), (8, 9)] {
+            let b = chunk.get_block(ChunkBlockPos::new(nx, 65, nz));
+            assert!(
+                fluid_state(b).is_some_and(|s| s.kind == FluidKind::Water),
+                "settle_chunk should have flowed water to ({nx},65,{nz}), got {b:?}"
+            );
+        }
+    }
+
+    /// `settle_chunk` is a cheap no-op on a chunk with no fluid.
+    #[test]
+    fn settle_chunk_noop_without_fluid() {
+        let mut chunk = Chunk::new_empty();
+        for x in 0..16u8 {
+            for z in 0..16u8 {
+                chunk.set_block(ChunkBlockPos::new(x, 64, z), block!("stone"));
+            }
+        }
+        let before: Vec<_> = (0..16)
+            .flat_map(|x| (0..16).map(move |z| (x as u8, z as u8)))
+            .map(|(x, z)| chunk.get_block(ChunkBlockPos::new(x, 64, z)))
+            .collect();
+        settle_chunk(
+            &mut chunk,
+            ChunkPos::new(0, 0),
+            Dimension::Overworld,
+            FluidAlgorithm::Vanilla,
+            0,
+        );
+        let after: Vec<_> = (0..16)
+            .flat_map(|x| (0..16).map(move |z| (x as u8, z as u8)))
+            .map(|(x, z)| chunk.get_block(ChunkBlockPos::new(x, 64, z)))
+            .collect();
+        assert_eq!(before, after, "a fluid-free chunk must be left untouched");
     }
 
     /// A water column standing on air (a perched spring) flags the bottom cell for down-flow.

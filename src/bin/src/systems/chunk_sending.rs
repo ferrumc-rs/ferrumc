@@ -98,17 +98,35 @@ pub fn handle(
             // the job to complete in the background and report back through `results`.
             drop(state.0.thread_pool.oneshot(move || {
                 let pos = ChunkPos::new(coords.0, coords.1);
-                let chunk = match ferrumc_utils::world::load_or_generate_chunk(
-                    &state_arc,
-                    pos,
-                    "overworld",
-                ) {
-                    Ok(chunk) => chunk,
-                    Err(e) => {
-                        error!("Failed to load or generate chunk {:?}: {}", coords, e);
-                        results.push((coords, None));
-                        return;
+                if let Err(e) =
+                    ferrumc_utils::world::load_or_generate_chunk(&state_arc, pos, "overworld")
+                {
+                    error!("Failed to load or generate chunk {:?}: {}", coords, e);
+                    results.push((coords, None));
+                    return;
+                }
+
+                // Settle generated "hanging" fluids here on the worker thread, before the chunk is
+                // encoded and sent, so the chunk arrives already flowed and the game-tick thread does
+                // no fluid simulation for it. Flow contained within the chunk is fully resolved;
+                // cross-chunk seams are left to the on-load settle pass.
+                let fluids = &get_global_config().fluids;
+                if fluids.settle_on_generate {
+                    if let Some(mut chunk) = state_arc.world.cached_chunk_mut(pos, "overworld") {
+                        ferrumc_world::fluid::settle::settle_chunk(
+                            &mut chunk,
+                            pos,
+                            ferrumc_world::dimension::Dimension::Overworld,
+                            fluids.algorithm,
+                            fluids.max_settle_changes as usize,
+                        );
                     }
+                }
+
+                let Some(chunk) = state_arc.world.cached_chunk(pos, "overworld") else {
+                    error!("Chunk {:?} vanished from cache after generation", coords);
+                    results.push((coords, None));
+                    return;
                 };
                 let packet = match ChunkAndLightData::from_chunk(pos, &chunk) {
                     Ok(packet) => packet,

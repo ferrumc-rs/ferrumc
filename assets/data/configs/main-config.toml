@@ -66,9 +66,16 @@ chunks_per_tick_min = 16
 #                  Matches vanilla behaviour at a higher CPU cost.
 #   "simplified" - Cheaper approximation: uniform spread with no hole steering.
 algorithm = "vanilla"
-# Settle "hanging" fluids (e.g. a cave that breached an ocean, a perched spring) the first time a
-# chunk loads near a player. Set to false to skip that pass; generated fluids then stay static until
-# directly disturbed.
+# Settle "hanging" fluids (a cave that breached an ocean, a perched spring) while a chunk is generated,
+# on the chunk worker thread, so it arrives already flowed and the game-tick thread does no fluid work
+# for it. This is the primary, off-tick settle path and resolves all flow contained within a chunk.
+settle_on_generate = true
+# Max block changes the generation-time settle makes per chunk before stopping (0 = unbounded). Bounds
+# worker-thread cost on pathological chunks; any remainder is finished by the on-load pass.
+max_settle_changes = 65536
+# Also settle hanging fluids on the game-tick thread the first time a chunk loads near a player. With
+# settle_on_generate on this only mops up cross-chunk seams (cheap). Set false to keep all fluid work
+# off the tick thread; chunk-interior fluids are still settled at generation time.
 settle_on_load = true
 # Maximum number of fluid ticks processed per game tick (0 = unbounded). Spreads a large cascade over
 # several ticks instead of freezing one. Lower this if fluid activity still causes tick overruns.
