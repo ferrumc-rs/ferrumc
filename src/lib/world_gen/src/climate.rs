@@ -23,10 +23,11 @@ use crate::terrain_noise::{NoiseGenerator, Spline};
 /// naturally. Matches the vanilla overworld sea level.
 pub const SEA_LEVEL: i16 = 63;
 
-/// Half-width, in raw river-noise units, of the band around the river field's `0.5` contour that is
-/// treated as a river. The physical width depends on the noise gradient; this value yields rivers a
-/// handful of blocks wide that wind across the landscape.
-const RIVER_HALF_WIDTH: f32 = 0.055;
+/// Half-width of a river, in blocks, measured from its centreline. The centreline distance is
+/// normalised by the noise gradient (see [`Climate::river_strength`]), so rivers are this wide
+/// everywhere rather than ballooning into lakes wherever the noise happens to be flat near its
+/// contour.
+const RIVER_HALF_WIDTH_BLOCKS: f32 = 5.0;
 
 /// The climate values sampled for a single column, carried alongside its surface height for biome
 /// selection. All fields are normalised to `[0, 1]`.
@@ -70,9 +71,10 @@ impl Climate {
             continentalness: NoiseGenerator::new(seed.wrapping_add(11), 0.0015, 4, None),
             temperature: NoiseGenerator::new(seed.wrapping_add(23), 0.0012, 3, None),
             humidity: NoiseGenerator::new(seed.wrapping_add(37), 0.0013, 3, None),
-            // ~1/0.004 ≈ 250-block period, so rivers recur across the landscape; a second octave
-            // gives the centreline some wander instead of near-straight runs.
-            river: NoiseGenerator::new(seed.wrapping_add(91), 0.004, 2, None),
+            // ~1/0.005 ≈ 200-block period sets how often rivers recur. Three octaves keep the field
+            // from plateauing near its 0.5 contour — flat spots there would (even after gradient
+            // normalisation) widen into lakes — while also giving the centreline natural wander.
+            river: NoiseGenerator::new(seed.wrapping_add(91), 0.005, 3, None),
             continental_spline: Spline::new(vec![
                 (0.00, 16.0),  // deep ocean floor (~47 below sea level)
                 (0.18, 30.0),  // ocean basin
@@ -103,10 +105,24 @@ impl Climate {
     /// centreline (the river field's `0.5` contour). This is the proximity to the centreline only;
     /// the caller gates it to lowland columns before using it (see
     /// [`crate::WorldGenerator::column`]).
+    ///
+    /// The signed distance to the contour (`value - 0.5`) is divided by the local gradient of the
+    /// field, turning it into an approximate distance *in blocks*. Normalising this way is what gives
+    /// rivers a consistent width: without it, a fixed threshold on the raw value makes the river
+    /// balloon into a lake wherever the noise is flat near `0.5` and pinch to nothing where it is
+    /// steep.
     pub(crate) fn river_strength(&self, global_x: i32, global_z: i32) -> f32 {
-        let v = self.river.get(global_x as f32, global_z as f32);
-        let dist = (v - 0.5).abs();
-        ((RIVER_HALF_WIDTH - dist) / RIVER_HALF_WIDTH).max(0.0)
+        let x = global_x as f32;
+        let z = global_z as f32;
+        let centre = self.river.get(x, z) - 0.5;
+        // Central-difference gradient of the field (value change per block).
+        let dx = (self.river.get(x + 1.0, z) - self.river.get(x - 1.0, z)) * 0.5;
+        let dz = (self.river.get(x, z + 1.0) - self.river.get(x, z - 1.0)) * 0.5;
+        // Floor the gradient so a near-flat patch of the field cannot blow the distance up into a
+        // wide river; such patches are treated as far from the contour (no river) instead.
+        let grad = (dx * dx + dz * dz).sqrt().max(1e-3);
+        let dist_blocks = centre.abs() / grad;
+        ((RIVER_HALF_WIDTH_BLOCKS - dist_blocks) / RIVER_HALF_WIDTH_BLOCKS).max(0.0)
     }
 
     /// Absolute base surface height for a column from its continentalness value, before local detail

@@ -51,6 +51,10 @@ const MIN_WORLD_Y: i16 = -64;
 /// in the post-cave surface-finish pass so the cap sits on the real top, never floating over a cave.
 const MOUNTAIN_SNOW_LINE: i16 = 110;
 
+/// Maximum continentalness at which a low column counts as an ocean-coast beach. Above it the column
+/// is inland (e.g. a river bank), so it keeps its surrounding land biome rather than becoming sand.
+const COAST_MAX_CONTINENTALNESS: f32 = 0.47;
+
 /// A per-column surface height map for one chunk (`[local_x][local_z]`).
 pub(crate) type Heightmap = [[i16; 16]; 16];
 
@@ -192,7 +196,11 @@ impl WorldGenerator {
             let deep = c.continentalness < 0.20 || surface_y <= SEA_LEVEL - 18;
             return (&self.ocean, Self::ocean_variant_id(c.temperature, deep));
         }
-        if surface_y <= SEA_LEVEL + 2 {
+        // Beaches form only along genuine ocean coasts (low continentalness). Without this gate every
+        // low column just above sea level becomes sand — including river banks, which then read as a
+        // wide beach instead of grassy bank. Inland (high-continentalness) river edges fall through
+        // to their surrounding land biome instead.
+        if surface_y <= SEA_LEVEL + 2 && c.continentalness < COAST_MAX_CONTINENTALNESS {
             let beach: &dyn BiomeGenerator = if cold { &self.snowy_beach } else { &self.beach };
             return (beach, beach.biome_id());
         }
