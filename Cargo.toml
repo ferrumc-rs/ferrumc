@@ -12,6 +12,11 @@ cargo-features = ["profile-rustflags"]
 [workspace]
 resolver = "2"
 
+# `tools/stress-bot` is a dev-only load-testing tool (azalea-based swarm client). It is its own
+# standalone workspace and excluded here so its large dependency tree never compiles as part of the
+# main build, CI, or release. See `tools/stress-bot/README.md`.
+exclude = ["tools/stress-bot"]
+
 #================= Members =================#
 members = [
     "src/bin",

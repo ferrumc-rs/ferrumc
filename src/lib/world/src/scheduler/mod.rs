@@ -64,17 +64,20 @@ impl ChunkTickQueue {
     }
 
     fn drain_due(&mut self, current_tick: u64, out: &mut Vec<ScheduledTick>) {
-        // Partition into due / not-yet-due, retaining the latter.
-        let mut remaining = Vec::with_capacity(self.pending.len());
-        for tick in self.pending.drain(..) {
+        // Compact in place: move due ticks into `out` and keep the rest. `retain` shifts the kept
+        // elements down without allocating, where the previous implementation allocated a fresh
+        // full-size buffer on every call — for every chunk, every tick, even when nothing was due.
+        // `seen` is borrowed separately from `pending` so the closure does not capture all of `self`.
+        let seen = &mut self.seen;
+        self.pending.retain(|tick| {
             if tick.target_tick <= current_tick {
-                self.seen.remove(&(tick.pos, tick.kind, tick.target_tick));
-                out.push(tick);
+                seen.remove(&(tick.pos, tick.kind, tick.target_tick));
+                out.push(*tick);
+                false
             } else {
-                remaining.push(tick);
+                true
             }
-        }
-        self.pending = remaining;
+        });
     }
 
     /// Drains at most `budget` due ticks into `out`, leaving any remaining due ticks queued (they
@@ -85,18 +88,20 @@ impl ChunkTickQueue {
         out: &mut Vec<ScheduledTick>,
         budget: usize,
     ) -> usize {
+        // Compact in place (see `drain_due`). Order is preserved, so once the budget is exhausted
+        // every still-due tick is simply kept and picked up by a later drain.
+        let seen = &mut self.seen;
         let mut taken = 0;
-        let mut remaining = Vec::with_capacity(self.pending.len());
-        for tick in self.pending.drain(..) {
+        self.pending.retain(|tick| {
             if taken < budget && tick.target_tick <= current_tick {
-                self.seen.remove(&(tick.pos, tick.kind, tick.target_tick));
-                out.push(tick);
+                seen.remove(&(tick.pos, tick.kind, tick.target_tick));
+                out.push(*tick);
                 taken += 1;
+                false
             } else {
-                remaining.push(tick);
+                true
             }
-        }
-        self.pending = remaining;
+        });
         taken
     }
 
