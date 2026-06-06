@@ -93,12 +93,18 @@ impl LmdbBackend {
         if let Some(db) = cache.get(table) {
             return Ok(Some(*db));
         }
-        let opened = {
-            let rtxn = self.env.read_txn()?;
-            self.env
-                .open_database::<U128<BigEndian>, Bytes>(&rtxn, Some(table))?
-            // `rtxn` is dropped at the end of this block, before the handle is cached or returned.
-        };
+        // The handle must be opened inside a *write* transaction that is then committed. LMDB ties a
+        // newly opened database handle to the transaction that opened it: it stays private to that
+        // transaction until commit, and is closed automatically if the transaction is aborted. A
+        // read transaction has no commit (dropping it aborts), so a handle opened in one would be
+        // closed the moment the transaction is dropped — leaving a dangling `dbi` that fails with
+        // `EINVAL` when reused in a later transaction. Opening in a committed write transaction
+        // promotes the handle into the shared environment so it remains valid for the env's lifetime.
+        let wtxn = self.env.write_txn()?;
+        let opened = self
+            .env
+            .open_database::<U128<BigEndian>, Bytes>(&wtxn, Some(table))?;
+        wtxn.commit()?;
         if let Some(db) = opened {
             cache.insert(table.to_string(), db);
         }
@@ -298,6 +304,36 @@ mod tests {
             backend
                 .insert("test_table".to_string(), key, value.clone())
                 .unwrap();
+            let retrieved_value = backend.get("test_table".to_string(), key).unwrap();
+            assert_eq!(retrieved_value, Some(value));
+        }
+        remove_dir_all(path).unwrap();
+    }
+
+    /// Reopening an existing environment must be able to read tables that were created by a
+    /// previous process. This exercises [`LmdbBackend::open_table`], the path taken for a table that
+    /// already exists on disk but is not yet in the in-process handle cache. A handle opened inside
+    /// a read transaction is closed when that transaction is aborted, so caching and reusing it
+    /// later fails with `EINVAL`; opening it in a committed write transaction keeps it valid.
+    #[test]
+    fn test_reopen_reads_existing_table() {
+        let path = tempdir().unwrap().keep();
+        let key = 12345678901234567890u128;
+        let value = vec![9, 8, 7, 6];
+        {
+            let backend =
+                LmdbBackend::initialize(Some(path.clone()), 10 * 1024 * 1024 * 1024).unwrap();
+            backend.create_table("test_table".to_string()).unwrap();
+            backend
+                .insert("test_table".to_string(), key, value.clone())
+                .unwrap();
+            backend.flush().unwrap();
+        }
+        // Fresh backend over the same path with an empty handle cache, mirroring a server restart.
+        {
+            let backend =
+                LmdbBackend::initialize(Some(path.clone()), 10 * 1024 * 1024 * 1024).unwrap();
+            assert!(backend.exists("test_table".to_string(), key).unwrap());
             let retrieved_value = backend.get("test_table".to_string(), key).unwrap();
             assert_eq!(retrieved_value, Some(value));
         }
