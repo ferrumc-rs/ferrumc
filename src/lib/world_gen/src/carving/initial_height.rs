@@ -4,7 +4,7 @@
 //! module owns the higher-frequency *detail* field layered on top of it and the per-column
 //! composition that combines base height, detail, and erosion into a final surface height.
 
-use crate::climate::ClimateSample;
+use crate::climate::{ClimateSample, SEA_LEVEL};
 use crate::terrain_noise::NoiseGenerator;
 use crate::{Heightmap, WorldGenerator};
 use ferrumc_world::chunk::Chunk;
@@ -22,6 +22,44 @@ const MIN_DETAIL_AMPLITUDE: f32 = 3.0;
 /// Continentalness at and above which a column is treated as fully inland for the purpose of
 /// scaling detail amplitude. Below it, amplitude ramps down toward the ocean floor.
 const INLAND_CONTINENTALNESS: f32 = 0.42;
+
+/// How far below [`SEA_LEVEL`] a river's centreline bed is carved. The channel fills with water from
+/// the global sea-level flood. This is intentionally deeper than the channel is wide: a column is a
+/// river only where its bed ends up below sea level, so a deeper bed keeps the centreline submerged
+/// (and the river continuous) even where the surrounding land is somewhat raised.
+const RIVER_DEPTH: i16 = 6;
+
+/// Land height at and above which no river is carved at all, so rivers never cut into mountains.
+const RIVER_CEILING: f32 = 90.0;
+
+/// Land height at which rivers begin to thin toward [`RIVER_CEILING`]. Below it the channel is
+/// carved at full depth (which is what keeps rivers continuous across gently varying lowland); only
+/// between here and the ceiling do they taper, so a river peters out at the foot of high ground —
+/// a visible surface source — rather than gouging into it.
+const RIVER_CEILING_FADE: f32 = 84.0;
+
+/// Minimum continentalness for a river. Rivers are an inland feature: keeping them above the coastal
+/// continentalness band stops them from spawning right beside the ocean (where they would read as a
+/// redundant strip of water next to the sea).
+const RIVER_MIN_CONTINENTALNESS: f32 = 0.48;
+
+/// Combines a river's centreline proximity with land-height and continentalness gating. Returns the
+/// carve/biome factor in `[0, 1]`: rivers only carve on inland land above sea level, are cut at full
+/// depth across the lowlands (for continuity), and taper to nothing approaching mountain height.
+fn river_carve_factor(strength: f32, land_surface: f32, continentalness: f32) -> f32 {
+    if strength <= 0.0
+        || land_surface <= f32::from(SEA_LEVEL) + 1.0
+        || land_surface >= RIVER_CEILING
+        || continentalness < RIVER_MIN_CONTINENTALNESS
+    {
+        return 0.0;
+    }
+    // Only taper in the narrow band just below the ceiling; below that the channel is full-depth so
+    // the river stays submerged and unbroken as the lowland surface rises and falls.
+    let ceiling_taper =
+        ((RIVER_CEILING - land_surface) / (RIVER_CEILING - RIVER_CEILING_FADE)).clamp(0.0, 1.0);
+    strength * ceiling_taper
+}
 
 /// Gentle plains elevation, a little above [`crate::climate::SEA_LEVEL`], that flat (high-erosion)
 /// land is pulled down toward. Decoupling plains from the continental base height is what stops them
@@ -99,7 +137,21 @@ impl WorldGenerator {
         let detail =
             ((self.detail_noise.get(global_x as f32, global_z as f32) * 2.0) - 1.0) * amplitude;
 
-        let surface = (land_base + detail) as i16;
+        // Base land surface before rivers.
+        let base_surface = land_base + detail;
+
+        // Rivers lower the surface into a channel along the river contour, which the global
+        // sea-level flood then fills with water. Gated to lowland columns (never the sea, fading out
+        // toward mountains), so rivers wind through plains and forests rather than gashing peaks.
+        // The same factor classifies the column as a river biome, so channel and biome coincide.
+        let river = river_carve_factor(
+            self.climate.river_strength(global_x, global_z),
+            base_surface,
+            continentalness,
+        );
+        let bed = f32::from(SEA_LEVEL - RIVER_DEPTH);
+        let surface = (base_surface + (bed - base_surface) * river) as i16;
+
         (
             surface,
             ClimateSample {
@@ -107,6 +159,7 @@ impl WorldGenerator {
                 temperature,
                 humidity,
                 erosion,
+                river,
             },
         )
     }
