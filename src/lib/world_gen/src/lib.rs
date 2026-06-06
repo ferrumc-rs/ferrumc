@@ -134,10 +134,15 @@ impl WorldGenerator {
             climate: Climate::new(seed),
             erosion_noise: carving::erosion::erosion_noise(seed.wrapping_add(3)),
             detail_noise: carving::initial_height::detail_noise(seed.wrapping_add(2)),
+            // Caves are sampled on a coarse 3D grid and trilinearly interpolated, which already
+            // smooths away the finest octaves; three octaves give effectively the same large-scale
+            // tunnel/chamber structure as five for roughly 40% fewer noise evaluations (the cave
+            // pass is ~half of all chunk generation cost). The lacunarity is raised so the three
+            // octaves still span a useful range of feature sizes.
             caves_layer: RidgedMulti::<noise::OpenSimplex>::new((seed.wrapping_add(100)) as u32)
                 .set_frequency(0.01)
-                .set_lacunarity(2.5)
-                .set_octaves(5)
+                .set_lacunarity(2.8)
+                .set_octaves(3)
                 .set_persistence(0.8)
                 .set_attenuation(0.3),
             plains: biomes::plains::PlainsBiome::new(seed),
