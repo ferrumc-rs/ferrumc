@@ -119,7 +119,7 @@ impl ferrumc_net_codec::decode::NetDecode for InteractEntity {
 }
 
 impl InteractEntity {
-    // Check if this is an attack interaction.
+    /// Check if this is an attack interaction.
     pub fn is_attack(&self) -> bool {
         self.interaction_type == InteractionType::Attack
     }

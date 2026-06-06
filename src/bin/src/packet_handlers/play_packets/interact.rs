@@ -18,6 +18,12 @@ use tracing::error;
 const KNOCKBACK_STRENGTH: f32 = 0.5;
 /// Vertical hop applied on knockback.
 const KNOCKBACK_HOP: f32 = 0.4;
+/// Maximum squared distance (in blocks) between attacker and target for an attack to register.
+///
+/// Matches the vanilla server-side interaction range of six blocks. The client only lets a player
+/// attack within reach, but the server must not trust that: without this check a modified client
+/// could send `InteractEntity` for any entity id at any distance.
+const MAX_ATTACK_DISTANCE_SQUARED: f64 = 6.0 * 6.0;
 
 type InteractEntityQuery<'w, 's> = Query<
     'w,
@@ -30,6 +36,7 @@ type InteractEntityQuery<'w, 's> = Query<
         Option<&'static mut CombatProperties>,
         Option<&'static mut Velocity>,
         Option<&'static mut OnGround>,
+        Option<&'static Position>,
     ),
 >;
 
@@ -53,6 +60,7 @@ pub fn handle(
             mut combat,
             mut velocity,
             mut on_ground,
+            target_pos,
         ) in entity_query.iter_mut()
         {
             if !is_target(entity_id_comp, player_id_comp, &event) {
@@ -67,9 +75,19 @@ pub fn handle(
                 continue;
             }
 
-            let Ok((_attacker_pos, attacker_rot)) = attacker_query.get(attacker_eid) else {
+            let Ok((attacker_pos, attacker_rot)) = attacker_query.get(attacker_eid) else {
                 continue;
             };
+
+            // Reject attacks from outside reach. A target with no position cannot be range-checked,
+            // so it is treated as out of reach rather than trusted.
+            let Some(target_pos) = target_pos else {
+                continue;
+            };
+            if attacker_pos.coords.distance_squared(target_pos.coords) > MAX_ATTACK_DISTANCE_SQUARED
+            {
+                continue;
+            }
 
             // Mark entity as invulnerable for some amount of time after being attacked
             combat.set_default_invulnerability();
@@ -88,6 +106,9 @@ pub fn handle(
             );
 
             broadcast_hurt_animation(&conn_query, &state, &event, attacker_rot);
+
+            // Entity ids are unique, so no other entity can match this attack event.
+            break;
         }
     }
 }
