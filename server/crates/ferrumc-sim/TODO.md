@@ -9,11 +9,16 @@
 
 ## Status
 
-**Progress (branch `feat/entity-physics`):** steps 1–4 below are done. The shard
-now owns a deterministic non-player entity store, spawns/despawns entities across
-the `GameInput`/`GameOutput` boundary, and runs a per-tick gravity + integration
-+ air-drag step. Remaining: ground/collision detection, then the vanilla-coverage
-consumers (item entities, falling blocks, projectiles, mobs, player).
+**Progress (branch `feat/entity-physics`):** steps 1–5 and the falling-block
+consumer (step 6, including client animation 6c) are done. The shard owns a
+deterministic non-player entity store, spawns/despawns entities across the
+`GameInput`/`GameOutput` boundary, runs a per-tick gravity + integration +
+air-drag step with vertical ground collision and void despawn, and converts
+unsupported gravity blocks into falling-block entities that the session layer
+draws on real clients. Remaining: AABB sweep + horizontal collision, and the
+other vanilla consumers (dropped items, projectiles, mobs, player) — each needs
+a spawner plus a typed `SpawnedEntityKind`; the physics step and the session
+render pipeline already exist.
 
 - [x] 1. Entity store on `SimShard` (`entities` `BTreeMap`, monotonic `EntityId`).
 - [x] 2. Spawn/despawn via `GameInput::{SpawnEntity,DespawnEntity}` →
@@ -27,17 +32,24 @@ consumers (item entities, falling blocks, projectiles, mobs, player).
   falls again when its floor is removed. An entity that falls past the world
   bottom (`VOID_DESPAWN_Y`) is despawned rather than falling forever. **Remaining
   in this area:** AABB sweep (no tunneling) and horizontal collision.
-- [~] 6. Vanilla consumers. **Falling blocks done (6a + 6b):** a placed
+- [~] 6. Vanilla consumers. **Falling blocks done (6a + 6b + 6c):** a placed
   gravity-affected block (sand, gravel, concrete powder, anvil, …) with no
   support, or one whose support is broken, converts to a falling-block entity
   (`is_gravity_affected` predicate + `settle_falling_block` trigger on
   place/break); the entity falls, lands on a solid block, restores its block at
   the resting cell, and despawns. Full player-driven loop works, including
   **column collapse** (breaking the base of a stack drops the whole gravity
-  column at once, and the entities re-stack on landing). **Remaining
-  refinements:** `scaffolding` lateral rules, landing damage (anvil/dripstone),
-  AABB sweep (no tunneling on fast falls). **Still to do:** dropped items,
-  projectiles, mobs.
+  column at once, and the entities re-stack on landing). **6c — session wiring
+  (client animation) done:** `EntitySpawned` carries a `SpawnedEntityKind`
+  (`FallingBlock { block }`), and `ferrumc-session`'s router translates the
+  entity outputs to clientbound `SpawnEntity` (`minecraft:falling_block`, type
+  49, block-state in the data field), per-tick move carriers, and
+  `RemoveEntities` — scoped to viewers in range, with a network entity id
+  allocated from the shared player/entity counter (no wire-id collision).
+  **Remaining refinements:** `scaffolding` lateral rules, landing damage
+  (anvil/dripstone), AABB sweep (no tunneling on fast falls). **Still to do:**
+  dropped items, projectiles, mobs (each needs a spawner + a `SpawnedEntityKind`
+  variant with its entity type; the render pipeline already exists).
 - [ ] 7. Server-side player gravity (gated on fall damage / movement validation).
 
 Original scoping notes below are kept for context; one decision changed during
