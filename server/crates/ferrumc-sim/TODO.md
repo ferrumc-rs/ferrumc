@@ -13,12 +13,12 @@
 consumer (step 6, including client animation 6c) are done. The shard owns a
 deterministic non-player entity store, spawns/despawns entities across the
 `GameInput`/`GameOutput` boundary, runs a per-tick gravity + integration +
-air-drag step with vertical ground collision and void despawn, and converts
-unsupported gravity blocks into falling-block entities that the session layer
-draws on real clients. Remaining: AABB sweep + horizontal collision, and the
-other vanilla consumers (dropped items, projectiles, mobs, player) — each needs
-a spawner plus a typed `SpawnedEntityKind`; the physics step and the session
-render pipeline already exist.
+air-drag step with swept AABB collision (no tunneling, all three axes) and void
+despawn, and converts unsupported gravity blocks into falling-block entities
+that the session layer draws on real clients. Remaining: the other vanilla
+consumers (dropped items, projectiles, mobs, player) — each needs a spawner
+plus a typed `SpawnedEntityKind`; the physics step and the session render
+pipeline already exist.
 
 - [x] 1. Entity store on `SimShard` (`entities` `BTreeMap`, monotonic `EntityId`).
 - [x] 2. Spawn/despawn via `GameInput::{SpawnEntity,DespawnEntity}` →
@@ -26,12 +26,14 @@ render pipeline already exist.
 - [x] 3. Per-tick physics scaffold (`apply_entity_physics`, `EntityMoved`).
 - [x] 4. Per-category gravity + air drag (`src/physics.rs`); terminal velocity
   emerges from drag, not a clamp.
-- [x] 5. Vertical ground collision sets `on_ground` (point entity, single-block
-  check; a falling entity lands on a solid block's top face). Un-grounding is
-  automatic: a grounded entity re-checks the block beneath it each tick and
-  falls again when its floor is removed. An entity that falls past the world
-  bottom (`VOID_DESPAWN_Y`) is despawned rather than falling forever. **Remaining
-  in this area:** AABB sweep (no tunneling) and horizontal collision.
+- [x] 5. Swept AABB collision (`sweep_move` + `clip_x/y/z`). Each entity has a
+  box (`entity_dimensions`) swept the full tick and clamped against every solid
+  block along its path, one axis at a time (Y, X, Z), so a fast mover never
+  tunnels through a one-block floor/wall and horizontal collision resolves.
+  Landing sets `on_ground`; a grounded entity re-checks its floor each tick and
+  falls again when it is removed. An entity past the world bottom
+  (`VOID_DESPAWN_Y`) is despawned. **Remaining in this area:** per-shape support
+  AABBs (slabs/stairs collide as full cubes today, via `is_solid_cube`).
 - [~] 6. Vanilla consumers. **Falling blocks done (6a + 6b + 6c):** a placed
   gravity-affected block (sand, gravel, concrete powder, anvil, …) with no
   support, or one whose support is broken, converts to a falling-block entity
@@ -47,7 +49,7 @@ render pipeline already exist.
   `RemoveEntities` — scoped to viewers in range, with a network entity id
   allocated from the shared player/entity counter (no wire-id collision).
   **Remaining refinements:** `scaffolding` lateral rules, landing damage
-  (anvil/dripstone), AABB sweep (no tunneling on fast falls). **Still to do:**
+  (anvil/dripstone). **Still to do:**
   dropped items, projectiles, mobs (each needs a spawner + a `SpawnedEntityKind`
   variant with its entity type; the render pipeline already exists).
 - [ ] 7. Server-side player gravity (gated on fall damage / movement validation).

@@ -1201,109 +1201,107 @@ impl SimShard {
     /// is gone (broken this tick, for instance) it un-grounds and gravity resumes
     /// next — no separate event path is needed to notice a vanished floor.
     ///
-    /// # Scope (scaffold limitations)
+    /// # Collision
     ///
-    /// The entity is treated as a **point** (no bounding box) and only the block
-    /// directly beneath the landing point is tested — a single-block check, not
-    /// an AABB sweep. Two consequences, both refined by the collision milestone:
-    /// - **Fast falls can tunnel**: a per-tick drop larger than one block may
-    ///   skip a thin ledge. Terminal velocity (~3.92 blocks/tick) is above one
-    ///   block, so this is reachable, not just theoretical.
-    /// - **Vertical only**: horizontal motion is never collision-checked. A
-    ///   grounded entity is treated as fully at rest (horizontal velocity is not
-    ///   applied while grounded). The common early consumers (falling blocks,
-    ///   dropped items) fall straight down, where neither matters.
+    /// Each entity has an axis-aligned box ([`entity_dimensions`]) that is swept
+    /// the full tick and clamped against every solid world block along its path,
+    /// one axis at a time ([`sweep_move`]). Sweeping the whole path — not just the
+    /// destination cell — means a fast mover near terminal velocity (~3.92
+    /// blocks/tick) can never tunnel through a one-block floor or wall, and the
+    /// per-axis clip resolves horizontal collision (a wall, a piston-pushed block)
+    /// as well as landing. A blocked axis has its velocity zeroed; a downward stop
+    /// grounds the entity.
+    ///
+    /// # Remaining
+    ///
+    /// Sub-block support shapes (slabs, stairs, fences) still collide as full
+    /// cubes — [`is_solid_block`] tests `is_solid_cube`, so an entity rests on a
+    /// slab's full-cube top rather than its half height. Refining per-shape AABBs
+    /// is a later step.
     fn apply_entity_physics(&mut self, outputs: &mut Vec<GameOutput>) {
-        // Falling blocks that landed this tick: (entity, resting cell, block).
-        // Collected during the iteration and processed after it, because turning
-        // a block back on goes through `apply_block_edit` (a `&mut self` method)
-        // which cannot run while `self.entities` is mutably borrowed by the loop.
-        let mut landed_blocks: Vec<(EntityId, BlockPos, BlockStateId)> = Vec::new();
-        // Entities that fell past the bottom of the world this tick, removed in
-        // phase two for the same borrow reason.
-        let mut voided: Vec<EntityId> = Vec::new();
-        // Falling blocks that restored their block on a *previous* tick and are now
-        // despawned, one tick later, so the client shows the solid block before the
-        // entity vanishes (see the `landed` field). Removed in phase two.
-        let mut finished: Vec<EntityId> = Vec::new();
+        // Process entities one at a time in ascending id order (a snapshot of the
+        // keys, so the map can be mutated inside the loop). Handling each entity
+        // fully — including writing a landed falling block back to the world —
+        // before the next means a lower entity's restored block is already solid
+        // when a higher entity in the same column sweeps this tick, so a collapsing
+        // stack re-stacks correctly instead of piling into one cell. Ascending id
+        // order keeps the output stream deterministic.
+        let ids: Vec<EntityId> = self.entities.keys().copied().collect();
+        for entity in ids {
+            let Some(state) = self.entities.get(&entity).copied() else {
+                continue;
+            };
 
-        // Split borrow: `chunks` reads block state while `entities` is mutated —
-        // distinct fields, so the borrow checker allows both at once.
-        let chunks = &self.chunks;
-        for (&entity, state) in &mut self.entities {
             // A falling block that restored its block last tick has done its job;
             // despawn it now (one tick after the block appeared) and integrate
-            // nothing else.
-            if state.landed {
-                finished.push(entity);
-                continue;
-            }
-
-            // An entity that has fallen into the void is removed rather than
-            // integrated forever (bounded lifetime — see VOID_DESPAWN_Y).
-            if state.position.y < VOID_DESPAWN_Y {
-                voided.push(entity);
+            // nothing else. Same for one that fell into the void (bounded lifetime,
+            // see VOID_DESPAWN_Y).
+            if state.landed || state.position.y < VOID_DESPAWN_Y {
+                self.entities.remove(&entity);
+                outputs.push(GameOutput::EntityDespawned { entity });
                 continue;
             }
 
             // A grounded entity rests only while the block beneath it is solid.
             // Grounded positions are clamped to an integer top face, so the cell
-            // one below is exactly the supporting block. If it is gone, un-ground
-            // and let gravity act; otherwise the entity stays put, emitting none.
+            // one below is exactly the supporting block. If it is still there the
+            // entity stays put and emits nothing; otherwise it un-grounds and falls.
             if state.on_ground {
                 let here = block_cell(state.position);
                 let below = BlockPos::new(here.x(), here.y().saturating_sub(1), here.z());
-                if is_solid_block(chunks, below) {
+                if is_solid_block(&self.chunks, below) {
                     continue;
                 }
-                state.on_ground = false;
             }
 
             // 1. Gravity accelerates the (now certainly airborne) entity.
-            state.velocity = Vec3::new(
+            let velocity = Vec3::new(
                 state.velocity.x,
                 state.velocity.y + state.gravity,
                 state.velocity.z,
             );
-            // Nothing to integrate for a gravity-free, motionless entity.
-            if state.velocity == Vec3::ZERO {
+            // Nothing to integrate for a gravity-free, motionless entity, but a
+            // just-un-grounded one still needs its ground flag cleared.
+            if velocity == Vec3::ZERO {
+                if state.on_ground {
+                    if let Some(st) = self.entities.get_mut(&entity) {
+                        st.on_ground = false;
+                    }
+                }
                 continue;
             }
 
-            // 2. Tentative integration.
+            // 2-3. Swept integration + collision. The entity's box is swept the
+            // full tick and clamped against every solid block along the path, one
+            // axis at a time (Y, then X, then Z — the vanilla order), so a fast
+            // mover can never tunnel through a thin floor or wall. A blocked axis
+            // has its velocity zeroed; a downward stop sets `grounded`.
             let start = state.position;
-            let mut next = start + state.velocity;
+            let (half_width, height) = entity_dimensions(state.kind);
+            let swept = sweep_move(&self.chunks, start, half_width, height, velocity);
+            let next = swept.position;
+            let grounded = swept.on_ground;
 
-            // 3. Ground collision: only a downward move can land on a block.
-            let mut grounded = false;
-            if state.velocity.y < 0.0 {
-                let support = block_cell(next);
-                if is_solid_block(chunks, support) {
-                    // World-space y of the block's top face.
-                    let top = f64::from(support.y().saturating_add(1));
-                    if next.y < top {
-                        next = Vec3::new(next.x, top, next.z);
-                        // Landing zeroes vertical motion; horizontal is kept.
-                        state.velocity = Vec3::new(state.velocity.x, 0.0, state.velocity.z);
-                        grounded = true;
-                    }
-                }
+            // 4. Vertical air drag, only while still falling (a landed entity has
+            // already had its vertical velocity zeroed by the sweep).
+            let velocity = if grounded {
+                swept.velocity
+            } else {
+                Vec3::new(
+                    swept.velocity.x,
+                    swept.velocity.y * AIR_DRAG_Y,
+                    swept.velocity.z,
+                )
+            };
+
+            if let Some(st) = self.entities.get_mut(&entity) {
+                st.position = next;
+                st.velocity = velocity;
+                st.on_ground = grounded;
             }
 
-            state.position = next;
-            state.on_ground = grounded;
-
-            // 4. Vertical air drag, only while still falling.
-            if !grounded {
-                state.velocity = Vec3::new(
-                    state.velocity.x,
-                    state.velocity.y * AIR_DRAG_Y,
-                    state.velocity.z,
-                );
-            }
-
-            // Emit only for a real position change (a landing clamp that leaves
-            // the entity exactly where it was produces no output).
+            // Emit only for a real position change (a landing clamp that leaves the
+            // entity exactly where it was produces no output).
             if next != start {
                 outputs.push(GameOutput::EntityMoved {
                     entity,
@@ -1311,43 +1309,25 @@ impl SimShard {
                 });
             }
 
-            // A falling block that just landed is recorded for phase two: it
-            // becomes a block again at its resting cell and despawns.
+            // A falling block that just landed restores its block *now* (through
+            // the same edit funnel as every mutation — a `Command` cause: no actor,
+            // no ack), so a higher entity landing later this tick sees it as solid.
+            // The entity is not removed yet: it is flagged `landed` so the next tick
+            // despawns it, keeping the falling-block model on screen until the solid
+            // block is shown and avoiding a one-frame gap.
             if grounded {
                 if let EntityKind::FallingBlock { block } = state.kind {
-                    landed_blocks.push((entity, block_cell(next), block));
+                    let cell = block_cell(next);
+                    let result = self.apply_block_edit(MutationCause::Command, cell, block);
+                    if let Some(output) =
+                        block_change_output(MutationCause::Command, 0, cell, block, result)
+                    {
+                        outputs.push(output);
+                    }
+                    if let Some(st) = self.entities.get_mut(&entity) {
+                        st.landed = true;
+                    }
                 }
-            }
-        }
-
-        // Phase two, part one: despawn entities that finished their post-landing
-        // tick, then those that fell into the void. Both lists were built during
-        // the ordered iteration, so despawns stay in ascending id order and the
-        // tick is deterministic.
-        for entity in finished {
-            self.entities.remove(&entity);
-            outputs.push(GameOutput::EntityDespawned { entity });
-        }
-        for entity in voided {
-            self.entities.remove(&entity);
-            outputs.push(GameOutput::EntityDespawned { entity });
-        }
-
-        // Phase two, part two: restore each block that landed *this* tick. The
-        // write goes through the same block-edit funnel as every mutation (a
-        // `Command` cause: no actor, no ack) so it persists and broadcasts a viewer
-        // `BlockUpdate`. The entity is *not* removed yet: it is flagged `landed` so
-        // the next pass despawns it one tick later, keeping the falling-block model
-        // on screen until the solid block is shown and avoiding a one-frame gap.
-        for (entity, cell, block) in landed_blocks {
-            let result = self.apply_block_edit(MutationCause::Command, cell, block);
-            if let Some(output) =
-                block_change_output(MutationCause::Command, 0, cell, block, result)
-            {
-                outputs.push(output);
-            }
-            if let Some(state) = self.entities.get_mut(&entity) {
-                state.landed = true;
             }
         }
     }
@@ -2221,6 +2201,191 @@ fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
     state_id_to_block_name(state.as_u32())
         .and_then(block_metadata)
         .is_some_and(|m| m.is_solid_cube)
+}
+
+/// The collision box of a non-player entity: horizontal `half_width` (the box is
+/// centred on the entity's x/z) and vertical `height` (measured up from the
+/// entity's y, which is its base/feet), in blocks.
+///
+/// Vanilla sizes: a falling block is a `0.98`-cube, so a `0.49` half-width and
+/// `0.98` height. A [`EntityKind::Simple`] entity has no wire type yet, so it
+/// uses a small item-like box (`0.125` half-width, `0.25` height) — a non-zero
+/// footprint so it collides like a real entity rather than a degenerate point
+/// (a zero-size box centred on a grid line overlaps no cell and would fall
+/// through). Typed consumers (arrow `0.5`, …) will set their own dims.
+fn entity_dimensions(kind: EntityKind) -> (f64, f64) {
+    match kind {
+        EntityKind::FallingBlock { .. } => (0.49, 0.98),
+        EntityKind::Simple => (0.125, 0.25),
+    }
+}
+
+/// The outcome of sweeping an entity's box through the world for one tick.
+struct Swept {
+    /// Clamped position after collision resolution.
+    position: Vec3,
+    /// Velocity with any blocked axis zeroed.
+    velocity: Vec3,
+    /// `true` if a downward move was stopped by a block (the entity is resting).
+    on_ground: bool,
+}
+
+/// Sweeps an entity's axis-aligned box from `pos` by `velocity`, resolving
+/// collision against every solid world block along the path one axis at a time
+/// (Y, then X, then Z — the vanilla order).
+///
+/// The box spans `[pos.x ± half_width]`, `[pos.y, pos.y + height]`,
+/// `[pos.z ± half_width]`; `pos` is the base centre. Unlike a destination-cell
+/// check, the sweep clamps against the whole broadphase region the box crosses,
+/// so a fast mover (near terminal velocity) can never tunnel through a one-block
+/// floor or wall. A blocked axis zeroes its velocity component; a downward stop
+/// reports `on_ground`.
+///
+/// A free function taking only `&LoadedChunkMap` so it runs while `entities` is
+/// mutably borrowed (disjoint fields). Deterministic: the broadphase cells are
+/// visited in fixed `x,y,z` order and every step is ordered `f64` arithmetic.
+fn sweep_move(
+    chunks: &LoadedChunkMap,
+    pos: Vec3,
+    half_width: f64,
+    height: f64,
+    velocity: Vec3,
+) -> Swept {
+    let min = Vec3::new(pos.x - half_width, pos.y, pos.z - half_width);
+    let max = Vec3::new(pos.x + half_width, pos.y + height, pos.z + half_width);
+
+    // Broadphase: every solid cell the box could overlap as it sweeps, padded by
+    // one so a block flush against the swept region is still considered. The `as
+    // i32` floor saturates at the range ends, and the ±1 pad is saturating too, so
+    // an absurd coordinate can never overflow into a wrapped bound.
+    let x0 = ((min.x + velocity.x.min(0.0)).floor() as i32).saturating_sub(1);
+    let x1 = ((max.x + velocity.x.max(0.0)).floor() as i32).saturating_add(1);
+    let y0 = ((min.y + velocity.y.min(0.0)).floor() as i32).saturating_sub(1);
+    let y1 = ((max.y + velocity.y.max(0.0)).floor() as i32).saturating_add(1);
+    let z0 = ((min.z + velocity.z.min(0.0)).floor() as i32).saturating_sub(1);
+    let z1 = ((max.z + velocity.z.max(0.0)).floor() as i32).saturating_add(1);
+    let mut solids: Vec<BlockPos> = Vec::new();
+    for bx in x0..=x1 {
+        for by in y0..=y1 {
+            for bz in z0..=z1 {
+                let cell = BlockPos::new(bx, by, bz);
+                if is_solid_block(chunks, cell) {
+                    solids.push(cell);
+                }
+            }
+        }
+    }
+
+    // Clip each axis in turn, advancing the box so later axes test the position
+    // already resolved on the earlier ones (prevents clipping a corner through).
+    let (mut lo, mut hi) = (min, max);
+    let mut dy = velocity.y;
+    for &c in &solids {
+        dy = clip_y(c, lo, hi, dy);
+    }
+    lo.y += dy;
+    hi.y += dy;
+
+    let mut dx = velocity.x;
+    for &c in &solids {
+        dx = clip_x(c, lo, hi, dx);
+    }
+    lo.x += dx;
+    hi.x += dx;
+
+    let mut dz = velocity.z;
+    for &c in &solids {
+        dz = clip_z(c, lo, hi, dz);
+    }
+
+    // A clip only ever *reduces* an axis's travel toward zero, so a strictly
+    // smaller magnitude means that axis hit a block (avoids an exact `==` float
+    // compare). A downward Y hit is a landing.
+    let blocked_x = dx.abs() < velocity.x.abs();
+    let blocked_y = dy.abs() < velocity.y.abs();
+    let blocked_z = dz.abs() < velocity.z.abs();
+    Swept {
+        position: Vec3::new(pos.x + dx, pos.y + dy, pos.z + dz),
+        velocity: Vec3::new(
+            if blocked_x { 0.0 } else { velocity.x },
+            if blocked_y { 0.0 } else { velocity.y },
+            if blocked_z { 0.0 } else { velocity.z },
+        ),
+        on_ground: velocity.y < 0.0 && blocked_y,
+    }
+}
+
+/// Clamps a Y move `dy` so the box `[lo, hi]` cannot pass through the full-cube
+/// block at `cell`. Only acts when the box overlaps the block on X and Z (strict,
+/// so a mere edge-touch never blocks vertical motion).
+fn clip_y(cell: BlockPos, lo: Vec3, hi: Vec3, dy: f64) -> f64 {
+    let (bx, by, bz) = (
+        f64::from(cell.x()),
+        f64::from(cell.y()),
+        f64::from(cell.z()),
+    );
+    if hi.x > bx && lo.x < bx + 1.0 && hi.z > bz && lo.z < bz + 1.0 {
+        if dy > 0.0 && hi.y <= by {
+            let d = by - hi.y;
+            if d < dy {
+                return d;
+            }
+        } else if dy < 0.0 && lo.y >= by + 1.0 {
+            let d = (by + 1.0) - lo.y;
+            if d > dy {
+                return d;
+            }
+        }
+    }
+    dy
+}
+
+/// Clamps an X move `dx` against the full-cube block at `cell`. Acts only on a
+/// box overlapping the block on Y and Z.
+fn clip_x(cell: BlockPos, lo: Vec3, hi: Vec3, dx: f64) -> f64 {
+    let (bx, by, bz) = (
+        f64::from(cell.x()),
+        f64::from(cell.y()),
+        f64::from(cell.z()),
+    );
+    if hi.y > by && lo.y < by + 1.0 && hi.z > bz && lo.z < bz + 1.0 {
+        if dx > 0.0 && hi.x <= bx {
+            let d = bx - hi.x;
+            if d < dx {
+                return d;
+            }
+        } else if dx < 0.0 && lo.x >= bx + 1.0 {
+            let d = (bx + 1.0) - lo.x;
+            if d > dx {
+                return d;
+            }
+        }
+    }
+    dx
+}
+
+/// Clamps a Z move `dz` against the full-cube block at `cell`. Acts only on a
+/// box overlapping the block on X and Y.
+fn clip_z(cell: BlockPos, lo: Vec3, hi: Vec3, dz: f64) -> f64 {
+    let (bx, by, bz) = (
+        f64::from(cell.x()),
+        f64::from(cell.y()),
+        f64::from(cell.z()),
+    );
+    if hi.x > bx && lo.x < bx + 1.0 && hi.y > by && lo.y < by + 1.0 {
+        if dz > 0.0 && hi.z <= bz {
+            let d = bz - hi.z;
+            if d < dz {
+                return d;
+            }
+        } else if dz < 0.0 && lo.z >= bz + 1.0 {
+            let d = (bz + 1.0) - lo.z;
+            if d > dz {
+                return d;
+            }
+        }
+    }
+    dz
 }
 
 /// A [`NeighborQuery`] backed by a shard's resident chunks.
@@ -4649,6 +4814,47 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn a_fast_faller_does_not_tunnel_through_a_thin_floor() {
+        // Regression for the AABB sweep: an entity moving faster than one block per
+        // tick must still be stopped by a one-block-thick floor, not skip past it
+        // (a destination-cell-only check would step straight over the ledge).
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let sand = sand_state();
+        // A single solid block floating in the air — the flat world is all air from
+        // y=64 up, so this ledge is exactly one block thick.
+        let ledge = BlockPos::new(8, 100, 8);
+        set_world_block(&mut s, ledge, sand);
+
+        // Drop a falling block from well above with a per-tick velocity over one
+        // block.
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.5, 110.0, 8.5),
+                Vec3::new(0.0, -5.0, 0.0),
+                crate::physics::GRAVITY_ITEM,
+                BlockStateId::new(sand),
+            )
+            .expect("id");
+        for _ in 0..50 {
+            s.run_tick();
+            if !s.contains_entity(id) {
+                break;
+            }
+        }
+        // It came to rest on the ledge: its block sits at the ledge's top face
+        // (y=101), and nothing punched through to a cell below the ledge.
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 101, 8)),
+            Some(BlockStateId::new(sand)),
+            "the fast faller should rest on top of the ledge"
+        );
+        assert!(
+            block_at(&s, BlockPos::new(8, 99, 8)).is_some_and(BlockStateId::is_air),
+            "nothing should have tunnelled below the ledge"
+        );
+    }
+
+    #[tokio::test]
     async fn entity_over_the_void_never_grounds() {
         // A chunk far from (0,0) is not resident, so an entity above unloaded
         // space reads air below it and keeps falling — it never grounds on a
@@ -4699,9 +4905,13 @@ mod tests {
     #[tokio::test]
     async fn breaking_the_floor_un_grounds_a_resting_entity() {
         let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        // Spawn at the cell centre (x/z = 8.5) so the entity's footprint sits
+        // wholly inside column 8: breaking the single block below then removes its
+        // only support. An integer-x spawn would straddle columns 7 and 8 and stay
+        // held up by the neighbour when just one is broken.
         let id = s
             .spawn_entity(
-                Vec3::new(8.0, 66.0, 8.0),
+                Vec3::new(8.5, 66.0, 8.5),
                 Vec3::ZERO,
                 crate::physics::GRAVITY_ITEM,
             )
