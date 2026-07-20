@@ -24,7 +24,7 @@ use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
 use crate::message::{GameInput, GameOutput, SpawnedEntityKind};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
-use crate::physics::{is_gravity_affected, AIR_DRAG_Y, GRAVITY_ITEM};
+use crate::physics::{breaks_falling_block, is_gravity_affected, AIR_DRAG_Y, GRAVITY_ITEM};
 use crate::region::{RegionLimits, RegionOp};
 use crate::scheduler::{CrossShardOutboxRestore, ScheduledTickInputs};
 
@@ -1309,23 +1309,42 @@ impl SimShard {
                 });
             }
 
-            // A falling block that just landed restores its block *now* (through
-            // the same edit funnel as every mutation — a `Command` cause: no actor,
-            // no ack), so a higher entity landing later this tick sees it as solid.
-            // The entity is not removed yet: it is flagged `landed` so the next tick
-            // despawns it, keeping the falling-block model on screen until the solid
-            // block is shown and avoiding a one-frame gap.
+            // A falling block that just landed either restores its block or breaks,
+            // depending on what already occupies its resting cell (the cell directly
+            // above the support). A wall torch on a side block lives in a different
+            // cell, so it never triggers this — only an object sitting on the
+            // support does.
             if grounded {
                 if let EntityKind::FallingBlock { block } = state.kind {
                     let cell = block_cell(next);
-                    let result = self.apply_block_edit(MutationCause::Command, cell, block);
-                    if let Some(output) =
-                        block_change_output(MutationCause::Command, 0, cell, block, result)
-                    {
-                        outputs.push(output);
-                    }
-                    if let Some(st) = self.entities.get_mut(&entity) {
-                        st.landed = true;
+                    let occupant = self.authoritative_state(cell);
+                    let breaks = !occupant.is_air()
+                        && state_id_to_block_name(occupant.as_u32())
+                            .is_some_and(breaks_falling_block);
+                    if breaks {
+                        // The resting cell holds an object (torch, plate, …) the
+                        // block cannot settle onto: it breaks. Despawn now — there
+                        // is no block to draw, so the one-tick landing overlap is not
+                        // needed. The dropped item is deferred until item entities
+                        // exist; today the block simply vanishes.
+                        self.entities.remove(&entity);
+                        outputs.push(GameOutput::EntityDespawned { entity });
+                    } else {
+                        // Restore the block *now* (through the same edit funnel as
+                        // every mutation — a `Command` cause: no actor, no ack), so a
+                        // higher entity landing later this tick sees it as solid. The
+                        // entity is not removed yet: it is flagged `landed` so the
+                        // next tick despawns it, keeping the falling-block model on
+                        // screen until the block is shown (avoids a one-frame gap).
+                        let result = self.apply_block_edit(MutationCause::Command, cell, block);
+                        if let Some(output) =
+                            block_change_output(MutationCause::Command, 0, cell, block, result)
+                        {
+                            outputs.push(output);
+                        }
+                        if let Some(st) = self.entities.get_mut(&entity) {
+                            st.landed = true;
+                        }
                     }
                 }
             }
@@ -4851,6 +4870,112 @@ mod tests {
         assert!(
             block_at(&s, BlockPos::new(8, 99, 8)).is_some_and(BlockStateId::is_air),
             "nothing should have tunnelled below the ledge"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_falling_block_breaks_on_an_object_in_its_resting_cell() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let sand = sand_state();
+        let torch = block_metadata("torch")
+            .expect("torch in registry")
+            .default_state;
+        // A torch sitting on the grass at y=63 occupies (8,64,8) — the resting cell
+        // a block falling down column 8 would settle into.
+        let torch_cell = BlockPos::new(8, 64, 8);
+        set_world_block(&mut s, torch_cell, torch);
+
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.5, 70.0, 8.5),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+                BlockStateId::new(sand),
+            )
+            .expect("id");
+        for _ in 0..80 {
+            s.run_tick();
+            if !s.contains_entity(id) {
+                break;
+            }
+        }
+        // The block broke instead of settling: it is gone, the torch is untouched,
+        // and no sand was placed in its cell.
+        assert!(
+            !s.contains_entity(id),
+            "the falling block should have broken"
+        );
+        assert_eq!(
+            block_at(&s, torch_cell),
+            Some(BlockStateId::new(torch)),
+            "the torch survives; the block did not overwrite it"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_falling_block_replaces_water_in_its_resting_cell() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let sand = sand_state();
+        // A water source on the grass at (8,64,8): water is not a solid cube, so a
+        // block falls straight through it and settles in its cell, replacing it
+        // (water counts as replaceable, so the block does not break).
+        set_world_block(&mut s, BlockPos::new(8, 64, 8), WATER_SOURCE);
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.5, 70.0, 8.5),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+                BlockStateId::new(sand),
+            )
+            .expect("id");
+        for _ in 0..80 {
+            s.run_tick();
+            if !s.contains_entity(id) {
+                break;
+            }
+        }
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 64, 8)),
+            Some(BlockStateId::new(sand)),
+            "the block should replace the water it settled into"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_side_torch_does_not_break_a_block_falling_past_it() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let sand = sand_state();
+        let torch = block_metadata("torch")
+            .expect("torch in registry")
+            .default_state;
+        // A torch in the *adjacent* column (9,64,8), not in the faller's resting
+        // cell (8,64,8): it must not interfere.
+        set_world_block(&mut s, BlockPos::new(9, 64, 8), torch);
+
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.5, 70.0, 8.5),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+                BlockStateId::new(sand),
+            )
+            .expect("id");
+        for _ in 0..80 {
+            s.run_tick();
+            if !s.contains_entity(id) {
+                break;
+            }
+        }
+        // The block settled normally at (8,64,8); the side torch is untouched.
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 64, 8)),
+            Some(BlockStateId::new(sand)),
+            "the block should settle when only a side-column torch is present"
+        );
+        assert_eq!(
+            block_at(&s, BlockPos::new(9, 64, 8)),
+            Some(BlockStateId::new(torch)),
+            "the side torch is untouched"
         );
     }
 

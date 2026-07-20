@@ -48,8 +48,24 @@ pipeline already exist.
   49, block-state in the data field), per-tick move carriers, and
   `RemoveEntities` — scoped to viewers in range, with a network entity id
   allocated from the shared player/entity counter (no wire-id collision).
+  **6d — break-on-object done (partial):** a falling block whose resting cell (the
+  cell directly above the support) already holds a non-full object — a torch,
+  pressure plate, button, lever, rail, or redstone component
+  (`breaks_falling_block`) — breaks instead of settling. The check is on the
+  resting cell only, so a wall torch on a side block never breaks a block falling
+  down an adjacent column. A falling block also settles *through* water/lava,
+  replacing the fluid in its resting cell (fluids are non-solid and replaceable).
+  **Gaps:** "break" currently despawns the entity without dropping an item (item
+  entities pending); the object set is a focused name-keyed predicate, not a full
+  `replaceable` classification (the vendored `blocks.json` carries no replaceable
+  flag, so flowers/dead bushes are not yet covered); non-block entities in the
+  resting cell (item frames, paintings) are **not** destroyed on landing — those
+  entities do not exist in the server yet, and this logic only reads the block
+  grid, so the vanilla "falling block destroys the entity it lands on" rule waits
+  on the non-block entity system; replaced fluids do not re-flow, and concrete
+  powder does not convert to concrete in water (both need fluid simulation).
   **Remaining refinements:** `scaffolding` lateral rules, landing damage
-  (anvil/dripstone). **Still to do:**
+  (anvil/dripstone), item drop on break (needs item entities). **Still to do:**
   dropped items, projectiles, mobs (each needs a spawner + a `SpawnedEntityKind`
   variant with its entity type; the render pipeline already exists).
 - [ ] 7. Server-side player gravity (gated on fall damage / movement validation).

@@ -89,9 +89,51 @@ pub fn is_gravity_affected(block_name: &str) -> bool {
     ) || block_name.ends_with("_concrete_powder")
 }
 
+/// Returns `true` if a falling block coming to rest in a cell already occupied by
+/// this block breaks instead of landing — the vanilla `FallingBlock` rule that a
+/// block cannot settle onto a non-full "object" (a torch, pressure plate, button,
+/// lever, rail, or redstone component).
+///
+/// `block_name` is the bare name (no `minecraft:` namespace). The check is on the
+/// *resting cell* only (the cell directly above the support block), so a wall
+/// torch attached to a side block — which lives in a different cell — never breaks
+/// a block falling down an adjacent column.
+///
+/// # Coverage
+///
+/// The clear non-replaceable objects a falling block breaks on. Replaceable
+/// growth (short grass, ferns, seagrass) and fluids are *not* here — a block
+/// settles through them. A full `replaceable` classification (to also break on
+/// flowers, dead bushes, …) needs a block property the vendored `blocks.json`
+/// does not carry, so this stays a focused, name-keyed set like
+/// [`is_gravity_affected`]. Extend as needed.
+#[must_use]
+pub fn breaks_falling_block(block_name: &str) -> bool {
+    matches!(
+        block_name,
+        "torch"
+            | "wall_torch"
+            | "soul_torch"
+            | "soul_wall_torch"
+            | "redstone_torch"
+            | "redstone_wall_torch"
+            | "lever"
+            | "rail"
+            | "powered_rail"
+            | "detector_rail"
+            | "activator_rail"
+            | "redstone_wire"
+            | "repeater"
+            | "comparator"
+            | "tripwire"
+            | "tripwire_hook"
+    ) || block_name.ends_with("_pressure_plate")
+        || block_name.ends_with("_button")
+}
+
 #[cfg(test)]
 mod tests {
-    use super::is_gravity_affected;
+    use super::{breaks_falling_block, is_gravity_affected};
 
     #[test]
     fn known_falling_blocks_are_affected() {
@@ -113,6 +155,48 @@ mod tests {
     fn ordinary_blocks_are_not_affected() {
         for name in ["stone", "grass_block", "oak_log", "concrete", "sandstone"] {
             assert!(!is_gravity_affected(name), "{name} should not fall");
+        }
+    }
+
+    #[test]
+    fn objects_break_a_falling_block() {
+        for name in [
+            "torch",
+            "wall_torch",
+            "soul_torch",
+            "redstone_torch",
+            "lever",
+            "rail",
+            "powered_rail",
+            "stone_pressure_plate",
+            "oak_pressure_plate",
+            "stone_button",
+            "oak_button",
+        ] {
+            assert!(
+                breaks_falling_block(name),
+                "{name} should break a falling block"
+            );
+        }
+    }
+
+    #[test]
+    fn air_replaceable_and_full_blocks_do_not_break() {
+        // Air, replaceable growth, and ordinary solids are all fine to settle onto
+        // or through — none breaks a falling block.
+        for name in [
+            "air",
+            "short_grass",
+            "tall_grass",
+            "fern",
+            "water",
+            "stone",
+            "sand",
+        ] {
+            assert!(
+                !breaks_falling_block(name),
+                "{name} should not break a falling block"
+            );
         }
     }
 }
