@@ -5,7 +5,7 @@ use std::collections::btree_map::Entry;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::num::NonZeroUsize;
 
-use ferrumc_core::{DimensionId, GameMode, PlayerId, WorldId};
+use ferrumc_core::{DimensionId, EntityId, GameMode, PlayerId, WorldId};
 use ferrumc_items::{left_click_exchange, ItemStack};
 use ferrumc_math::{BlockPos, Cuboid, Direction, ShardPos, Vec3};
 use ferrumc_placement::{
@@ -13,6 +13,7 @@ use ferrumc_placement::{
     PlacementContext, PlacementResult, PlacementRule,
 };
 use ferrumc_registry::block_state::{block_metadata, state_id_to_block_name};
+use ferrumc_registry::dimension;
 use ferrumc_world::{
     is_chest_state, sign_kind_for_state, BlockEntity, BlockStateId, ChestInventory, Sign,
     SIGN_LINES,
@@ -23,6 +24,7 @@ use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
 use crate::message::{GameInput, GameOutput};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
+use crate::physics::{is_gravity_affected, AIR_DRAG_Y, GRAVITY_ITEM};
 use crate::region::{RegionLimits, RegionOp};
 use crate::scheduler::{CrossShardOutboxRestore, ScheduledTickInputs};
 
@@ -182,6 +184,85 @@ enum RegionWorkKind {
     },
 }
 
+/// World `y` below which a falling entity is removed from the simulation.
+///
+/// An entity that falls past the bottom of the world — off the edge of the
+/// loaded region, over the void — would otherwise fall forever: its vertical
+/// velocity is capped at terminal, but its position decreases without bound,
+/// leaking the entity and emitting a move every tick. Vanilla despawns entities
+/// roughly 64 blocks below the build floor; this mirrors that, deterministically
+/// bounding the lifetime of a voided entity.
+const VOID_DESPAWN_Y: f64 = dimension::MIN_Y as f64 - 64.0;
+
+/// The first entity id a shard hands out from its per-shard counter.
+///
+/// Starts at `1` so `0` stays free as a reserved "no entity" sentinel for later
+/// code that needs a null-like id distinct from any live entity. The protocol
+/// permits `0`; reserving it here is a defensive convention, not a requirement.
+/// Ids only increase from here (see [`SimShard::spawn_entity`]), so an id is
+/// never reused within a shard's lifetime.
+const FIRST_ENTITY_ID: i32 = 1;
+
+/// What a non-player entity *is*, beyond its shared physical state.
+///
+/// The store is otherwise type-agnostic — every entity has a position, velocity,
+/// gravity, and ground flag regardless of kind. `EntityKind` adds only the
+/// behaviour that differs: what happens when the entity lands. New kinds
+/// (projectiles, dropped items) slot in here without touching the physics step.
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum EntityKind {
+    /// A plain entity with no on-land behaviour. It falls, lands, and rests.
+    Simple,
+    /// A falling block (sand, gravel, …). On landing it turns back into `block`
+    /// at its resting cell and despawns — the vanilla falling-block lifecycle.
+    FallingBlock {
+        /// The block-state to restore when the entity lands.
+        block: BlockStateId,
+    },
+}
+
+/// Non-player entity state owned exclusively by the shard.
+///
+/// The minimal physical footprint every simulated entity carries: where it is,
+/// how fast it is moving, and whether it is resting on a block. Later milestones
+/// (gravity, drag, velocity integration, collision) read and write
+/// `velocity`/`position` and set `on_ground`; this milestone only stores the
+/// fields so those systems have a deterministic place to act. Player state is
+/// tracked separately in [`PlayerState`] — this store is for non-player entities
+/// (dropped items, projectiles, falling blocks, mobs).
+///
+/// `PartialEq` compares the `f64` fields of `Vec3` with `==` (bit-exact).
+/// Approximate equality would be wrong here: the crate's determinism invariant
+/// requires two shards driven by identical inputs to reach *bit-identical*
+/// state, and this impl is what tests assert that on.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct EntityState {
+    /// World-space position in blocks.
+    position: Vec3,
+    /// Velocity in blocks per tick. Gravity accelerates it each tick while the
+    /// entity is airborne; air drag decays it toward terminal velocity.
+    velocity: Vec3,
+    /// Downward acceleration in blocks per tick² applied while airborne, seeded
+    /// at spawn from a [`crate::physics`] category constant (`-0.08` living,
+    /// `-0.04` item, …). Stored per entity because vanilla gravity differs by
+    /// category.
+    gravity: f64,
+    /// Whether the entity is resting on a solid block. `false` on spawn
+    /// (airborne until a later collision pass proves otherwise). While `true`,
+    /// gravity is not applied.
+    on_ground: bool,
+    /// What the entity is, which decides its on-land behaviour (see
+    /// [`EntityKind`]). Physics treats every kind identically.
+    kind: EntityKind,
+    /// `true` once a falling block has restored its block and is waiting one tick
+    /// before it despawns. The restored block is placed on the landing tick, but
+    /// the entity is kept for a single extra tick so the client renders the solid
+    /// block *before* the falling-block entity is removed — without the overlap a
+    /// same-tick `BlockUpdate` + `RemoveEntities` pair can flash a one-frame gap.
+    /// The next physics pass despawns any entity carrying this flag.
+    landed: bool,
+}
+
 /// Per-player state owned exclusively by the shard.
 #[derive(Debug, Clone, Copy)]
 struct PlayerState {
@@ -281,15 +362,36 @@ struct PendingMove {
 /// # Determinism
 ///
 /// Given the same starting state and the same sequence of enqueued inputs, a
-/// shard produces an identical sequence of outputs. The inbox is strictly FIFO
-/// and player state lives in an ordered [`BTreeMap`], so no iteration order or
-/// hashing randomness can leak into results.
+/// shard produces an identical sequence of outputs. The inbox is strictly FIFO,
+/// and both player state and the non-player entity store live in ordered
+/// [`BTreeMap`]s (the entity store keyed by [`EntityId`], handed out from a
+/// monotonic per-shard counter), so no iteration order or hashing randomness can
+/// leak into results.
 #[derive(Debug, Clone)]
 pub struct SimShard {
     shard_pos: ShardPos,
     inbox: VecDeque<GameInput>,
     inbox_capacity: usize,
     players: BTreeMap<PlayerId, PlayerState>,
+    /// Non-player entities the shard owns, keyed by [`EntityId`] in an ordered
+    /// map so iteration order is deterministic (see the type-level determinism
+    /// note).
+    ///
+    /// The CLAUDE.md simulation model describes the target store as
+    /// `SlotMap + ComponentVecs` (O(1) lookup, cache-friendly per-tick
+    /// iteration for physics). This milestone deliberately uses a `BTreeMap`
+    /// for two reasons: determinism falls out for free from the ordered key,
+    /// and a `SlotMap` would reuse its keys — which would collide with the
+    /// invariant that an [`EntityId`] is never reused within a shard's
+    /// lifetime unless we separate the protocol id from the storage key. The
+    /// migration point is when the per-tick physics step lands: split
+    /// [`EntityId`] (protocol, immutable) from the storage key (reusable),
+    /// then swap to `SlotMap + ComponentVecs` for the iteration win.
+    entities: BTreeMap<EntityId, EntityState>,
+    /// Monotonic source of entity ids for this shard: the next id to hand out,
+    /// or `None` once the `i32` range is exhausted. Only ever advances, so an id
+    /// is never reused within the shard's lifetime.
+    next_entity_id: Option<i32>,
     chunks: LoadedChunkMap,
     /// Accepted gameplay mutations buffered for the storage journal, drained each
     /// tick by the driver. Bounded by [`MUTATION_LOG_CAP`].
@@ -354,6 +456,8 @@ impl SimShard {
             inbox: VecDeque::with_capacity(capacity.get()),
             inbox_capacity: capacity.get(),
             players: BTreeMap::new(),
+            entities: BTreeMap::new(),
+            next_entity_id: Some(FIRST_ENTITY_ID),
             chunks: LoadedChunkMap::new(world, dimension),
             mutation_log: Vec::new(),
             undo_history: BTreeMap::new(),
@@ -526,6 +630,141 @@ impl SimShard {
         })
     }
 
+    /// Spawns a non-player entity at `position` with an initial `velocity` and
+    /// per-tick `gravity`, returning its freshly allocated [`EntityId`].
+    ///
+    /// `gravity` is the downward acceleration in blocks per tick² (negative),
+    /// chosen from a [`crate::physics`] category constant — `GRAVITY_ITEM` for a
+    /// dropped item or falling block, `GRAVITY_LIVING` for a mob, and so on.
+    ///
+    /// Ids come from a per-shard counter that only ever increases, so the same
+    /// spawn sequence yields the same ids on any run and an id is never reused
+    /// within the shard's lifetime — the store stays deterministic. The new
+    /// entity starts `on_ground = false` (airborne until a later collision pass
+    /// proves otherwise). Spawning reads no clock and applies to the store
+    /// immediately; the tick-boundary rule is upheld because the public spawn
+    /// path is a [`GameInput::SpawnEntity`] applied inside
+    /// [`run_tick`](SimShard::run_tick), and this method is otherwise reachable
+    /// only from crate-internal callers on the tick path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SimError::EntityIdExhausted`] once the shard has already handed
+    /// out every id in the `i32` range. This is unreachable for a real shard,
+    /// but is surfaced as a classified error rather than a panic so the counter
+    /// can never wrap and reissue a live id.
+    pub fn spawn_entity(
+        &mut self,
+        position: Vec3,
+        velocity: Vec3,
+        gravity: f64,
+    ) -> Result<EntityId, SimError> {
+        self.spawn_with_kind(position, velocity, gravity, EntityKind::Simple)
+    }
+
+    /// Spawns a falling block carrying `block`, which is restored at the entity's
+    /// resting cell when it lands (then the entity despawns).
+    ///
+    /// The same allocation, determinism, and error rules as
+    /// [`spawn_entity`](Self::spawn_entity) apply. Use [`GRAVITY_ITEM`] for the
+    /// gravity: vanilla falling blocks share the item acceleration.
+    ///
+    /// [`GRAVITY_ITEM`]: crate::physics::GRAVITY_ITEM
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SimError::EntityIdExhausted`] on id-range exhaustion, exactly as
+    /// [`spawn_entity`](Self::spawn_entity).
+    pub fn spawn_falling_block(
+        &mut self,
+        position: Vec3,
+        velocity: Vec3,
+        gravity: f64,
+        block: BlockStateId,
+    ) -> Result<EntityId, SimError> {
+        self.spawn_with_kind(
+            position,
+            velocity,
+            gravity,
+            EntityKind::FallingBlock { block },
+        )
+    }
+
+    /// Shared spawn path: reserves an id, inserts an entity of `kind`, advances
+    /// the counter. All public spawn methods funnel through here.
+    fn spawn_with_kind(
+        &mut self,
+        position: Vec3,
+        velocity: Vec3,
+        gravity: f64,
+        kind: EntityKind,
+    ) -> Result<EntityId, SimError> {
+        // Take the reserved id; `None` means a prior spawn exhausted the range.
+        // Fail before touching the store so a rejected spawn is a no-op.
+        let raw = self.next_entity_id.ok_or(SimError::EntityIdExhausted)?;
+        let id = EntityId::new(raw);
+        self.entities.insert(
+            id,
+            EntityState {
+                position,
+                velocity,
+                gravity,
+                on_ground: false,
+                kind,
+                landed: false,
+            },
+        );
+        // Advance for the next spawn. checked_add yields `None` at i32::MAX,
+        // marking the range exhausted so `raw` is the last id ever issued and is
+        // never reused — no panic, no silent wrap (see TickOverflow).
+        self.next_entity_id = raw.checked_add(1);
+        Ok(id)
+    }
+
+    /// Removes the entity with `id`, returning `true` if it was present.
+    ///
+    /// The id is not returned to the counter: ids are never reused within a
+    /// shard's lifetime, so a removed id can never collide with a future spawn.
+    pub fn remove_entity(&mut self, id: EntityId) -> bool {
+        self.entities.remove(&id).is_some()
+    }
+
+    /// Returns the number of non-player entities the shard currently owns.
+    pub fn entity_count(&self) -> usize {
+        self.entities.len()
+    }
+
+    /// Returns `true` if an entity with `id` is present in the shard.
+    pub fn contains_entity(&self, id: EntityId) -> bool {
+        self.entities.contains_key(&id)
+    }
+
+    /// Returns the current position of the entity with `id`, or `None` if absent.
+    pub fn entity_position(&self, id: EntityId) -> Option<Vec3> {
+        self.entities.get(&id).map(|state| state.position)
+    }
+
+    /// Returns the current velocity of the entity with `id`, or `None` if absent.
+    pub fn entity_velocity(&self, id: EntityId) -> Option<Vec3> {
+        self.entities.get(&id).map(|state| state.velocity)
+    }
+
+    /// Returns whether the entity with `id` is resting on the ground, or `None`
+    /// if absent.
+    pub fn entity_on_ground(&self, id: EntityId) -> Option<bool> {
+        self.entities.get(&id).map(|state| state.on_ground)
+    }
+
+    /// Returns an iterator over the ids of all non-player entities, in ascending
+    /// id order.
+    ///
+    /// Ordering is deterministic because the store is a [`BTreeMap`] keyed by
+    /// [`EntityId`], so iterating it to build spawn/despawn/movement outputs never
+    /// leaks nondeterminism into results.
+    pub fn entity_ids(&self) -> impl Iterator<Item = EntityId> + '_ {
+        self.entities.keys().copied()
+    }
+
     /// Enqueues `input` for application at the next tick boundary.
     ///
     /// Returns [`SimError::InboxFull`] without modifying the inbox if it is
@@ -594,9 +833,11 @@ impl SimShard {
     ///
     /// Joins and leaves apply in FIFO order; movement is coalesced (latest valid
     /// position per player) and validated, then applied after the drain — see the
-    /// type-level docs. Spawn/despawn outputs are emitted in inbox order;
-    /// move/correction outputs follow, ordered by [`PlayerId`] so the result is
-    /// fully deterministic for a given inbox.
+    /// type-level docs. Spawn/despawn outputs (both player and entity) are emitted
+    /// in inbox order; move/correction outputs follow, ordered by [`PlayerId`] so
+    /// the result is fully deterministic for a given inbox. Entity spawn ids come
+    /// from a monotonic per-shard counter (see [`spawn_entity`](Self::spawn_entity)),
+    /// so the same inbox on any run produces the same [`EntityId`] sequence.
     #[allow(clippy::too_many_lines)] // one tick drain: join/leave/move + every block-edit input arm
     pub fn run_tick(&mut self) -> Vec<GameOutput> {
         self.run_tick_with_boundary_inputs(Vec::new())
@@ -676,6 +917,32 @@ impl SimShard {
                         state.game_mode = mode;
                     }
                 }
+                GameInput::SpawnEntity {
+                    position,
+                    velocity,
+                    gravity,
+                } => {
+                    // Applied in FIFO order so the output stream matches the inbox.
+                    // Id-range exhaustion is a silent skip: run_tick is infallible
+                    // by design (a rejected input yields no output, never a panic),
+                    // and the ceiling is unreachable for a real shard (see
+                    // SimError::EntityIdExhausted).
+                    if let Ok(entity) = self.spawn_entity(position, velocity, gravity) {
+                        outputs.push(GameOutput::EntitySpawned {
+                            entity,
+                            position,
+                            velocity,
+                        });
+                    }
+                }
+                GameInput::DespawnEntity { entity } => {
+                    // Despawn of an absent entity is a silent no-op: outputs must
+                    // describe real state transitions, so a retry never doubles the
+                    // client-visible removal.
+                    if self.remove_entity(entity) {
+                        outputs.push(GameOutput::EntityDespawned { entity });
+                    }
+                }
                 GameInput::PlayerMove {
                     player,
                     position,
@@ -745,6 +1012,11 @@ impl SimShard {
                     {
                         outputs.push(output);
                     }
+                    // The block resting on the one just broken may now be
+                    // unsupported: if it is a gravity block, it starts falling.
+                    if let MutationResult::Applied { .. } = result {
+                        self.settle_falling_block(position.offset(Direction::Up), &mut outputs);
+                    }
                 }
                 GameInput::BlockPlace {
                     player,
@@ -777,6 +1049,11 @@ impl SimShard {
                         state,
                         computed.as_ref(),
                     );
+                    // A placed gravity block with nothing beneath it falls at once.
+                    // `settle_falling_block` is self-gating (it acts only on an
+                    // unsupported gravity block at `position`), so it is safe to run
+                    // unconditionally after the placement helper.
+                    self.settle_falling_block(position, &mut outputs);
                 }
                 GameInput::SetBlockExact {
                     player,
@@ -886,7 +1163,282 @@ impl SimShard {
         // while a large fill spreads its remaining cells over later ticks.
         self.drive_region_work(&mut outputs);
 
+        // Integrate non-player entity motion for this tick. Runs last so any
+        // entity spawned by this tick's input drain (or by region work above) also
+        // gets integrated — matters once spawns carry non-zero velocity (falling
+        // blocks, projectiles). Outputs are appended in ascending EntityId order
+        // (see apply_entity_physics), keeping the tick fully deterministic.
+        self.apply_entity_physics(&mut outputs);
+
         outputs
+    }
+
+    /// Applies one tick of gravity, integration, ground collision, and air drag
+    /// to every non-player entity, appending a [`GameOutput::EntityMoved`] for
+    /// each one that moved.
+    ///
+    /// Per entity, in vanilla order:
+    /// 1. **Gravity** — while airborne, `velocity.y += gravity` (the category
+    ///    acceleration seeded at spawn). A grounded entity (`on_ground`) is not
+    ///    accelerated.
+    /// 2. **Integration** — the tentative next position is `position + velocity`.
+    /// 3. **Ground collision** — a downward move whose landing point enters a
+    ///    solid block is clamped to that block's top face: the vertical velocity
+    ///    is zeroed and `on_ground` is set. This is the only collision axis
+    ///    handled here.
+    /// 4. **Air drag** — while still airborne, `velocity.y *= AIR_DRAG_Y`, which
+    ///    makes the fall speed converge to terminal velocity without a hardcoded
+    ///    clamp (see [`crate::physics`]).
+    ///
+    /// A grounded entity that still has a floor is skipped, so a store of
+    /// resting entities produces no output. All arithmetic is `f64` in a fixed
+    /// order, so the result is bit-identical across runs (the determinism
+    /// invariant); iteration over the `entities` [`BTreeMap`] appends outputs in
+    /// ascending [`EntityId`] order.
+    ///
+    /// A grounded entity re-checks the block beneath it each tick: if that floor
+    /// is gone (broken this tick, for instance) it un-grounds and gravity resumes
+    /// next — no separate event path is needed to notice a vanished floor.
+    ///
+    /// # Scope (scaffold limitations)
+    ///
+    /// The entity is treated as a **point** (no bounding box) and only the block
+    /// directly beneath the landing point is tested — a single-block check, not
+    /// an AABB sweep. Two consequences, both refined by the collision milestone:
+    /// - **Fast falls can tunnel**: a per-tick drop larger than one block may
+    ///   skip a thin ledge. Terminal velocity (~3.92 blocks/tick) is above one
+    ///   block, so this is reachable, not just theoretical.
+    /// - **Vertical only**: horizontal motion is never collision-checked. A
+    ///   grounded entity is treated as fully at rest (horizontal velocity is not
+    ///   applied while grounded). The common early consumers (falling blocks,
+    ///   dropped items) fall straight down, where neither matters.
+    fn apply_entity_physics(&mut self, outputs: &mut Vec<GameOutput>) {
+        // Falling blocks that landed this tick: (entity, resting cell, block).
+        // Collected during the iteration and processed after it, because turning
+        // a block back on goes through `apply_block_edit` (a `&mut self` method)
+        // which cannot run while `self.entities` is mutably borrowed by the loop.
+        let mut landed_blocks: Vec<(EntityId, BlockPos, BlockStateId)> = Vec::new();
+        // Entities that fell past the bottom of the world this tick, removed in
+        // phase two for the same borrow reason.
+        let mut voided: Vec<EntityId> = Vec::new();
+        // Falling blocks that restored their block on a *previous* tick and are now
+        // despawned, one tick later, so the client shows the solid block before the
+        // entity vanishes (see the `landed` field). Removed in phase two.
+        let mut finished: Vec<EntityId> = Vec::new();
+
+        // Split borrow: `chunks` reads block state while `entities` is mutated —
+        // distinct fields, so the borrow checker allows both at once.
+        let chunks = &self.chunks;
+        for (&entity, state) in &mut self.entities {
+            // A falling block that restored its block last tick has done its job;
+            // despawn it now (one tick after the block appeared) and integrate
+            // nothing else.
+            if state.landed {
+                finished.push(entity);
+                continue;
+            }
+
+            // An entity that has fallen into the void is removed rather than
+            // integrated forever (bounded lifetime — see VOID_DESPAWN_Y).
+            if state.position.y < VOID_DESPAWN_Y {
+                voided.push(entity);
+                continue;
+            }
+
+            // A grounded entity rests only while the block beneath it is solid.
+            // Grounded positions are clamped to an integer top face, so the cell
+            // one below is exactly the supporting block. If it is gone, un-ground
+            // and let gravity act; otherwise the entity stays put, emitting none.
+            if state.on_ground {
+                let here = block_cell(state.position);
+                let below = BlockPos::new(here.x(), here.y().saturating_sub(1), here.z());
+                if is_solid_block(chunks, below) {
+                    continue;
+                }
+                state.on_ground = false;
+            }
+
+            // 1. Gravity accelerates the (now certainly airborne) entity.
+            state.velocity = Vec3::new(
+                state.velocity.x,
+                state.velocity.y + state.gravity,
+                state.velocity.z,
+            );
+            // Nothing to integrate for a gravity-free, motionless entity.
+            if state.velocity == Vec3::ZERO {
+                continue;
+            }
+
+            // 2. Tentative integration.
+            let start = state.position;
+            let mut next = start + state.velocity;
+
+            // 3. Ground collision: only a downward move can land on a block.
+            let mut grounded = false;
+            if state.velocity.y < 0.0 {
+                let support = block_cell(next);
+                if is_solid_block(chunks, support) {
+                    // World-space y of the block's top face.
+                    let top = f64::from(support.y().saturating_add(1));
+                    if next.y < top {
+                        next = Vec3::new(next.x, top, next.z);
+                        // Landing zeroes vertical motion; horizontal is kept.
+                        state.velocity = Vec3::new(state.velocity.x, 0.0, state.velocity.z);
+                        grounded = true;
+                    }
+                }
+            }
+
+            state.position = next;
+            state.on_ground = grounded;
+
+            // 4. Vertical air drag, only while still falling.
+            if !grounded {
+                state.velocity = Vec3::new(
+                    state.velocity.x,
+                    state.velocity.y * AIR_DRAG_Y,
+                    state.velocity.z,
+                );
+            }
+
+            // Emit only for a real position change (a landing clamp that leaves
+            // the entity exactly where it was produces no output).
+            if next != start {
+                outputs.push(GameOutput::EntityMoved {
+                    entity,
+                    position: next,
+                });
+            }
+
+            // A falling block that just landed is recorded for phase two: it
+            // becomes a block again at its resting cell and despawns.
+            if grounded {
+                if let EntityKind::FallingBlock { block } = state.kind {
+                    landed_blocks.push((entity, block_cell(next), block));
+                }
+            }
+        }
+
+        // Phase two, part one: despawn entities that finished their post-landing
+        // tick, then those that fell into the void. Both lists were built during
+        // the ordered iteration, so despawns stay in ascending id order and the
+        // tick is deterministic.
+        for entity in finished {
+            self.entities.remove(&entity);
+            outputs.push(GameOutput::EntityDespawned { entity });
+        }
+        for entity in voided {
+            self.entities.remove(&entity);
+            outputs.push(GameOutput::EntityDespawned { entity });
+        }
+
+        // Phase two, part two: restore each block that landed *this* tick. The
+        // write goes through the same block-edit funnel as every mutation (a
+        // `Command` cause: no actor, no ack) so it persists and broadcasts a viewer
+        // `BlockUpdate`. The entity is *not* removed yet: it is flagged `landed` so
+        // the next pass despawns it one tick later, keeping the falling-block model
+        // on screen until the solid block is shown and avoiding a one-frame gap.
+        for (entity, cell, block) in landed_blocks {
+            let result = self.apply_block_edit(MutationCause::Command, cell, block);
+            if let Some(output) =
+                block_change_output(MutationCause::Command, 0, cell, block, result)
+            {
+                outputs.push(output);
+            }
+            if let Some(state) = self.entities.get_mut(&entity) {
+                state.landed = true;
+            }
+        }
+    }
+
+    /// If the block at `pos` is a gravity block that has lost its support,
+    /// converts it — and the unbroken column of gravity blocks stacked directly
+    /// above it — into falling-block entities.
+    ///
+    /// Called after a block edit that could unsupport a gravity block: after a
+    /// place (the placed block may hang in the air) and above a break (the block
+    /// resting on the broken one may now be unsupported). A block is unsupported
+    /// when the block directly below it is not a solid cube.
+    ///
+    /// A no-op unless `pos` holds a resident, gravity-affected, unsupported
+    /// block. When it does, the whole gravity column from `pos` upward converts
+    /// at once (removing the bottom block unsupports every gravity block above
+    /// it, so they all fall together, as in vanilla): each conversion removes
+    /// the block through the edit funnel (`Command` cause: broadcast, no ack) and
+    /// spawns an entity that falls on the same tick's physics pass. Entities are
+    /// spawned bottom-up, so lower ids sit lower in the column and re-stack in the
+    /// right order when they land.
+    fn settle_falling_block(&mut self, pos: BlockPos, outputs: &mut Vec<GameOutput>) {
+        // The bottom block only falls if it is a gravity block with no support.
+        let Some(state) = self.gravity_block_at(pos) else {
+            return;
+        };
+        let below = BlockPos::new(pos.x(), pos.y().saturating_sub(1), pos.z());
+        if is_solid_block(&self.chunks, below) {
+            return;
+        }
+
+        // Convert this block and every gravity block directly above it. Removing
+        // the one below unsupports the next, so the column collapses as a unit.
+        let mut cell = pos;
+        let mut carried = state;
+        loop {
+            self.convert_block_to_falling_entity(cell, carried, outputs);
+            let above = BlockPos::new(cell.x(), cell.y().saturating_add(1), cell.z());
+            match self.gravity_block_at(above) {
+                Some(next) => {
+                    cell = above;
+                    carried = next;
+                }
+                None => break,
+            }
+        }
+    }
+
+    /// Returns the block-state at `pos` if it is a resident, gravity-affected
+    /// block, or `None` otherwise (air, non-gravity, unknown, or non-resident).
+    fn gravity_block_at(&self, pos: BlockPos) -> Option<BlockStateId> {
+        let state = self.authoritative_state(pos);
+        if state.is_air() {
+            return None;
+        }
+        let name = state_id_to_block_name(state.as_u32())?;
+        is_gravity_affected(name).then_some(state)
+    }
+
+    /// Removes the block at `pos` and spawns a falling-block entity carrying
+    /// `state`, emitting the block removal and the entity spawn. Assumes the
+    /// caller has already established that `pos` should fall.
+    fn convert_block_to_falling_entity(
+        &mut self,
+        pos: BlockPos,
+        state: BlockStateId,
+        outputs: &mut Vec<GameOutput>,
+    ) {
+        // Only convert if the removal actually landed (chunk resident, applied).
+        let result = self.apply_block_edit(MutationCause::Command, pos, BlockStateId::AIR);
+        if !matches!(result, MutationResult::Applied { .. }) {
+            return;
+        }
+        if let Some(output) =
+            block_change_output(MutationCause::Command, 0, pos, BlockStateId::AIR, result)
+        {
+            outputs.push(output);
+        }
+        // Spawn at the cell's horizontal centre and vertical base, so `floor`
+        // maps the entity back to this column when it lands.
+        let spawn_pos = Vec3::new(
+            f64::from(pos.x()) + 0.5,
+            f64::from(pos.y()),
+            f64::from(pos.z()) + 0.5,
+        );
+        if let Ok(entity) = self.spawn_falling_block(spawn_pos, Vec3::ZERO, GRAVITY_ITEM, state) {
+            outputs.push(GameOutput::EntitySpawned {
+                entity,
+                position: spawn_pos,
+                velocity: Vec3::ZERO,
+            });
+        }
     }
 
     /// Validates and applies a single block edit at the tick boundary — the one
@@ -1631,6 +2183,42 @@ impl SimShard {
             }
         }
     }
+}
+
+/// The integer block cell containing world-space `pos` (component-wise floor).
+///
+/// `f64 as i32` saturates rather than wrapping in Rust, so an out-of-range
+/// coordinate maps to `i32::MIN`/`i32::MAX` instead of causing undefined
+/// behaviour; callers keep entities within range by other means (void despawn,
+/// position validation).
+fn block_cell(pos: Vec3) -> BlockPos {
+    BlockPos::new(
+        pos.x.floor() as i32,
+        pos.y.floor() as i32,
+        pos.z.floor() as i32,
+    )
+}
+
+/// Returns `true` if `pos` holds a solid full cube in the resident chunks.
+///
+/// A free function (not a `&self` method) so it can be called while the shard's
+/// entity store is mutably borrowed: it takes only `&LoadedChunkMap`, a field
+/// disjoint from `entities`. A non-resident chunk reads as air (not solid), so an
+/// entity falling past the shard edge is never grounded by a chunk this shard
+/// does not own.
+fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
+    let Some(state) = chunks
+        .get(pos.to_chunk_pos())
+        .and_then(|c| c.get_block(pos))
+    else {
+        return false;
+    };
+    if state.is_air() {
+        return false;
+    }
+    state_id_to_block_name(state.as_u32())
+        .and_then(block_metadata)
+        .is_some_and(|m| m.is_solid_cube)
 }
 
 /// A [`NeighborQuery`] backed by a shard's resident chunks.
@@ -3644,6 +4232,702 @@ mod tests {
         );
     }
 
+    // --- Non-player entity store -------------------------------------------
+    //
+    // Store tests use `gravity == 0.0` to isolate the store mechanics from the
+    // physics step: a zero-gravity, zero-velocity entity never moves, so
+    // run_tick produces no follow-up EntityMoved to reason about here. Gravity
+    // behaviour is covered by the physics section below.
+
+    #[test]
+    fn spawn_entity_stores_fields_and_starts_airborne() {
+        let mut s = shard();
+        let pos = Vec3::new(1.0, 64.0, -2.0);
+        let vel = Vec3::new(0.0, -0.04, 0.0);
+        let id = s.spawn_entity(pos, vel, 0.0).expect("id available");
+
+        assert!(s.contains_entity(id));
+        assert_eq!(s.entity_count(), 1);
+        assert_eq!(s.entity_position(id), Some(pos));
+        assert_eq!(s.entity_velocity(id), Some(vel));
+        // Entities are airborne on spawn: no collision pass has grounded them yet.
+        assert_eq!(s.entity_on_ground(id), Some(false));
+    }
+
+    #[test]
+    fn entity_ids_are_monotonic_starting_at_one() {
+        let mut s = shard();
+        let a = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        let b = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        let c = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        assert_eq!(a.get(), 1);
+        assert_eq!(b.get(), 2);
+        assert_eq!(c.get(), 3);
+    }
+
+    #[test]
+    fn removed_ids_are_not_reused() {
+        let mut s = shard();
+        let a = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        assert!(s.remove_entity(a));
+        // A removed id must not be handed out again: the next spawn advances.
+        let b = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        assert_ne!(a, b);
+        assert_eq!(b.get(), 2);
+    }
+
+    #[test]
+    fn remove_entity_reports_presence_and_shrinks_the_store() {
+        let mut s = shard();
+        let id = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        assert!(s.remove_entity(id));
+        assert!(!s.contains_entity(id));
+        assert_eq!(s.entity_count(), 0);
+        // Removing an absent id is a no-op that reports false.
+        assert!(!s.remove_entity(id));
+    }
+
+    #[test]
+    fn accessors_return_none_for_absent_entities() {
+        let s = shard();
+        let ghost = EntityId::new(999);
+        assert!(!s.contains_entity(ghost));
+        assert_eq!(s.entity_position(ghost), None);
+        assert_eq!(s.entity_velocity(ghost), None);
+        assert_eq!(s.entity_on_ground(ghost), None);
+    }
+
+    #[test]
+    fn entity_ids_iterate_in_ascending_order() {
+        let mut s = shard();
+        for _ in 0..5 {
+            s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("id");
+        }
+        let ids: Vec<i32> = s.entity_ids().map(EntityId::get).collect();
+        assert_eq!(ids, vec![1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn spawn_entity_reports_exhaustion_instead_of_wrapping() {
+        let mut s = shard();
+        // Reserve the last representable id. This spawn uses i32::MAX and then
+        // the range is exhausted.
+        s.next_entity_id = Some(i32::MAX);
+        let last = s.spawn_entity(spawn(), Vec3::ZERO, 0.0).expect("last id");
+        assert_eq!(last.get(), i32::MAX);
+        // The range is now exhausted: the next spawn fails and leaves the store
+        // untouched (only the one entity remains).
+        assert_eq!(
+            s.spawn_entity(spawn(), Vec3::ZERO, 0.0),
+            Err(SimError::EntityIdExhausted)
+        );
+        assert_eq!(s.entity_count(), 1);
+    }
+
+    // --- Entity spawn/despawn via the GameInput boundary -------------------
+    //
+    // These use `gravity: 0.0` and zero velocity so no EntityMoved is produced;
+    // the physics section covers the falling case.
+
+    /// A zero-gravity, zero-velocity spawn input at the default spawn position.
+    fn static_spawn() -> GameInput {
+        GameInput::SpawnEntity {
+            position: spawn(),
+            velocity: Vec3::ZERO,
+            gravity: 0.0,
+        }
+    }
+
+    #[test]
+    fn spawn_entity_input_emits_output_with_fresh_id_and_populates_store() {
+        let mut s = shard();
+        let position = Vec3::new(1.0, 64.0, 2.0);
+        let velocity = Vec3::ZERO;
+        s.enqueue(GameInput::SpawnEntity {
+            position,
+            velocity,
+            gravity: 0.0,
+        })
+        .expect("inbox has room");
+        let outputs = s.run_tick();
+
+        assert_eq!(outputs.len(), 1);
+        let GameOutput::EntitySpawned {
+            entity,
+            position: out_pos,
+            velocity: out_vel,
+        } = outputs[0]
+        else {
+            panic!("expected EntitySpawned, got {:?}", outputs[0]);
+        };
+        // First id in a fresh shard is FIRST_ENTITY_ID (see const doc).
+        assert_eq!(entity.get(), 1);
+        assert_eq!(out_pos, position);
+        assert_eq!(out_vel, velocity);
+        assert!(s.contains_entity(entity));
+        assert_eq!(s.entity_count(), 1);
+    }
+
+    #[test]
+    fn despawn_entity_input_emits_output_and_removes_from_store() {
+        let mut s = shard();
+        s.enqueue(static_spawn()).expect("room");
+        let outputs = s.run_tick();
+        let GameOutput::EntitySpawned { entity, .. } = outputs[0] else {
+            panic!("expected spawn");
+        };
+
+        s.enqueue(GameInput::DespawnEntity { entity })
+            .expect("room");
+        let outputs = s.run_tick();
+
+        assert_eq!(outputs, vec![GameOutput::EntityDespawned { entity }]);
+        assert!(!s.contains_entity(entity));
+        assert_eq!(s.entity_count(), 0);
+    }
+
+    #[test]
+    fn despawn_of_absent_entity_is_silent_no_op() {
+        let mut s = shard();
+        // Never spawned; despawn must not emit and must not mutate the store.
+        s.enqueue(GameInput::DespawnEntity {
+            entity: EntityId::new(42),
+        })
+        .expect("room");
+        let outputs = s.run_tick();
+        assert!(outputs.is_empty());
+        assert_eq!(s.entity_count(), 0);
+    }
+
+    #[test]
+    fn entity_spawns_emit_in_inbox_fifo_order_with_monotonic_ids() {
+        let mut s = shard();
+        for x in 0..3 {
+            s.enqueue(GameInput::SpawnEntity {
+                position: Vec3::new(f64::from(x), 64.0, 0.0),
+                velocity: Vec3::ZERO,
+                gravity: 0.0,
+            })
+            .expect("room");
+        }
+        let outputs = s.run_tick();
+
+        let ids: Vec<i32> = outputs
+            .iter()
+            .map(|o| match o {
+                GameOutput::EntitySpawned { entity, .. } => entity.get(),
+                other => panic!("unexpected output {other:?}"),
+            })
+            .collect();
+        // Ids advance monotonically in the exact order the inbox delivered them.
+        assert_eq!(ids, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn spawned_then_despawned_in_one_tick_emits_both_in_order() {
+        let mut s = shard();
+        s.enqueue(static_spawn()).expect("room");
+        // The client cannot address the entity yet (id not known upstream), but a
+        // driver that composes intra-tick spawn+despawn (e.g. a plugin path)
+        // still expects deterministic ordering.
+        s.enqueue(GameInput::DespawnEntity {
+            entity: EntityId::new(1),
+        })
+        .expect("room");
+        let outputs = s.run_tick();
+
+        assert_eq!(outputs.len(), 2);
+        assert!(matches!(outputs[0], GameOutput::EntitySpawned { .. }));
+        assert!(matches!(outputs[1], GameOutput::EntityDespawned { .. }));
+        assert_eq!(s.entity_count(), 0);
+    }
+
+    #[test]
+    fn enqueue_of_spawn_input_does_not_mutate_store_before_tick() {
+        let mut s = shard();
+        s.enqueue(static_spawn()).expect("room");
+        // Enforces the tick-boundary invariant: the store must not change until
+        // run_tick is called.
+        assert_eq!(s.entity_count(), 0);
+        s.run_tick();
+        assert_eq!(s.entity_count(), 1);
+    }
+
+    // --- Per-tick gravity, integration, and air drag -----------------------
+
+    #[test]
+    fn gravity_accelerates_a_falling_entity_each_tick() {
+        let mut s = shard();
+        // An item dropped from rest: no initial velocity, item gravity.
+        let start = Vec3::new(0.0, 64.0, 0.0);
+        s.enqueue(GameInput::SpawnEntity {
+            position: start,
+            velocity: Vec3::ZERO,
+            gravity: crate::physics::GRAVITY_ITEM,
+        })
+        .expect("room");
+        // Tick 1: velocity gains gravity (-0.04), integrates, then drags.
+        s.run_tick();
+
+        let id = EntityId::new(1);
+        // After one tick: v.y = 0 + (-0.04) = -0.04; y = 64 + (-0.04) = 63.96.
+        assert_eq!(
+            s.entity_position(id),
+            Some(Vec3::new(0.0, 64.0 + crate::physics::GRAVITY_ITEM, 0.0))
+        );
+        // Velocity was integrated, then decayed by air drag on the y axis.
+        let expected_vy = crate::physics::GRAVITY_ITEM * crate::physics::AIR_DRAG_Y;
+        assert_eq!(
+            s.entity_velocity(id),
+            Some(Vec3::new(0.0, expected_vy, 0.0))
+        );
+    }
+
+    #[test]
+    fn zero_gravity_zero_velocity_entity_never_moves() {
+        let mut s = shard();
+        s.enqueue(static_spawn()).expect("room");
+        let outputs = s.run_tick();
+        // Only the spawn: nothing accelerates it and nothing to integrate.
+        assert_eq!(outputs.len(), 1);
+        assert!(matches!(outputs[0], GameOutput::EntitySpawned { .. }));
+        // A second, input-free tick still produces no motion.
+        assert!(s.run_tick().is_empty());
+    }
+
+    #[test]
+    fn terminal_velocity_is_a_fixed_point() {
+        // Terminal velocity is the fixed point of v -> (v + g)·d. Seeding an
+        // entity already at terminal, one tick must leave it (bit-)unchanged.
+        // (A free fall would reach the void despawn height long before converging
+        // by drag alone, so the fixed-point property is asserted directly.)
+        let terminal = crate::physics::GRAVITY_LIVING * crate::physics::AIR_DRAG_Y
+            / (1.0 - crate::physics::AIR_DRAG_Y);
+        let mut s = shard();
+        s.enqueue(GameInput::SpawnEntity {
+            position: Vec3::new(0.0, 320.0, 0.0),
+            velocity: Vec3::new(0.0, terminal, 0.0),
+            gravity: crate::physics::GRAVITY_LIVING,
+        })
+        .expect("room");
+        s.run_tick();
+        let vy = s.entity_velocity(EntityId::new(1)).unwrap().y;
+        assert!(
+            (vy - terminal).abs() < 1e-12,
+            "vy {vy} should stay at terminal {terminal}"
+        );
+    }
+
+    #[test]
+    fn heavier_gravity_falls_faster() {
+        // A living entity (−0.08) outpaces an item (−0.04) after equal ticks.
+        let mut s = shard();
+        s.enqueue(GameInput::SpawnEntity {
+            position: Vec3::new(0.0, 256.0, 0.0),
+            velocity: Vec3::ZERO,
+            gravity: crate::physics::GRAVITY_ITEM,
+        })
+        .expect("room");
+        s.enqueue(GameInput::SpawnEntity {
+            position: Vec3::new(0.0, 256.0, 0.0),
+            velocity: Vec3::ZERO,
+            gravity: crate::physics::GRAVITY_LIVING,
+        })
+        .expect("room");
+        for _ in 0..20 {
+            s.run_tick();
+        }
+        let item_y = s.entity_position(EntityId::new(1)).unwrap().y;
+        let living_y = s.entity_position(EntityId::new(2)).unwrap().y;
+        assert!(
+            living_y < item_y,
+            "living entity (y={living_y}) should be below item (y={item_y})"
+        );
+    }
+
+    #[test]
+    fn moved_outputs_are_emitted_in_ascending_entity_id_order() {
+        let mut s = shard();
+        for x in 0..3 {
+            s.enqueue(GameInput::SpawnEntity {
+                position: Vec3::new(f64::from(x), 64.0, 0.0),
+                velocity: Vec3::ZERO,
+                gravity: crate::physics::GRAVITY_ITEM,
+            })
+            .expect("room");
+        }
+        let outputs = s.run_tick();
+        // Filter to just the move outputs; assert they arrive in id order.
+        let move_ids: Vec<i32> = outputs
+            .iter()
+            .filter_map(|o| match o {
+                GameOutput::EntityMoved { entity, .. } => Some(entity.get()),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(move_ids, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn physics_runs_on_empty_input_tick() {
+        let mut s = shard();
+        s.enqueue(GameInput::SpawnEntity {
+            position: Vec3::new(0.0, 64.0, 0.0),
+            velocity: Vec3::ZERO,
+            gravity: crate::physics::GRAVITY_ITEM,
+        })
+        .expect("room");
+        // Tick 1: spawn + first fall step.
+        s.run_tick();
+        // Tick 2: no inputs at all — gravity must still act.
+        let outputs = s.run_tick();
+        assert_eq!(outputs.len(), 1);
+        assert!(matches!(outputs[0], GameOutput::EntityMoved { .. }));
+    }
+
+    // --- Ground collision (needs a resident chunk) -------------------------
+    //
+    // The flat generator puts a solid grass block at y=63, so its top face is
+    // world y=64.0 — the height a falling entity lands at. Spawns start low
+    // enough that per-tick fall speed stays below one block, so the single-block
+    // ground check lands cleanly (see apply_entity_physics scope notes on
+    // tunneling at high speed).
+
+    #[tokio::test]
+    async fn falling_entity_lands_on_solid_ground() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        // (8, _, 8) is inside chunk (0,0); start two blocks up so the fall stays
+        // slow enough not to tunnel.
+        let id = s
+            .spawn_entity(
+                Vec3::new(8.0, 66.0, 8.0),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+            )
+            .expect("id");
+        // Tick until grounded; the bound prevents an infinite loop on a bug.
+        let mut grounded = false;
+        for _ in 0..200 {
+            s.run_tick();
+            if s.entity_on_ground(id) == Some(true) {
+                grounded = true;
+                break;
+            }
+        }
+        assert!(grounded, "entity should have landed within the tick budget");
+        // Rests on the grass block's top face; vertical motion is zeroed.
+        assert_eq!(s.entity_position(id).map(|p| p.y), Some(64.0));
+        assert_eq!(s.entity_velocity(id).map(|v| v.y), Some(0.0));
+    }
+
+    #[tokio::test]
+    async fn landed_entity_stays_put_and_emits_nothing() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let id = s
+            .spawn_entity(
+                Vec3::new(8.0, 66.0, 8.0),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+            )
+            .expect("id");
+        for _ in 0..200 {
+            s.run_tick();
+            if s.entity_on_ground(id) == Some(true) {
+                break;
+            }
+        }
+        let resting = s.entity_position(id);
+        // Once grounded, further ticks neither move it nor emit output.
+        for _ in 0..5 {
+            let outputs = s.run_tick();
+            assert!(outputs.is_empty(), "a resting entity must emit nothing");
+        }
+        assert_eq!(s.entity_position(id), resting);
+    }
+
+    #[tokio::test]
+    async fn entity_over_the_void_never_grounds() {
+        // A chunk far from (0,0) is not resident, so an entity above unloaded
+        // space reads air below it and keeps falling — it never grounds on a
+        // chunk this shard does not own.
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        // x=500 is outside the single resident chunk.
+        let id = s
+            .spawn_entity(
+                Vec3::new(500.0, 64.0, 8.0),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+            )
+            .expect("id");
+        let start_y = s.entity_position(id).unwrap().y;
+        for _ in 0..20 {
+            s.run_tick();
+        }
+        assert_eq!(s.entity_on_ground(id), Some(false));
+        assert!(
+            s.entity_position(id).unwrap().y < start_y,
+            "entity over unloaded space should keep falling"
+        );
+    }
+
+    #[test]
+    fn entity_that_falls_into_the_void_is_despawned() {
+        let mut s = shard();
+        // Spawn just above the void threshold with a downward velocity; no chunk
+        // is resident, so nothing grounds it — it crosses VOID_DESPAWN_Y and is
+        // removed rather than falling forever.
+        let id = s
+            .spawn_entity(
+                // Already below the threshold, so the first tick removes it.
+                Vec3::new(0.0, super::VOID_DESPAWN_Y - 1.0, 0.0),
+                Vec3::new(0.0, -1.0, 0.0),
+                crate::physics::GRAVITY_ITEM,
+            )
+            .expect("id");
+        let outputs = s.run_tick();
+        assert!(!s.contains_entity(id), "voided entity should be despawned");
+        assert!(
+            outputs.contains(&GameOutput::EntityDespawned { entity: id }),
+            "a void despawn must be reported"
+        );
+        assert_eq!(s.entity_count(), 0);
+    }
+
+    #[tokio::test]
+    async fn breaking_the_floor_un_grounds_a_resting_entity() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let id = s
+            .spawn_entity(
+                Vec3::new(8.0, 66.0, 8.0),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+            )
+            .expect("id");
+        // Let it land on the grass at y=63 (top face y=64.0).
+        for _ in 0..200 {
+            s.run_tick();
+            if s.entity_on_ground(id) == Some(true) {
+                break;
+            }
+        }
+        assert_eq!(s.entity_on_ground(id), Some(true));
+        let landed_y = s.entity_position(id).unwrap().y;
+
+        // Remove the supporting grass block (a Command edit needs no actor/reach).
+        s.apply_block_edit(
+            MutationCause::Command,
+            BlockPos::new(8, 63, 8),
+            BlockStateId::AIR,
+        );
+
+        // Next physics tick: the floor is gone, so the entity un-grounds and
+        // falls again.
+        s.run_tick();
+        assert_eq!(s.entity_on_ground(id), Some(false));
+        assert!(
+            s.entity_position(id).unwrap().y < landed_y,
+            "entity should fall once its floor is broken"
+        );
+    }
+
+    // --- Falling blocks ----------------------------------------------------
+
+    #[tokio::test]
+    async fn falling_block_becomes_a_block_on_landing_and_despawns() {
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        // The cell above the grass (y=63) is air; a falling block resting on the
+        // grass lands there.
+        let target = BlockPos::new(8, 64, 8);
+        assert!(block_at(&s, target).is_some_and(BlockStateId::is_air));
+
+        // Drop a sand-like falling block (any solid state works; reuse OAK_LOG,
+        // a known solid full cube in this crate's test constants).
+        let carried = BlockStateId::new(OAK_LOG);
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.0, 66.0, 8.0),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+                carried,
+            )
+            .expect("id");
+
+        // Tick until it lands and converts (the entity despawns on landing).
+        let mut converted = false;
+        for _ in 0..200 {
+            s.run_tick();
+            if !s.contains_entity(id) {
+                converted = true;
+                break;
+            }
+        }
+        assert!(converted, "falling block should land and despawn");
+        // The carried block now occupies the resting cell.
+        assert_eq!(block_at(&s, target), Some(carried));
+        assert_eq!(s.entity_count(), 0);
+    }
+
+    #[tokio::test]
+    async fn falling_block_restores_block_a_tick_before_it_despawns() {
+        // Regression test for the landing flicker: the restored block must appear
+        // one tick *before* the falling-block entity despawns, so a real client
+        // never shows a one-frame gap between the two. On the landing tick the
+        // shard emits BlockChanged and keeps the entity; the despawn follows on the
+        // next tick.
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let carried = BlockStateId::new(OAK_LOG);
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.0, 66.0, 8.0),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+                carried,
+            )
+            .expect("id");
+
+        // Advance to the tick that restores the block (a BlockChanged output).
+        let mut landing_tick = 0;
+        for tick in 1..=200 {
+            let outputs = s.run_tick();
+            let has_block = outputs
+                .iter()
+                .any(|o| matches!(o, GameOutput::BlockChanged { .. }));
+            if has_block {
+                // The block is restored, but the entity is NOT despawned this tick.
+                assert!(
+                    !outputs
+                        .iter()
+                        .any(|o| matches!(o, GameOutput::EntityDespawned { .. })),
+                    "the despawn must not share the block-restore tick (that is the flicker)"
+                );
+                assert!(
+                    s.contains_entity(id),
+                    "the entity survives one tick past the block restore"
+                );
+                landing_tick = tick;
+                break;
+            }
+        }
+        assert!(landing_tick > 0, "the block should have been restored");
+
+        // The very next tick despawns the entity — one tick after the block showed.
+        let next = s.run_tick();
+        assert!(
+            next.contains(&GameOutput::EntityDespawned { entity: id }),
+            "the entity despawns the tick after its block is restored"
+        );
+        assert!(
+            !s.contains_entity(id),
+            "entity gone after its deferred despawn"
+        );
+    }
+
+    // --- Automatic falling-block detection (place / break triggers) --------
+
+    /// The default state id of `sand`, a gravity-affected block in the registry.
+    fn sand_state() -> u32 {
+        block_metadata("sand")
+            .expect("sand in the pinned registry")
+            .default_state
+    }
+
+    #[tokio::test]
+    async fn placing_a_gravity_block_without_support_makes_it_fall_and_settle() {
+        let p = player("sandbuilder");
+        let mut s = shard_with_player(p).await;
+        let sand = sand_state();
+        // (8,66,8) has air at (8,65,8) below it — no support.
+        let hang = BlockPos::new(8, 66, 8);
+        let outputs = place_block(&mut s, p, hang, sand, Direction::Up, 0.0, 0.0, 1);
+
+        // Placed then immediately converted: the cell is air and an entity falls.
+        assert!(block_at(&s, hang).is_some_and(BlockStateId::is_air));
+        assert_eq!(s.entity_count(), 1);
+        assert!(
+            outputs
+                .iter()
+                .any(|o| matches!(o, GameOutput::EntitySpawned { .. })),
+            "placing an unsupported gravity block should spawn a falling entity"
+        );
+
+        // It settles as sand on the grass surface (top face y=64.0 -> cell y=64).
+        for _ in 0..200 {
+            s.run_tick();
+            if s.entity_count() == 0 {
+                break;
+            }
+        }
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 64, 8)),
+            Some(BlockStateId::new(sand))
+        );
+    }
+
+    #[tokio::test]
+    async fn a_supported_gravity_block_does_not_fall() {
+        let p = player("sandbuilder");
+        let mut s = shard_with_player(p).await;
+        let sand = sand_state();
+        // Placed directly on the grass surface (y=63): supported, so it stays.
+        place_block(
+            &mut s,
+            p,
+            BlockPos::new(8, 64, 8),
+            sand,
+            Direction::Up,
+            0.0,
+            0.0,
+            1,
+        );
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 64, 8)),
+            Some(BlockStateId::new(sand))
+        );
+        assert_eq!(s.entity_count(), 0);
+    }
+
+    #[tokio::test]
+    async fn breaking_the_support_makes_the_gravity_block_above_fall() {
+        let p = player("digger");
+        let mut s = shard_with_player(p).await;
+        let sand = sand_state();
+        // Sand resting on the grass at y=64 stays put.
+        place_block(
+            &mut s,
+            p,
+            BlockPos::new(8, 64, 8),
+            sand,
+            Direction::Up,
+            0.0,
+            0.0,
+            1,
+        );
+        assert_eq!(s.entity_count(), 0);
+
+        // Break the grass beneath it: the sand loses support and falls.
+        s.enqueue(GameInput::BlockBreak {
+            player: p,
+            position: BlockPos::new(8, 63, 8),
+            sequence: 2,
+        })
+        .expect("room");
+        s.run_tick();
+        assert!(block_at(&s, BlockPos::new(8, 64, 8)).is_some_and(BlockStateId::is_air));
+        assert_eq!(s.entity_count(), 1);
+
+        // It lands on the dirt at y=62 (top face y=63.0 -> cell y=63).
+        for _ in 0..200 {
+            s.run_tick();
+            if s.entity_count() == 0 {
+                break;
+            }
+        }
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 63, 8)),
+            Some(BlockStateId::new(sand))
+        );
+    }
+
     #[tokio::test]
     async fn chest_item_move_marks_chunk_persist_dirty_and_a_refused_click_does_not() {
         let p = player("trader");
@@ -3703,5 +4987,57 @@ mod tests {
         // The chest is untouched.
         let snapshot = s.container_open(p, chest).expect("chest opens");
         assert!(snapshot.iter().all(|slot| slot.item().is_none()));
+    }
+
+    #[tokio::test]
+    async fn breaking_the_base_collapses_a_whole_gravity_column() {
+        let p = player("miner");
+        let mut s = shard_with_player(p).await;
+        let sand = sand_state();
+        // Stack three sand on the grass: y=64, 65, 66. Each is supported by the
+        // one below (or the grass), so none falls while stacking.
+        for y in 64..=66 {
+            place_block(
+                &mut s,
+                p,
+                BlockPos::new(8, y, 8),
+                sand,
+                Direction::Up,
+                0.0,
+                0.0,
+                1,
+            );
+        }
+        assert_eq!(s.entity_count(), 0);
+
+        // Break the grass beneath the stack: the whole column loses support and
+        // collapses into three falling entities at once.
+        s.enqueue(GameInput::BlockBreak {
+            player: p,
+            position: BlockPos::new(8, 63, 8),
+            sequence: 9,
+        })
+        .expect("room");
+        s.run_tick();
+        assert_eq!(s.entity_count(), 3, "the full column should be falling");
+        for y in 64..=66 {
+            assert!(block_at(&s, BlockPos::new(8, y, 8)).is_some_and(BlockStateId::is_air));
+        }
+
+        // They re-stack on the dirt (surface now at y=62, top face 63.0): sand at
+        // y=63, 64, 65.
+        for _ in 0..300 {
+            s.run_tick();
+            if s.entity_count() == 0 {
+                break;
+            }
+        }
+        for y in 63..=65 {
+            assert_eq!(
+                block_at(&s, BlockPos::new(8, y, 8)),
+                Some(BlockStateId::new(sand)),
+                "sand should re-stack at y={y}"
+            );
+        }
     }
 }
