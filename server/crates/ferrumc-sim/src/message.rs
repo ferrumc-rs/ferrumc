@@ -269,6 +269,33 @@ pub enum GameInput {
     },
 }
 
+/// How the session layer should render a freshly spawned non-player entity.
+///
+/// Carried by [`GameOutput::EntitySpawned`] so the session can pick the wire
+/// entity type (and any type-specific spawn data) without querying the shard.
+/// The simulation stays type-agnostic for physics — every kind falls under the
+/// same gravity/integration step — but the *client* needs the type to draw the
+/// right model, so the discriminant is threaded out here at spawn time.
+///
+/// `#[non_exhaustive]`: new kinds (item, TNT, projectile, ...) are added as
+/// their consumers land, so downstream `match`es must include a wildcard arm.
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[non_exhaustive]
+pub enum SpawnedEntityKind {
+    /// A generic entity with no type-specific spawn data yet. The session maps
+    /// it to a neutral entity type; used by type-agnostic spawns (plugin/command
+    /// paths) until a typed consumer supersedes them.
+    Simple,
+    /// A falling block. Carries the block-state the client renders mid-air; the
+    /// session maps it to the `minecraft:falling_block` entity type and threads
+    /// `block` into the `SpawnEntity` packet's type-specific data field.
+    FallingBlock {
+        /// The block-state the falling entity displays while airborne (the state
+        /// that was removed from the world when it began to fall).
+        block: BlockStateId,
+    },
+}
+
 /// An output produced by the simulation during a tick.
 ///
 /// Outputs are deterministic given the inbox contents: identical input
@@ -337,6 +364,9 @@ pub enum GameOutput {
         position: Vec3,
         /// Initial velocity in blocks per tick.
         velocity: Vec3,
+        /// What the entity is, so the session can pick the wire entity type and
+        /// any type-specific spawn data (e.g. a falling block's block-state).
+        kind: SpawnedEntityKind,
     },
     /// A non-player entity's position changed after per-tick physics
     /// integration.

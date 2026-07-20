@@ -1580,7 +1580,7 @@ mod tests {
     use crate::{
         cross_shard::{CrossShardPayload, CrossShardRejectionReason},
         ChunkTicket, GameInput, GameOutput, MutationCause, ShardId, ShardLifecycleState, SignFace,
-        SimError, SimShard, TickCoordinator, TickRate, TicketReason,
+        SimError, SimShard, SpawnedEntityKind, TickCoordinator, TickRate, TicketReason,
     };
 
     fn logical_id(world: WorldId, dimension: DimensionId, position: ShardPos) -> ShardId {
@@ -1675,6 +1675,7 @@ mod tests {
     /// Encodes every observable output field explicitly, including float bit
     /// patterns, so parity does not depend on `Debug` formatting or Rust memory
     /// layout.
+    #[allow(clippy::too_many_lines)] // one match over every GameOutput variant
     fn canonical_output_bytes(outputs: &[GameOutput]) -> Vec<u8> {
         let mut bytes = Vec::new();
         append_len(&mut bytes, outputs.len());
@@ -1746,6 +1747,34 @@ mod tests {
                     bytes.push(7);
                     append_player(&mut bytes, *player);
                     append_block_position(&mut bytes, *position);
+                }
+                GameOutput::EntitySpawned {
+                    entity,
+                    position,
+                    velocity,
+                    kind,
+                } => {
+                    bytes.push(8);
+                    bytes.extend_from_slice(&entity.get().to_be_bytes());
+                    append_position(&mut bytes, *position);
+                    // Velocity is a `Vec3`, encoded identically to a position.
+                    append_position(&mut bytes, *velocity);
+                    match kind {
+                        SpawnedEntityKind::Simple => bytes.push(0),
+                        SpawnedEntityKind::FallingBlock { block } => {
+                            bytes.push(1);
+                            bytes.extend_from_slice(&block.as_u32().to_be_bytes());
+                        }
+                    }
+                }
+                GameOutput::EntityMoved { entity, position } => {
+                    bytes.push(9);
+                    bytes.extend_from_slice(&entity.get().to_be_bytes());
+                    append_position(&mut bytes, *position);
+                }
+                GameOutput::EntityDespawned { entity } => {
+                    bytes.push(10);
+                    bytes.extend_from_slice(&entity.get().to_be_bytes());
                 }
             }
         }

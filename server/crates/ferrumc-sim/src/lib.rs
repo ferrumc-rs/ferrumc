@@ -85,7 +85,7 @@ pub use loaded::{
     load_or_generate, ChunkAcquired, ChunkProvenance, LoadedChunkMap, TicketRelease,
     CHUNK_SCHEMA_VERSION, OVERLAY_SCHEMA_VERSION,
 };
-pub use message::{GameInput, GameOutput};
+pub use message::{GameInput, GameOutput, SpawnedEntityKind};
 pub use physics::{AIR_DRAG_Y, GRAVITY_ARROW, GRAVITY_ITEM, GRAVITY_LIVING, GRAVITY_THROWN};
 // Only the cause is public: the structured `MutationResult` stays internal to
 // the shard so the app never confuses it with `ferrumc_observability::MutationResult`.

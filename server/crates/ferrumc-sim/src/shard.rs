@@ -22,7 +22,7 @@ use ferrumc_world::{
 use crate::cross_shard::{CrossShardIntent, CrossShardPayload};
 use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
-use crate::message::{GameInput, GameOutput};
+use crate::message::{GameInput, GameOutput, SpawnedEntityKind};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
 use crate::physics::{is_gravity_affected, AIR_DRAG_Y, GRAVITY_ITEM};
 use crate::region::{RegionLimits, RegionOp};
@@ -932,6 +932,7 @@ impl SimShard {
                             entity,
                             position,
                             velocity,
+                            kind: SpawnedEntityKind::Simple,
                         });
                     }
                 }
@@ -1437,6 +1438,7 @@ impl SimShard {
                 entity,
                 position: spawn_pos,
                 velocity: Vec3::ZERO,
+                kind: SpawnedEntityKind::FallingBlock { block: state },
             });
         }
     }
@@ -4356,6 +4358,7 @@ mod tests {
             entity,
             position: out_pos,
             velocity: out_vel,
+            ..
         } = outputs[0]
         else {
             panic!("expected EntitySpawned, got {:?}", outputs[0]);
@@ -4843,11 +4846,17 @@ mod tests {
         // Placed then immediately converted: the cell is air and an entity falls.
         assert!(block_at(&s, hang).is_some_and(BlockStateId::is_air));
         assert_eq!(s.entity_count(), 1);
+        // The spawn carries the falling-block kind + the removed block-state, so
+        // the session can render `minecraft:falling_block` with the right block.
         assert!(
-            outputs
-                .iter()
-                .any(|o| matches!(o, GameOutput::EntitySpawned { .. })),
-            "placing an unsupported gravity block should spawn a falling entity"
+            outputs.iter().any(|o| matches!(
+                o,
+                GameOutput::EntitySpawned {
+                    kind: SpawnedEntityKind::FallingBlock { block },
+                    ..
+                } if *block == BlockStateId::new(sand)
+            )),
+            "placing an unsupported gravity block should spawn a falling-block entity carrying its state"
         );
 
         // It settles as sand on the grass surface (top face y=64.0 -> cell y=64).
