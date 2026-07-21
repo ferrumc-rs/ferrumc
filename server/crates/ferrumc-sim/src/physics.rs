@@ -203,10 +203,36 @@ pub fn is_partial_solid_support(block_name: &str) -> bool {
             | "campfire"
             | "soul_campfire"
             | "sculk_sensor"
+            | "calibrated_sculk_sensor"
             | "sculk_shrieker"
             | "conduit"
             | "bell"
+            // Redstone components with a flat, low collision.
+            | "repeater"
+            | "comparator"
+            // Decorations and small growth (pointed or low collision).
+            | "sea_pickle"
+            | "flower_pot"
+            | "lily_pad"
+            | "lantern"
+            | "soul_lantern"
+            | "end_rod"
+            | "lightning_rod"
+            | "turtle_egg"
+            | "sniffer_egg"
+            | "pitcher_crop"
+            | "bamboo"
+            // Mob heads and skulls sitting on a block (floor variants).
+            | "skeleton_skull"
+            | "wither_skeleton_skull"
+            | "zombie_head"
+            | "player_head"
+            | "creeper_head"
+            | "piglin_head"
+            | "dragon_head"
     ) || block_name.ends_with("_bed")
+        || block_name.ends_with("_carpet")
+        || block_name.ends_with("candle")
 }
 
 #[cfg(test)]
@@ -312,6 +338,20 @@ mod tests {
             "campfire",
             "red_bed",
             "white_bed",
+            "pointed_dripstone",
+            "amethyst_cluster",
+            "repeater",
+            "comparator",
+            "sea_pickle",
+            "lily_pad",
+            "lightning_rod",
+            "bamboo",
+            "skeleton_skull",
+            "player_head",
+            "white_carpet",
+            "moss_carpet",
+            "white_candle",
+            "candle",
         ] {
             assert!(
                 is_partial_solid_support(name),
