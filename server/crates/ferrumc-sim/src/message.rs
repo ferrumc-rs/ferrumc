@@ -6,7 +6,7 @@
 //! sessions/network. The simulation never touches sockets; it only exchanges
 //! these typed messages.
 
-use ferrumc_core::{GameMode, PlayerId};
+use ferrumc_core::{EntityId, GameMode, PlayerId};
 use ferrumc_math::{BlockPos, Cuboid, Direction, Vec3};
 use ferrumc_world::{BlockStateId, Sign, SIGN_LINES};
 
@@ -159,6 +159,41 @@ pub enum GameInput {
         /// never applied.
         requested_state: BlockStateId,
     },
+    /// Spawn a non-player entity at `position` with an initial `velocity`.
+    ///
+    /// Produced by any authority that can introduce an entity into the world
+    /// (a plugin/command spawn, a future block-support failure that turns a
+    /// gravity block into a falling-block entity, a mob death that drops an
+    /// item). The simulation assigns a fresh [`EntityId`] at the tick boundary
+    /// and emits a matching [`GameOutput::EntitySpawned`] carrying that id so
+    /// the session layer can map it to a clientbound `SpawnEntity` packet. The
+    /// input carries no entity-type field yet: the first typed consumer (item
+    /// entities) will add one when it lands, together with the network-side
+    /// packet mapping — this milestone is entity-store plumbing only.
+    SpawnEntity {
+        /// World-space position the entity is created at.
+        position: Vec3,
+        /// Initial velocity in blocks per tick. Zero for a stationary spawn;
+        /// non-zero to seed a projectile or a falling block.
+        velocity: Vec3,
+        /// Per-tick downward acceleration in blocks per tick² (negative),
+        /// chosen from a [`crate::physics`] category constant — `GRAVITY_ITEM`
+        /// for an item/falling block, `GRAVITY_LIVING` for a mob, etc. The
+        /// spawner picks the category; the simulation stays type-agnostic.
+        gravity: f64,
+    },
+    /// Despawn the non-player entity with `entity`.
+    ///
+    /// Produced by any authority that removes an entity (an item picked up,
+    /// a projectile that landed, a falling block that finished falling, a mob
+    /// killed). Despawn for an absent entity is a silent no-op at the tick
+    /// boundary: retries after a natural removal never emit a spurious output.
+    /// On acceptance the shard emits a [`GameOutput::EntityDespawned`] the
+    /// session layer maps to a clientbound `RemoveEntities` packet.
+    DespawnEntity {
+        /// Identity of the entity to remove.
+        entity: EntityId,
+    },
     /// Set the authoritative server-side game mode of a player.
     ///
     /// Produced by the app's `/gamemode` command path (in addition to the
@@ -234,6 +269,33 @@ pub enum GameInput {
     },
 }
 
+/// How the session layer should render a freshly spawned non-player entity.
+///
+/// Carried by [`GameOutput::EntitySpawned`] so the session can pick the wire
+/// entity type (and any type-specific spawn data) without querying the shard.
+/// The simulation stays type-agnostic for physics — every kind falls under the
+/// same gravity/integration step — but the *client* needs the type to draw the
+/// right model, so the discriminant is threaded out here at spawn time.
+///
+/// `#[non_exhaustive]`: new kinds (item, TNT, projectile, ...) are added as
+/// their consumers land, so downstream `match`es must include a wildcard arm.
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[non_exhaustive]
+pub enum SpawnedEntityKind {
+    /// A generic entity with no type-specific spawn data yet. The session maps
+    /// it to a neutral entity type; used by type-agnostic spawns (plugin/command
+    /// paths) until a typed consumer supersedes them.
+    Simple,
+    /// A falling block. Carries the block-state the client renders mid-air; the
+    /// session maps it to the `minecraft:falling_block` entity type and threads
+    /// `block` into the `SpawnEntity` packet's type-specific data field.
+    FallingBlock {
+        /// The block-state the falling entity displays while airborne (the state
+        /// that was removed from the world when it began to fall).
+        block: BlockStateId,
+    },
+}
+
 /// An output produced by the simulation during a tick.
 ///
 /// Outputs are deterministic given the inbox contents: identical input
@@ -287,6 +349,51 @@ pub enum GameOutput {
     PlayerDespawned {
         /// Identity of the despawned player.
         player: PlayerId,
+    },
+    /// A non-player entity became present in the shard.
+    ///
+    /// Emitted at the tick boundary after a [`GameInput::SpawnEntity`] is
+    /// accepted, carrying the freshly allocated [`EntityId`] and the
+    /// authoritative spawn state so the session layer can build a clientbound
+    /// `SpawnEntity` packet (id, position, velocity) without a follow-up query
+    /// into the shard.
+    EntitySpawned {
+        /// Identity assigned to the new entity.
+        entity: EntityId,
+        /// World-space position the entity spawned at.
+        position: Vec3,
+        /// Initial velocity in blocks per tick.
+        velocity: Vec3,
+        /// What the entity is, so the session can pick the wire entity type and
+        /// any type-specific spawn data (e.g. a falling block's block-state).
+        kind: SpawnedEntityKind,
+    },
+    /// A non-player entity's position changed after per-tick physics
+    /// integration.
+    ///
+    /// Emitted at the tick boundary for every resident entity whose velocity is
+    /// non-zero: the shard integrates `position += velocity` and reports the new
+    /// absolute position so the session layer can broadcast a position update to
+    /// viewers. Zero-velocity entities emit nothing — the invariant that
+    /// outputs describe real state transitions holds. The current velocity is
+    /// not carried because clients extrapolate from prior velocity packets;
+    /// wire-side velocity is a separate packet the session layer sends when the
+    /// velocity itself changes (not implemented this milestone).
+    EntityMoved {
+        /// Identity of the moved entity.
+        entity: EntityId,
+        /// Current absolute world-space position after this tick's integration.
+        position: Vec3,
+    },
+    /// A non-player entity was removed from the shard.
+    ///
+    /// Emitted at the tick boundary after a [`GameInput::DespawnEntity`] for a
+    /// resident entity. A despawn for an already-absent entity emits nothing:
+    /// the invariant that outputs describe real state transitions is preserved
+    /// so a retry never doubles the client-visible removal.
+    EntityDespawned {
+        /// Identity of the removed entity.
+        entity: EntityId,
     },
     /// The block at `position` changed to `state`.
     ///

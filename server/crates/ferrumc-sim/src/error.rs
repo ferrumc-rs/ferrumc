@@ -42,6 +42,17 @@ pub enum SimError {
     #[error("simulation tick counter overflowed u64")]
     TickOverflow,
 
+    /// A [`SimShard`](crate::SimShard) could not allocate an entity id because
+    /// its per-shard counter would overflow [`i32`].
+    ///
+    /// Entity ids are signed 32-bit on the wire, so a shard can hand out at most
+    /// `i32::MAX` of them over its lifetime. Exhausting that range is unreachable
+    /// for a real shard (bounded to a handful of chunks), but it is surfaced as a
+    /// classified error rather than a panic so the counter can never wrap and
+    /// reissue an id that still refers to a live entity.
+    #[error("simulation shard exhausted its entity id range")]
+    EntityIdExhausted,
+
     /// Loading a chunk from the [`WorldStore`](ferrumc_storage::WorldStore)
     /// failed.
     ///
@@ -240,6 +251,9 @@ impl From<SimError> for ServerError {
             SimError::TickOverflow => {
                 ServerError::internal("simulation tick counter overflowed u64")
             }
+            SimError::EntityIdExhausted => {
+                ServerError::internal("simulation shard exhausted its entity id range")
+            }
             // Preserve the storage classification rather than flatten it.
             SimError::ChunkLoad { source, .. } => source,
             SimError::ShardRegionOutOfRange { position } => ServerError::invalid_state(format!(
@@ -352,6 +366,16 @@ mod tests {
     #[test]
     fn tick_overflow_maps_to_internal_server_error() {
         let server: ServerError = SimError::TickOverflow.into();
+        assert!(matches!(server, ServerError::Internal { .. }));
+    }
+
+    #[test]
+    fn entity_id_exhausted_is_classified_and_maps_to_internal() {
+        assert_eq!(
+            SimError::EntityIdExhausted.to_string(),
+            "simulation shard exhausted its entity id range"
+        );
+        let server: ServerError = SimError::EntityIdExhausted.into();
         assert!(matches!(server, ServerError::Internal { .. }));
     }
 

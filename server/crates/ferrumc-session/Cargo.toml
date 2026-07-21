@@ -37,9 +37,11 @@ tokio = { workspace = true }
 # `SessionError` is a thiserror enum so each failure mode is a classified variant
 # with a derived `Display`, per the library error-handling rule.
 thiserror = { workspace = true }
-# Boss-bar packets are keyed by a 128-bit `uuid::Uuid`; the scoreboard builders
-# accept one and forward it to the typed `BossBar` head (this crate never mints a
-# UUID itself — the caller derives a stable id for each bar).
+# A 128-bit `uuid::Uuid` is needed in two places: boss-bar packets are keyed by
+# one (the scoreboard builders accept it and forward it to the typed `BossBar`
+# head), and a non-player entity's clientbound `SpawnEntity` packet carries one
+# (unlike a player there is no `PlayerId` to source it from, so the router mints
+# a deterministic id from the entity's network id).
 uuid = { workspace = true }
 
 [dev-dependencies]
