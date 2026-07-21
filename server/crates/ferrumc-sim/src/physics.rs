@@ -89,80 +89,66 @@ pub fn is_gravity_affected(block_name: &str) -> bool {
     ) || block_name.ends_with("_concrete_powder")
 }
 
-/// Returns `true` if a falling block coming to rest in a cell already occupied by
-/// this block breaks instead of landing — the vanilla `FallingBlock` rule that a
-/// block cannot settle onto a non-full "object" (a torch, pressure plate, button,
-/// lever, rail, or redstone component).
-///
-/// `block_name` is the bare name (no `minecraft:` namespace). The check is on the
-/// *resting cell* only (the cell directly above the support block), so a wall
-/// torch attached to a side block — which lives in a different cell — never breaks
-/// a block falling down an adjacent column.
-///
-/// # Coverage
-///
-/// The clear non-replaceable objects a falling block breaks on. Replaceable
-/// growth (short grass, ferns, seagrass) and fluids are *not* here — a block
-/// settles through them. A full `replaceable` classification (to also break on
-/// flowers, dead bushes, …) needs a block property the vendored `blocks.json`
-/// does not carry, so this stays a focused, name-keyed set like
-/// [`is_gravity_affected`]. Extend as needed.
-#[must_use]
-pub fn breaks_falling_block(block_name: &str) -> bool {
-    matches!(
-        block_name,
-        "torch"
-            | "wall_torch"
-            | "soul_torch"
-            | "soul_wall_torch"
-            | "redstone_torch"
-            | "redstone_wall_torch"
-            | "lever"
-            | "rail"
-            | "powered_rail"
-            | "detector_rail"
-            | "activator_rail"
-            | "redstone_wire"
-            | "repeater"
-            | "comparator"
-            | "tripwire"
-            | "tripwire_hook"
-    ) || block_name.ends_with("_pressure_plate")
-        || block_name.ends_with("_button")
-}
-
 /// Returns `true` if `block_name` is *replaceable* — a fluid or soft growth that a
-/// block can be placed straight into, and that does **not** support a gravity
-/// block resting above it.
+/// block can be placed straight into.
 ///
-/// This mirrors the "free" half of vanilla's `FallingBlock::isFree`: a gravity
-/// block falls only when the block below it is air (checked separately) or one of
-/// these. Everything else — full cubes, but also non-full blocks like slabs,
-/// fences, redstone, and torches — counts as support, so a gravity block placed on
-/// top of it stays put. `block_name` is the bare name (no `minecraft:` namespace).
+/// This is the "free" half of vanilla's `FallingBlock::isFree`, and it drives two
+/// symmetric rules (see [`is_gravity_affected`] for the falling set):
 ///
-/// The vendored `blocks.json` carries no `replaceable` flag, so this is a focused
-/// name-keyed set (fluids and the common replaceable plants). Extend as needed.
+/// - **Support:** a *placed* gravity block falls only when the block below is air
+///   (checked separately) or replaceable. Anything else — full cubes, but also
+///   non-full blocks like slabs, fences, redstone, torches, saplings, signs —
+///   supports it, so it stays put.
+/// - **Break:** a *falling* gravity block that comes to rest in a cell holding a
+///   non-air, non-replaceable block (a torch, sapling, sign, flower, rail, …)
+///   breaks instead of settling; if the cell is air or replaceable it settles,
+///   replacing a fluid or plant.
+///
+/// So keying both rules off this one small set means every non-replaceable object
+/// breaks a faller and supports a placement, without enumerating each. `block_name`
+/// is the bare name (no `minecraft:` namespace). The vendored `blocks.json` carries
+/// no `replaceable` flag, so this is a focused name-keyed set; extend as new
+/// replaceable blocks are needed.
 #[must_use]
 pub fn is_replaceable(block_name: &str) -> bool {
     matches!(
         block_name,
-        "water"
+        // Air variants.
+        "cave_air"
+            | "void_air"
+            // Fluids.
+            | "water"
             | "lava"
+            // Grass and ferns.
             | "short_grass"
             | "tall_grass"
             | "fern"
             | "large_fern"
+            // Seagrass.
             | "seagrass"
             | "tall_seagrass"
+            // Fire.
             | "fire"
             | "soul_fire"
+            // Snow layer (the full `snow_block` is not this).
+            | "snow"
+            // Vines and multiface growth.
+            | "vine"
+            | "glow_lichen"
+            | "sculk_vein"
+            // Roots and sprouts.
+            | "hanging_roots"
+            | "warped_roots"
+            | "crimson_roots"
+            | "nether_sprouts"
+            // Misc.
+            | "structure_void"
     )
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{breaks_falling_block, is_gravity_affected, is_replaceable};
+    use super::{is_gravity_affected, is_replaceable};
 
     #[test]
     fn known_falling_blocks_are_affected() {
@@ -188,70 +174,55 @@ mod tests {
     }
 
     #[test]
-    fn objects_break_a_falling_block() {
-        for name in [
-            "torch",
-            "wall_torch",
-            "soul_torch",
-            "redstone_torch",
-            "lever",
-            "rail",
-            "powered_rail",
-            "stone_pressure_plate",
-            "oak_pressure_plate",
-            "stone_button",
-            "oak_button",
-        ] {
-            assert!(
-                breaks_falling_block(name),
-                "{name} should break a falling block"
-            );
-        }
-    }
-
-    #[test]
     fn fluids_and_soft_growth_are_replaceable() {
+        // A falling block settles through these (and a placed block over them
+        // falls): fluids, grass/ferns, seagrass, fire, snow layer, vines, roots.
         for name in [
             "water",
             "lava",
             "short_grass",
             "tall_grass",
             "fern",
+            "large_fern",
             "seagrass",
             "fire",
+            "snow",
+            "vine",
+            "glow_lichen",
+            "sculk_vein",
+            "warped_roots",
+            "nether_sprouts",
         ] {
             assert!(is_replaceable(name), "{name} should be replaceable");
         }
     }
 
     #[test]
-    fn supports_are_not_replaceable() {
-        // Full cubes and non-full blocks that still support a gravity block above.
-        for name in ["stone", "oak_slab", "oak_fence", "redstone_wire", "torch"] {
-            assert!(
-                !is_replaceable(name),
-                "{name} should support (not replaceable)"
-            );
-        }
-    }
-
-    #[test]
-    fn air_replaceable_and_full_blocks_do_not_break() {
-        // Air, replaceable growth, and ordinary solids are all fine to settle onto
-        // or through — none breaks a falling block.
+    fn objects_and_supports_are_not_replaceable() {
+        // Everything a falling block breaks on / rests on: full cubes, and non-full
+        // objects — torches, saplings, signs, flowers, crops, plates, buttons,
+        // rails, redstone. None is replaceable, so each breaks a faller and supports
+        // a placement.
         for name in [
-            "air",
-            "short_grass",
-            "tall_grass",
-            "fern",
-            "water",
             "stone",
-            "sand",
+            "oak_slab",
+            "oak_fence",
+            "torch",
+            "redstone_wire",
+            "oak_sign",
+            "oak_wall_sign",
+            "oak_sapling",
+            "dandelion",
+            "poppy",
+            "wheat",
+            "stone_pressure_plate",
+            "oak_button",
+            "lever",
+            "rail",
+            "dead_bush",
+            "sugar_cane",
         ] {
-            assert!(
-                !breaks_falling_block(name),
-                "{name} should not break a falling block"
-            );
+            assert!(!is_replaceable(name), "{name} should not be replaceable");
         }
     }
 }

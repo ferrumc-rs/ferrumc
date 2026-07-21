@@ -24,9 +24,7 @@ use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
 use crate::message::{GameInput, GameOutput, SpawnedEntityKind};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
-use crate::physics::{
-    breaks_falling_block, is_gravity_affected, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM,
-};
+use crate::physics::{is_gravity_affected, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM};
 use crate::region::{RegionLimits, RegionOp};
 use crate::scheduler::{CrossShardOutboxRestore, ScheduledTickInputs};
 
@@ -1310,14 +1308,15 @@ impl SimShard {
             if grounded {
                 if let EntityKind::FallingBlock { block } = state.kind {
                     let cell = block_cell(next);
-                    let occupant = self.authoritative_state(cell);
-                    let breaks = !occupant.is_air()
-                        && state_id_to_block_name(occupant.as_u32())
-                            .is_some_and(breaks_falling_block);
-                    if breaks {
-                        // The resting cell holds an object (torch, plate, …) the
-                        // block cannot settle onto: it breaks and vanishes (the
-                        // dropped item is deferred until item entities exist).
+                    // The resting cell holds a non-air, non-replaceable block (a
+                    // torch, sapling, sign, flower, plate, …) → the falling block
+                    // cannot settle onto it and breaks. Air or a replaceable fluid /
+                    // plant → it settles, replacing whatever is there. This is the
+                    // same non-replaceable test that decides support (see
+                    // `is_non_replaceable_block`).
+                    if is_non_replaceable_block(&self.chunks, cell) {
+                        // Breaks and vanishes (the dropped item is deferred until
+                        // item entities exist).
                         self.entities.remove(&entity);
                         outputs.push(GameOutput::EntityDespawned { entity });
                     } else {
@@ -1365,7 +1364,7 @@ impl SimShard {
             return;
         };
         let below = BlockPos::new(pos.x(), pos.y().saturating_sub(1), pos.z());
-        if is_falling_support(&self.chunks, below) {
+        if is_non_replaceable_block(&self.chunks, below) {
             return;
         }
 
@@ -2213,8 +2212,8 @@ fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
 /// The block-state at `pos` in the resident chunks, or `None` when that chunk is
 /// not resident on this shard. A resident air cell reads as `Some(`[`BlockStateId::AIR`]`)`.
 ///
-/// The shared read behind [`is_solid_block`] and [`is_falling_support`]: a free
-/// function taking only `&LoadedChunkMap`, so both can run while `entities` is
+/// The shared read behind [`is_solid_block`] and [`is_non_replaceable_block`]: a
+/// free function taking only `&LoadedChunkMap`, so both can run while `entities` is
 /// mutably borrowed (disjoint fields).
 fn block_state_at(chunks: &LoadedChunkMap, pos: BlockPos) -> Option<BlockStateId> {
     chunks
@@ -2222,16 +2221,21 @@ fn block_state_at(chunks: &LoadedChunkMap, pos: BlockPos) -> Option<BlockStateId
         .and_then(|c| c.get_block(pos))
 }
 
-/// Returns `true` if a gravity block resting on top of `pos` is supported and so
-/// does **not** fall.
+/// Returns `true` if `pos` holds a non-air, non-replaceable block — the vanilla
+/// `!FallingBlock::isFree` test that drives both falling-block rules.
 ///
-/// Unlike [`is_solid_block`] (which is the *collision* test — only a full cube
-/// stops a falling entity), support is broader: any non-air, non-replaceable block
-/// holds a gravity block above it, matching vanilla's `!FallingBlock::isFree`. So a
-/// block placed on a slab, fence, redstone dust, or torch stays put, while one over
-/// air, a fluid, or replaceable growth falls. A non-resident chunk reads as
-/// unsupported (a block over the shard edge falls into the void).
-fn is_falling_support(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
+/// Unlike [`is_solid_block`] (the *collision* test — only a full cube stops a
+/// falling entity), this is broader: any real block, full cube or not (slab, fence,
+/// redstone, torch, sapling, sign, …), counts. It answers two symmetric questions:
+///
+/// - **Support** (called on the cell *below* a gravity block): a placed block over
+///   such a cell stays put; over air or a replaceable fluid/plant it falls.
+/// - **Break** (called on a falling block's *resting cell*): a faller settling into
+///   such a cell breaks; into air or a replaceable cell it settles.
+///
+/// A non-resident chunk reads as free (a block over the shard edge falls into the
+/// void; a faller there does not break).
+fn is_non_replaceable_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
     let Some(state) = block_state_at(chunks, pos) else {
         return false;
     };
@@ -4893,42 +4897,54 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_falling_block_breaks_on_an_object_in_its_resting_cell() {
-        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
-        let sand = sand_state();
-        let torch = block_metadata("torch")
-            .expect("torch in registry")
-            .default_state;
-        // A torch sitting on the grass at y=63 occupies (8,64,8) — the resting cell
-        // a block falling down column 8 would settle into.
-        let torch_cell = BlockPos::new(8, 64, 8);
-        set_world_block(&mut s, torch_cell, torch);
+    async fn a_falling_block_breaks_on_any_object_in_its_resting_cell() {
+        // Every non-replaceable object in the resting cell breaks the faller, not
+        // just torches: saplings, signs, flowers, plates, rails, redstone, …. Each
+        // runs on a fresh shard; the object must survive and no block is placed.
+        for obj in [
+            "torch",
+            "oak_sign",
+            "oak_wall_sign",
+            "oak_sapling",
+            "dandelion",
+            "wheat",
+            "stone_pressure_plate",
+            "rail",
+            "redstone_wire",
+            "lever",
+        ] {
+            let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+            let sand = sand_state();
+            let obj_state = block_metadata(obj)
+                .unwrap_or_else(|| panic!("{obj} in registry"))
+                .default_state;
+            // The object sits on the grass at y=63, occupying (8,64,8) — the resting
+            // cell a block falling down column 8 would settle into.
+            let cell = BlockPos::new(8, 64, 8);
+            set_world_block(&mut s, cell, obj_state);
 
-        let id = s
-            .spawn_falling_block(
-                Vec3::new(8.5, 70.0, 8.5),
-                Vec3::ZERO,
-                crate::physics::GRAVITY_ITEM,
-                BlockStateId::new(sand),
-            )
-            .expect("id");
-        for _ in 0..80 {
-            s.run_tick();
-            if !s.contains_entity(id) {
-                break;
+            let id = s
+                .spawn_falling_block(
+                    Vec3::new(8.5, 70.0, 8.5),
+                    Vec3::ZERO,
+                    crate::physics::GRAVITY_ITEM,
+                    BlockStateId::new(sand),
+                )
+                .expect("id");
+            for _ in 0..80 {
+                s.run_tick();
+                if !s.contains_entity(id) {
+                    break;
+                }
             }
+            // Broke instead of settling: gone, object untouched, no sand placed.
+            assert!(!s.contains_entity(id), "the block should break on {obj}");
+            assert_eq!(
+                block_at(&s, cell),
+                Some(BlockStateId::new(obj_state)),
+                "{obj} survives; the block did not overwrite it"
+            );
         }
-        // The block broke instead of settling: it is gone, the torch is untouched,
-        // and no sand was placed in its cell.
-        assert!(
-            !s.contains_entity(id),
-            "the falling block should have broken"
-        );
-        assert_eq!(
-            block_at(&s, torch_cell),
-            Some(BlockStateId::new(torch)),
-            "the torch survives; the block did not overwrite it"
-        );
     }
 
     #[tokio::test]

@@ -48,28 +48,30 @@ pipeline already exist.
   49, block-state in the data field), per-tick move carriers, and
   `RemoveEntities` — scoped to viewers in range, with a network entity id
   allocated from the shared player/entity counter (no wire-id collision).
-  **6d — break-on-object done (partial):** a falling block whose resting cell (the
-  cell directly above the support) already holds a non-full object — a torch,
-  pressure plate, button, lever, rail, or redstone component
-  (`breaks_falling_block`) — breaks instead of settling. The check is on the
+  **6d/6e — break + support done, driven by one predicate:** both rules key off
+  vanilla's `!FallingBlock::isFree`, expressed as `is_replaceable` (the "free" set:
+  fluids, grass/ferns, seagrass, fire, snow layer, vines, roots) plus a shard-side
+  `is_non_replaceable_block` (non-air *and* non-replaceable). **Support:** a placed
+  gravity block falls only over air or a replaceable cell; over any real block —
+  full cube or not (slab, fence, redstone, torch, sapling, sign) — it stays put.
+  **Break:** a falling block settling into a resting cell that holds a non-air,
+  non-replaceable block (torch, sapling, sign, flower, crop, plate, button, lever,
+  rail, redstone, …) breaks instead of settling; into air or a replaceable cell it
+  settles, replacing a fluid or plant (water/lava included). The check is the
   resting cell only, so a wall torch on a side block never breaks a block falling
-  down an adjacent column. A falling block also settles *through* water/lava,
-  replacing the fluid in its resting cell (fluids are non-solid and replaceable).
-  **6e — support rule done:** a *placed* gravity block falls only when the block
-  below is air or replaceable (`is_replaceable` — fluids and soft growth), matching
-  vanilla's `!FallingBlock::isFree`. So a block placed on a slab, fence, redstone,
-  or torch stays put; it only breaks when it *falls* onto such a block (6d). Support
-  uses `is_falling_support` (non-air, non-replaceable), distinct from the collision
-  test `is_solid_block` (full cube) the sweep uses to stop a faller.
+  down an adjacent column. Keying both off one small `is_replaceable` set means
+  every non-replaceable object is covered without enumerating each. This is
+  distinct from the *collision* test `is_solid_block` (full cube) the sweep uses to
+  stop a faller mid-air.
   **Gaps:** "break" currently despawns the entity without dropping an item (item
-  entities pending); the object set is a focused name-keyed predicate, not a full
-  `replaceable` classification (the vendored `blocks.json` carries no replaceable
-  flag, so flowers/dead bushes are not yet covered); non-block entities in the
-  resting cell (item frames, paintings) are **not** destroyed on landing — those
-  entities do not exist in the server yet, and this logic only reads the block
-  grid, so the vanilla "falling block destroys the entity it lands on" rule waits
-  on the non-block entity system; replaced fluids do not re-flow, and concrete
-  powder does not convert to concrete in water (both need fluid simulation).
+  entities pending); `is_replaceable` is a name-keyed set (the vendored
+  `blocks.json` carries no `replaceable` flag) tracking the known vanilla set —
+  extend if a replaceable block is missed; non-block entities in the resting cell
+  (item frames, paintings) are **not** destroyed on landing — those entities do not
+  exist in the server yet, and this logic only reads the block grid, so the vanilla
+  "falling block destroys the entity it lands on" rule waits on the non-block
+  entity system; replaced fluids do not re-flow, and concrete powder does not
+  convert to concrete in water (both need fluid simulation).
   **Remaining refinements:** `scaffolding` lateral rules, landing damage
   (anvil/dripstone), item drop on break (needs item entities). **Still to do:**
   dropped items, projectiles, mobs (each needs a spawner + a `SpawnedEntityKind`
