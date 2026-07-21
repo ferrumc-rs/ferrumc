@@ -24,3 +24,7 @@ data_version = 4440
 # Packet id/type tables. The `spec_ids_match_vendored_protocol_json` test in
 # ferrumc-proto-gen cross-checks every spec packet id against this file.
 "protocol.json" = { sha256 = "06837c1cacd88149f951dde09951cc5ecfcd6280435e6e03729280f8b46e843a", bytes = 288649 }
+# Derived (not raw upstream): per-state collision-box top heights reduced from this
+# same pinned commit's `blockCollisionShapes.json` by `scripts/gen_collision_heights.py`.
+# Consumed by ferrumc-registry's build script to generate the `collision_top` table.
+"block_collision_heights.json" = { sha256 = "0af7b45337e1f523e476bbac2be777cf7c9edfccac44c06b029cd10af04d892d", bytes = 70614 }
