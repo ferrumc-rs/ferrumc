@@ -177,6 +177,12 @@ pub fn is_partial_solid_support(block_name: &str) -> bool {
             | "farmland"
             | "cactus"
             | "honey_block"
+            // Speleothems and amethyst growth (pointed, non-full collision).
+            | "pointed_dripstone"
+            | "amethyst_cluster"
+            | "small_amethyst_bud"
+            | "medium_amethyst_bud"
+            | "large_amethyst_bud"
             // Containers and utility blocks with a low collision top.
             | "chest"
             | "trapped_chest"
@@ -294,6 +300,8 @@ mod tests {
             "farmland",
             "cactus",
             "honey_block",
+            "pointed_dripstone",
+            "amethyst_cluster",
             "chest",
             "hopper",
             "cauldron",
