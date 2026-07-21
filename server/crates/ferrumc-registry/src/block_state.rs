@@ -82,6 +82,11 @@ pub struct BlockMetadata {
     /// Whether the block is a full solid cube (`boundingBox == "block"`), used by
     /// the placement layer to decide fence connectivity to non-fence neighbours.
     pub is_solid_cube: bool,
+    /// Collision-box top height (max Y, in blocks) per state. Length `1` when the
+    /// height is uniform across states (the common case), otherwise one entry per
+    /// state in state-id order (slabs, snow layers, dripstone differ across states).
+    /// See [`collision_top_y`] for the per-state lookup.
+    pub collision_top: &'static [f32],
     /// The block's properties, in state-id encoding order.
     pub properties: &'static [Property],
 }
@@ -133,6 +138,34 @@ pub fn state_id_to_block_name(state_id: u32) -> Option<&'static str> {
     let after = BLOCKS_BY_MIN_STATE.partition_point(|&(min, _, _)| min <= state_id);
     let (_, max, idx) = *BLOCKS_BY_MIN_STATE.get(after.checked_sub(1)?)?;
     (state_id <= max).then(|| BLOCKS[idx].name)
+}
+
+/// Returns the collision-box top height (max Y, in blocks) of the block state
+/// `state_id`, or `None` when no block owns that id.
+///
+/// The value classifies how a falling block interacts with the state as a *support*:
+/// `0.0` is no collision (a faller passes through, landing on the block below);
+/// `>= 1.0` is a full-height top (a faller settles on top of it); `0.0 < h < 1.0` is
+/// a non-full support (a slab, soul sand, dripstone tip, …) that a faller *lands on*
+/// but breaks against instead of settling, matching vanilla. Resolved per state, so
+/// a bottom slab (`0.5`) and a double slab (`1.0`) differ.
+///
+/// Binary-searches the same disjoint range table as [`state_id_to_block_name`], then
+/// indexes the owning block's per-state height slice (a uniform block stores one
+/// value shared by every state).
+#[must_use]
+pub fn collision_top_y(state_id: u32) -> Option<f32> {
+    let after = BLOCKS_BY_MIN_STATE.partition_point(|&(min, _, _)| min <= state_id);
+    let (min, max, idx) = *BLOCKS_BY_MIN_STATE.get(after.checked_sub(1)?)?;
+    if state_id > max {
+        return None;
+    }
+    let tops = BLOCKS[idx].collision_top;
+    if tops.len() == 1 {
+        tops.first().copied()
+    } else {
+        tops.get((state_id - min) as usize).copied()
+    }
 }
 
 /// Returns the place value (multiplier) of property `pi` in the block's linear
@@ -195,8 +228,8 @@ mod catalog_tests {
     use std::path::PathBuf;
 
     use super::{
-        block_default_state, block_metadata, compute_state_id, state_id_to_block_name,
-        PropertyType, BLOCK_COUNT,
+        block_default_state, block_metadata, collision_top_y, compute_state_id,
+        state_id_to_block_name, PropertyType, BLOCK_COUNT,
     };
 
     /// The vendored snapshot the generated tables are built from.
@@ -478,5 +511,32 @@ mod catalog_tests {
         assert_eq!(state_id_to_block_name(6003), Some("oak_fence"));
         // Past the end of the registry there is no owning block.
         assert_eq!(state_id_to_block_name(u32::MAX), None);
+    }
+
+    #[test]
+    fn collision_top_y_classifies_supports() {
+        // Full cubes top at 1.0; open blocks at 0.0; partials in between.
+        let full = |name: &str| collision_top_y(block_default_state(name).unwrap());
+        assert_eq!(full("stone"), Some(1.0));
+        assert_eq!(full("torch"), Some(0.0));
+        assert_eq!(full("soul_sand"), Some(0.875));
+        assert_eq!(full("farmland"), Some(0.9375));
+        assert_eq!(full("repeater"), Some(0.125));
+
+        // Per-state: a bottom slab is half height, a double slab a full cube.
+        let bottom = compute_state_id(
+            "oak_slab",
+            &BTreeMap::from([("type", "bottom"), ("waterlogged", "false")]),
+        )
+        .unwrap();
+        let double = compute_state_id(
+            "oak_slab",
+            &BTreeMap::from([("type", "double"), ("waterlogged", "false")]),
+        )
+        .unwrap();
+        assert_eq!(collision_top_y(bottom), Some(0.5));
+        assert_eq!(collision_top_y(double), Some(1.0));
+
+        assert_eq!(collision_top_y(u32::MAX), None);
     }
 }

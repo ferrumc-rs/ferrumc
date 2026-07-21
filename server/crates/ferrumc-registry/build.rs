@@ -133,12 +133,14 @@ fn main() {
     let items_path = data_dir.join("items.json");
     let mapping_path = data_dir.join("item_to_block_mapping.json");
     let blocks_path = data_dir.join("blocks.json");
+    let collision_path = data_dir.join("block_collision_heights.json");
 
     // Re-run only when the vendored data (or this generator) changes.
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed={}", items_path.display());
     println!("cargo:rerun-if-changed={}", mapping_path.display());
     println!("cargo:rerun-if-changed={}", blocks_path.display());
+    println!("cargo:rerun-if-changed={}", collision_path.display());
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
 
@@ -148,7 +150,8 @@ fn main() {
     let dest = out_dir.join("items_generated.rs");
     fs::write(&dest, source).unwrap_or_else(|e| panic!("failed to write {}: {e}", dest.display()));
 
-    let blocks = load_blocks(&blocks_path);
+    let collision_heights = load_collision_heights(&collision_path);
+    let blocks = load_blocks(&blocks_path, &collision_heights);
     let blocks_source = emit_blocks(&blocks);
     let blocks_dest = out_dir.join("blocks_generated.rs");
     fs::write(&blocks_dest, blocks_source)
@@ -204,13 +207,41 @@ struct Block {
     max_state: u32,
     is_solid_cube: bool,
     properties: Vec<Property>,
+    /// Collision-box top height (max Y, in blocks) per state. Length `1` when every
+    /// state shares one height (the common case), otherwise one entry per state in
+    /// state-id order (slabs, snow layers, dripstone vary). Sourced from the vendored
+    /// `data/block_collision_heights.json` (derived from `PrismarineJS`
+    /// `blockCollisionShapes`); a block absent from that file falls back to the coarse
+    /// `boundingBox` (`1.0` for a full cube, `0.0` for none).
+    collision_top: Vec<f32>,
+}
+
+/// Loads the derived per-state collision-top heights: a map of block name to either a
+/// single height (uniform) or an ordered per-state list. Values are JSON numbers.
+fn load_collision_heights(path: &Path) -> BTreeMap<String, Vec<f32>> {
+    let raw = fs::read_to_string(path)
+        .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+    let map: BTreeMap<String, serde_json::Value> = serde_json::from_str(&raw)
+        .unwrap_or_else(|e| panic!("block_collision_heights.json is not the expected schema: {e}"));
+    map.into_iter()
+        .map(|(name, value)| {
+            let heights = match value {
+                serde_json::Value::Array(items) => items
+                    .iter()
+                    .map(|v| v.as_f64().unwrap_or(0.0) as f32)
+                    .collect(),
+                other => vec![other.as_f64().unwrap_or(0.0) as f32],
+            };
+            (name, heights)
+        })
+        .collect()
 }
 
 /// Parses `blocks.json` into normalised [`Block`]s, asserting the block-state
 /// encoding invariants: `min <= default <= max`, the dense range width equals the
 /// product of the property cardinalities (the little-endian linear encoding), all
 /// names are unique, and no two blocks' state ranges overlap.
-fn load_blocks(blocks_path: &Path) -> Vec<Block> {
+fn load_blocks(blocks_path: &Path, heights: &BTreeMap<String, Vec<f32>>) -> Vec<Block> {
     let raw = fs::read_to_string(blocks_path)
         .unwrap_or_else(|e| panic!("failed to read {}: {e}", blocks_path.display()));
     // blocks.json is a JSON ARRAY of block entries.
@@ -281,14 +312,26 @@ fn load_blocks(blocks_path: &Path) -> Vec<Block> {
 
             ranges.push((b.min_state_id, b.max_state_id, b.name.clone()));
 
+            // Per-state collision-top heights: use the derived list when it is either a
+            // single uniform value or exactly one value per state; otherwise fall back
+            // to the coarse `boundingBox` (a full cube tops at 1.0, no collision at 0.0)
+            // so a malformed or missing entry can never mis-index a state.
+            let nstates = (b.max_state_id - b.min_state_id + 1) as usize;
+            let is_solid_cube = b.bounding_box == "block";
+            let collision_top = match heights.get(&b.name) {
+                Some(hs) if hs.len() == 1 || hs.len() == nstates => hs.clone(),
+                _ => vec![if is_solid_cube { 1.0 } else { 0.0 }],
+            };
+
             Block {
                 id: b.id,
                 name: b.name,
                 default_state: b.default_state,
                 min_state: b.min_state_id,
                 max_state: b.max_state_id,
-                is_solid_cube: b.bounding_box == "block",
+                is_solid_cube,
                 properties,
+                collision_top,
             }
         })
         .collect();
@@ -346,6 +389,11 @@ fn emit_blocks(blocks: &[Block]) -> String {
             "name: {:?}, id: {}, default_state: {}, min_state: {}, max_state: {}, is_solid_cube: {}, ",
             b.name, b.id, b.default_state, b.min_state, b.max_state, b.is_solid_cube
         );
+        out.push_str("collision_top: &[");
+        for h in &b.collision_top {
+            let _ = write!(out, "{h:?}, ");
+        }
+        out.push_str("], ");
         if b.properties.is_empty() {
             out.push_str("properties: &[] },\n");
         } else {
