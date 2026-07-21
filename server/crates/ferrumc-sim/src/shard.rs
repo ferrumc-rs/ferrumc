@@ -2199,10 +2199,7 @@ fn block_cell(pos: Vec3) -> BlockPos {
 /// entity falling past the shard edge is never grounded by a chunk this shard
 /// does not own.
 fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
-    let Some(state) = chunks
-        .get(pos.to_chunk_pos())
-        .and_then(|c| c.get_block(pos))
-    else {
+    let Some(state) = block_state_at(chunks, pos) else {
         return false;
     };
     if state.is_air() {
@@ -2211,6 +2208,18 @@ fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
     state_id_to_block_name(state.as_u32())
         .and_then(block_metadata)
         .is_some_and(|m| m.is_solid_cube)
+}
+
+/// The block-state at `pos` in the resident chunks, or `None` when that chunk is
+/// not resident on this shard. A resident air cell reads as `Some(`[`BlockStateId::AIR`]`)`.
+///
+/// The shared read behind [`is_solid_block`] and [`is_falling_support`]: a free
+/// function taking only `&LoadedChunkMap`, so both can run while `entities` is
+/// mutably borrowed (disjoint fields).
+fn block_state_at(chunks: &LoadedChunkMap, pos: BlockPos) -> Option<BlockStateId> {
+    chunks
+        .get(pos.to_chunk_pos())
+        .and_then(|c| c.get_block(pos))
 }
 
 /// Returns `true` if a gravity block resting on top of `pos` is supported and so
@@ -2223,10 +2232,7 @@ fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
 /// air, a fluid, or replaceable growth falls. A non-resident chunk reads as
 /// unsupported (a block over the shard edge falls into the void).
 fn is_falling_support(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
-    let Some(state) = chunks
-        .get(pos.to_chunk_pos())
-        .and_then(|c| c.get_block(pos))
-    else {
+    let Some(state) = block_state_at(chunks, pos) else {
         return false;
     };
     if state.is_air() {
