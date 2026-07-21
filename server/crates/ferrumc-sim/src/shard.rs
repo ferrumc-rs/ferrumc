@@ -24,7 +24,9 @@ use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
 use crate::message::{GameInput, GameOutput, SpawnedEntityKind};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
-use crate::physics::{is_gravity_affected, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM};
+use crate::physics::{
+    is_gravity_affected, is_partial_solid_support, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM,
+};
 use crate::region::{RegionLimits, RegionOp};
 use crate::scheduler::{CrossShardOutboxRestore, ScheduledTickInputs};
 
@@ -1329,13 +1331,19 @@ impl SimShard {
             if grounded {
                 if let EntityKind::FallingBlock { block } = state.kind {
                     let cell = block_cell(next);
-                    // The resting cell holds a non-air, non-replaceable block (a
-                    // torch, sapling, sign, flower, plate, …) → the falling block
-                    // cannot settle onto it and breaks. Air or a replaceable fluid /
-                    // plant → it settles, replacing whatever is there. This is the
-                    // same non-replaceable test that decides support (see
-                    // `is_non_replaceable_block`).
-                    if is_non_replaceable_block(&self.chunks, cell) {
+                    let support = BlockPos::new(cell.x(), cell.y().saturating_sub(1), cell.z());
+                    // A faller breaks instead of settling in two vanilla cases:
+                    // (1) its resting cell already holds a non-air, non-replaceable
+                    // block it fell through — a torch, sapling, sign, plate, … (an
+                    // `"empty"`-box object) — so it cannot occupy the cell; or (2) it
+                    // came to rest on top of a solid but non-full-height support — a
+                    // slab, soul sand, farmland, chest, … — whose real collision top
+                    // is below a full cube, so vanilla sinks the faller into that
+                    // block's cell and breaks it. Air or a replaceable fluid/plant in
+                    // the resting cell, over a genuine full cube, settles.
+                    if is_non_replaceable_block(&self.chunks, cell)
+                        || lands_and_breaks_on_support(&self.chunks, support)
+                    {
                         // Breaks and vanishes (the dropped item is deferred until
                         // item entities exist).
                         self.entities.remove(&entity);
@@ -2268,6 +2276,61 @@ fn is_non_replaceable_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
         return false;
     }
     !state_id_to_block_name(state.as_u32()).is_some_and(is_replaceable)
+}
+
+/// Returns `true` if the block at `pos` is a solid support a falling block lands on
+/// but breaks against instead of settling atop — a non-full-height solid (slab, soul
+/// sand, farmland, chest, …).
+///
+/// This closes the vanilla case the resting-cell test alone misses: a faller's
+/// collision (which treats every `boundingBox == "block"` block as a full cube, for
+/// want of per-shape height in the vendored data) stops it on *top* of a half-height
+/// block, so its resting cell is the air above and the plain break test settles it.
+/// Vanilla instead sinks the faller's feet into the block's own cell and breaks it.
+/// Checking the support directly restores that outcome: a faller settling onto such a
+/// block breaks. See [`is_partial_solid_support`]. A slab is a full cube only in its
+/// `double` state, decoded via [`slab_is_double`], so a faller settles on a double
+/// slab and breaks on a single. A non-resident chunk reads as no such support.
+fn lands_and_breaks_on_support(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
+    let Some(state) = block_state_at(chunks, pos) else {
+        return false;
+    };
+    if state.is_air() {
+        return false;
+    }
+    let Some(name) = state_id_to_block_name(state.as_u32()) else {
+        return false;
+    };
+    if is_partial_solid_support(name) {
+        return true;
+    }
+    name.ends_with("_slab") && !slab_is_double(name, state.as_u32())
+}
+
+/// Decodes a slab state's `type` property, returning `true` for the full-cube
+/// `double` variant (`top`/`bottom` are half-height).
+///
+/// Reads the registry's exposed dense state encoding — the state id is
+/// `min_state + Σ digitᵢ · (product of later property cardinalities)` — so the
+/// `type` digit is `(state − min_state) / later % cardinality`. Allocation-free and
+/// deterministic; returns `false` for a block without a `type` property.
+fn slab_is_double(name: &str, state_id: u32) -> bool {
+    let Some(meta) = block_metadata(name) else {
+        return false;
+    };
+    let mut later: u32 = 1;
+    for prop in meta.properties.iter().rev() {
+        let card = prop.cardinality as u32;
+        if prop.name == "type" {
+            let digit = (state_id.saturating_sub(meta.min_state) / later) % card;
+            return prop
+                .values
+                .get(digit as usize)
+                .is_some_and(|v| *v == "double");
+        }
+        later = later.saturating_mul(card);
+    }
+    false
 }
 
 /// The collision box of a non-player entity: horizontal `half_width` (the box is
@@ -5001,6 +5064,78 @@ mod tests {
             block_at(&s, BlockPos::new(8, 64, 8)),
             Some(BlockStateId::new(sand)),
             "the block should replace the water it settled into"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_falling_block_breaks_on_a_non_full_support_but_settles_on_a_double_slab() {
+        use ferrumc_registry::block_state::compute_state_id;
+
+        // A faller that lands on a solid but non-full-height support (a single slab,
+        // soul sand, farmland, cake) breaks instead of settling atop it: the support
+        // survives and nothing is placed in the air cell above.
+        for support in ["oak_slab", "soul_sand", "farmland", "cake"] {
+            let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+            let sand = sand_state();
+            let support_state = block_metadata(support)
+                .unwrap_or_else(|| panic!("{support} in registry"))
+                .default_state;
+            let cell = BlockPos::new(8, 64, 8);
+            set_world_block(&mut s, cell, support_state);
+            let id = s
+                .spawn_falling_block(
+                    Vec3::new(8.5, 70.0, 8.5),
+                    Vec3::ZERO,
+                    crate::physics::GRAVITY_ITEM,
+                    BlockStateId::new(sand),
+                )
+                .expect("id");
+            for _ in 0..80 {
+                s.run_tick();
+                if !s.contains_entity(id) {
+                    break;
+                }
+            }
+            assert!(
+                !s.contains_entity(id),
+                "the block should break landing on {support}"
+            );
+            assert_eq!(
+                block_at(&s, cell),
+                Some(BlockStateId::new(support_state)),
+                "{support} survives the break"
+            );
+            assert_eq!(
+                block_at(&s, BlockPos::new(8, 65, 8)),
+                Some(BlockStateId::AIR),
+                "nothing is placed above {support}"
+            );
+        }
+
+        // A double slab is a genuine full cube, so the faller settles on top of it.
+        let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
+        let sand = sand_state();
+        let double = compute_state_id("oak_slab", &BTreeMap::from([("type", "double")]))
+            .expect("double slab state");
+        set_world_block(&mut s, BlockPos::new(8, 64, 8), double);
+        let id = s
+            .spawn_falling_block(
+                Vec3::new(8.5, 70.0, 8.5),
+                Vec3::ZERO,
+                crate::physics::GRAVITY_ITEM,
+                BlockStateId::new(sand),
+            )
+            .expect("id");
+        for _ in 0..80 {
+            s.run_tick();
+            if !s.contains_entity(id) {
+                break;
+            }
+        }
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 65, 8)),
+            Some(BlockStateId::new(sand)),
+            "the block settles on top of a double slab"
         );
     }
 

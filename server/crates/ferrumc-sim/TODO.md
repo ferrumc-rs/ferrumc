@@ -63,10 +63,20 @@ pipeline already exist.
   every non-replaceable object is covered without enumerating each. This is
   distinct from the *collision* test `is_solid_block` (full cube) the sweep uses to
   stop a faller mid-air.
+  **Non-full-support break also done:** a faller that lands on a solid but
+  non-full-height block (a slab, soul sand, farmland, chest, cake, …) breaks
+  instead of settling atop it, matching vanilla. Because the vendored `blocks.json`
+  records only a coarse `boundingBox` (`"block"`/`"empty"`) with no per-shape
+  collision height, the sweep treats every `"block"` box as a full cube and stops
+  the faller on top; a name-keyed `is_partial_solid_support` set plus a slab `type`
+  decode (`slab_is_double`, so a faller settles on a double slab and breaks on a
+  single) restore the break. Stairs and any partial block outside that set are the
+  remaining gap.
   **Gaps:** "break" currently despawns the entity without dropping an item (item
-  entities pending); `is_replaceable` is a name-keyed set (the vendored
-  `blocks.json` carries no `replaceable` flag) tracking the known vanilla set —
-  extend if a replaceable block is missed; non-block entities in the resting cell
+  entities pending); `is_replaceable` and `is_partial_solid_support` are name-keyed
+  sets (the vendored `blocks.json` carries no `replaceable` flag or per-shape
+  collision height) tracking the known vanilla sets — extend if a block is missed;
+  non-block entities in the resting cell
   (item frames, paintings) are **not** destroyed on landing — those entities do not
   exist in the server yet, and this logic only reads the block grid, so the vanilla
   "falling block destroys the entity it lands on" rule waits on the non-block

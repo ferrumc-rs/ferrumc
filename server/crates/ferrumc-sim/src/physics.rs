@@ -146,9 +146,66 @@ pub fn is_replaceable(block_name: &str) -> bool {
     )
 }
 
+/// Returns `true` if `block_name` is a *solid but not full-height* block — one a
+/// falling block lands on top of (its collision stops the fall) yet cannot settle
+/// atop, so the faller breaks instead of placing, matching vanilla.
+///
+/// Vanilla decides this from the block's collision shape: a falling block's feet come
+/// to rest at the block's collision top, and if that top is below a full cube the
+/// feet end up *inside* the block's own cell (a non-replaceable cell) and the block
+/// breaks. The vendored `blocks.json` records only a coarse `boundingBox` (`"block"`
+/// vs `"empty"`) with no per-shape height, so a full cube (stone) and a half-height
+/// solid (slab, soul sand, farmland) both read as `"block"` and are indistinguishable
+/// by that flag. This name-keyed set names the common `"block"`-box solids whose
+/// collision top is below `1.0`, which a faller breaks on.
+///
+/// Slabs are **not** listed here: their `double` state is a genuine full cube, so a
+/// slab is resolved at the call site (see `lands_and_breaks_on_support` in the shard)
+/// where the state's `type` property is available. Blocks with an `"empty"` box
+/// (torch, rail, sign) are handled by the resting-cell test instead — a faller falls
+/// *through* them onto the solid below, leaving the object in its resting cell. This
+/// set is name-keyed like [`is_gravity_affected`] and [`is_replaceable`]; extend it as
+/// coverage grows. `block_name` is the bare name (no `minecraft:` namespace).
+#[must_use]
+pub fn is_partial_solid_support(block_name: &str) -> bool {
+    matches!(
+        block_name,
+        // Non-full natural/soil blocks (collision top below 1.0).
+        "soul_sand"
+            | "mud"
+            | "dirt_path"
+            | "farmland"
+            | "cactus"
+            | "honey_block"
+            // Containers and utility blocks with a low collision top.
+            | "chest"
+            | "trapped_chest"
+            | "ender_chest"
+            | "hopper"
+            | "cauldron"
+            | "water_cauldron"
+            | "lava_cauldron"
+            | "powder_snow_cauldron"
+            | "composter"
+            | "brewing_stand"
+            | "enchanting_table"
+            | "stonecutter"
+            | "grindstone"
+            | "lectern"
+            | "daylight_detector"
+            | "cake"
+            | "campfire"
+            | "soul_campfire"
+            | "sculk_sensor"
+            | "sculk_shrieker"
+            | "conduit"
+            | "bell"
+    ) || block_name.ends_with("_bed")
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{is_gravity_affected, is_replaceable};
+    use super::{is_gravity_affected, is_partial_solid_support, is_replaceable};
 
     #[test]
     fn known_falling_blocks_are_affected() {
@@ -223,6 +280,55 @@ mod tests {
             "sugar_cane",
         ] {
             assert!(!is_replaceable(name), "{name} should not be replaceable");
+        }
+    }
+
+    #[test]
+    fn non_full_solids_are_partial_supports() {
+        // A falling block lands on these but breaks instead of settling atop (their
+        // collision top is below a full cube). Slabs/beds via suffix.
+        for name in [
+            "soul_sand",
+            "mud",
+            "dirt_path",
+            "farmland",
+            "cactus",
+            "honey_block",
+            "chest",
+            "hopper",
+            "cauldron",
+            "enchanting_table",
+            "stonecutter",
+            "daylight_detector",
+            "cake",
+            "campfire",
+            "red_bed",
+            "white_bed",
+        ] {
+            assert!(
+                is_partial_solid_support(name),
+                "{name} should be a partial support"
+            );
+        }
+    }
+
+    #[test]
+    fn full_cubes_are_not_partial_supports() {
+        // A faller settles on top of these full cubes (the resting cell above is air).
+        // Slabs are resolved by state at the call site, not this name set.
+        for name in [
+            "stone",
+            "dirt",
+            "grass_block",
+            "sand",
+            "slime_block",
+            "oak_planks",
+            "oak_slab",
+        ] {
+            assert!(
+                !is_partial_solid_support(name),
+                "{name} should not be a partial support"
+            );
         }
     }
 }
