@@ -32,8 +32,12 @@ pipeline already exist.
   tunnels through a one-block floor/wall and horizontal collision resolves.
   Landing sets `on_ground`; a grounded entity re-checks its floor each tick and
   falls again when it is removed. An entity past the world bottom
-  (`VOID_DESPAWN_Y`) is despawned. **Remaining in this area:** per-shape support
-  AABBs (slabs/stairs collide as full cubes today, via `is_solid_cube`).
+  (`VOID_DESPAWN_Y`) is despawned. **Remaining in this area:** the *sweep* still
+  grounds a faller at a full-cube top (it stops on `is_solid_cube` blocks), so the
+  exact rest height and horizontal shapes are full-cube; the falling-block *break*
+  decision is already shape-accurate (it reads the real per-state collision top, see
+  6d/6e). A full per-shape collision sweep (slab halves, stair steps) is the next
+  refinement.
 - [~] 6. Vanilla consumers. **Falling blocks done (6a + 6b + 6c):** a placed
   gravity-affected block (sand, gravel, concrete powder, anvil, …) with no
   support, or one whose support is broken, converts to a falling-block entity
@@ -63,20 +67,21 @@ pipeline already exist.
   every non-replaceable object is covered without enumerating each. This is
   distinct from the *collision* test `is_solid_block` (full cube) the sweep uses to
   stop a faller mid-air.
-  **Non-full-support break also done:** a faller that lands on a solid but
-  non-full-height block (a slab, soul sand, farmland, chest, cake, …) breaks
-  instead of settling atop it, matching vanilla. Because the vendored `blocks.json`
-  records only a coarse `boundingBox` (`"block"`/`"empty"`) with no per-shape
-  collision height, the sweep treats every `"block"` box as a full cube and stops
-  the faller on top; a name-keyed `is_partial_solid_support` set plus a slab `type`
-  decode (`slab_is_double`, so a faller settles on a double slab and breaks on a
-  single) restore the break. Stairs and any partial block outside that set are the
-  remaining gap.
+  **Non-full-support break also done, data-driven:** a faller that lands on a solid
+  but non-full-height block (a slab, soul sand, farmland, chest, cake, dripstone tip,
+  …) breaks instead of settling atop it, matching vanilla. The rule reads the real
+  per-state collision-top height from the registry (`collision_top_y`, backed by the
+  vendored `data/block_collision_heights.json` derived from `PrismarineJS`
+  `blockCollisionShapes`): `breaks_on_support` breaks the faller when the support's
+  top is `0 < h < 1` (a bottom slab `0.5` breaks, a double slab `1.0` settles, stairs
+  `1.0` settle), with no block-name list to maintain. This replaced the earlier
+  name-keyed `is_partial_solid_support` set and the slab `type` decode entirely.
   **Gaps:** "break" currently despawns the entity without dropping an item (item
-  entities pending); `is_replaceable` and `is_partial_solid_support` are name-keyed
-  sets (the vendored `blocks.json` carries no `replaceable` flag or per-shape
-  collision height) tracking the known vanilla sets — extend if a block is missed;
-  non-block entities in the resting cell
+  entities pending); `is_replaceable` is still a name-keyed set (the vendored
+  `blocks.json` carries no `replaceable` flag) tracking the known vanilla set — extend
+  if a block is missed; the sweep grounding is still full-cube (see step 5), so a
+  faller's exact rest height ignores partial shapes even though its break/settle
+  outcome is correct; non-block entities in the resting cell
   (item frames, paintings) are **not** destroyed on landing — those entities do not
   exist in the server yet, and this logic only reads the block grid, so the vanilla
   "falling block destroys the entity it lands on" rule waits on the non-block

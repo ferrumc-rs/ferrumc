@@ -12,7 +12,7 @@ use ferrumc_placement::{
     compute_fence_connection_state, compute_placement, is_water_source, NeighborQuery,
     PlacementContext, PlacementResult, PlacementRule,
 };
-use ferrumc_registry::block_state::{block_metadata, state_id_to_block_name};
+use ferrumc_registry::block_state::{block_metadata, collision_top_y, state_id_to_block_name};
 use ferrumc_registry::dimension;
 use ferrumc_world::{
     is_chest_state, sign_kind_for_state, BlockEntity, BlockStateId, ChestInventory, Sign,
@@ -24,9 +24,7 @@ use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
 use crate::message::{GameInput, GameOutput, SpawnedEntityKind};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
-use crate::physics::{
-    is_gravity_affected, is_partial_solid_support, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM,
-};
+use crate::physics::{is_gravity_affected, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM};
 use crate::region::{RegionLimits, RegionOp};
 use crate::scheduler::{CrossShardOutboxRestore, ScheduledTickInputs};
 
@@ -1342,7 +1340,7 @@ impl SimShard {
                     // block's cell and breaks it. Air or a replaceable fluid/plant in
                     // the resting cell, over a genuine full cube, settles.
                     if is_non_replaceable_block(&self.chunks, cell)
-                        || lands_and_breaks_on_support(&self.chunks, support)
+                        || breaks_on_support(&self.chunks, support)
                     {
                         // Breaks and vanishes (the dropped item is deferred until
                         // item entities exist).
@@ -2279,58 +2277,26 @@ fn is_non_replaceable_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
 }
 
 /// Returns `true` if the block at `pos` is a solid support a falling block lands on
-/// but breaks against instead of settling atop — a non-full-height solid (slab, soul
-/// sand, farmland, chest, …).
+/// but breaks against instead of settling atop — one whose collision top is below a
+/// full cube (a slab, soul sand, farmland, chest, dripstone tip, …).
 ///
-/// This closes the vanilla case the resting-cell test alone misses: a faller's
-/// collision (which treats every `boundingBox == "block"` block as a full cube, for
-/// want of per-shape height in the vendored data) stops it on *top* of a half-height
-/// block, so its resting cell is the air above and the plain break test settles it.
-/// Vanilla instead sinks the faller's feet into the block's own cell and breaks it.
-/// Checking the support directly restores that outcome: a faller settling onto such a
-/// block breaks. See [`is_partial_solid_support`]. A slab is a full cube only in its
-/// `double` state, decoded via [`slab_is_double`], so a faller settles on a double
-/// slab and breaks on a single. A non-resident chunk reads as no such support.
-fn lands_and_breaks_on_support(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
+/// Vanilla decides this from the support's collision shape: a faller comes to rest at
+/// the support's collision top, so a top strictly below `1.0` sinks the faller's feet
+/// into the support's own (non-replaceable) cell and breaks it, while a full-height
+/// top leaves the faller in the clear cell above, where it settles. The height is read
+/// per state from the registry ([`collision_top_y`]), so a bottom slab (`0.5`) breaks
+/// and a double slab (`1.0`) settles, with no block-name list to maintain. A support
+/// with no collision (`0.0`) never stops a faller here — it fell through to the block
+/// below, leaving that thin object in the resting cell for the
+/// [`is_non_replaceable_block`] test. A non-resident chunk reads as no such support.
+fn breaks_on_support(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
     let Some(state) = block_state_at(chunks, pos) else {
         return false;
     };
-    if state.is_air() {
-        return false;
+    match collision_top_y(state.as_u32()) {
+        Some(top) => top > 0.0 && top < 1.0,
+        None => false,
     }
-    let Some(name) = state_id_to_block_name(state.as_u32()) else {
-        return false;
-    };
-    if is_partial_solid_support(name) {
-        return true;
-    }
-    name.ends_with("_slab") && !slab_is_double(name, state.as_u32())
-}
-
-/// Decodes a slab state's `type` property, returning `true` for the full-cube
-/// `double` variant (`top`/`bottom` are half-height).
-///
-/// Reads the registry's exposed dense state encoding — the state id is
-/// `min_state + Σ digitᵢ · (product of later property cardinalities)` — so the
-/// `type` digit is `(state − min_state) / later % cardinality`. Allocation-free and
-/// deterministic; returns `false` for a block without a `type` property.
-fn slab_is_double(name: &str, state_id: u32) -> bool {
-    let Some(meta) = block_metadata(name) else {
-        return false;
-    };
-    let mut later: u32 = 1;
-    for prop in meta.properties.iter().rev() {
-        let card = prop.cardinality as u32;
-        if prop.name == "type" {
-            let digit = (state_id.saturating_sub(meta.min_state) / later) % card;
-            return prop
-                .values
-                .get(digit as usize)
-                .is_some_and(|v| *v == "double");
-        }
-        later = later.saturating_mul(card);
-    }
-    false
 }
 
 /// The collision box of a non-player entity: horizontal `half_width` (the box is
@@ -5071,15 +5037,31 @@ mod tests {
     async fn a_falling_block_breaks_on_a_non_full_support_but_settles_on_a_double_slab() {
         use ferrumc_registry::block_state::compute_state_id;
 
-        // A faller that lands on a solid but non-full-height support (a single slab,
-        // soul sand, farmland, cake) breaks instead of settling atop it: the support
-        // survives and nothing is placed in the air cell above.
-        for support in ["oak_slab", "soul_sand", "farmland", "cake"] {
+        // A faller that lands on a solid but non-full-height support (soul sand,
+        // farmland, cake, a bottom slab) breaks instead of settling atop it: the
+        // support survives and nothing is placed in the air cell above. Each support is
+        // paired with the state to place — a uniform block uses its default, the bottom
+        // slab an explicit half-height state.
+        let bottom_slab = compute_state_id(
+            "oak_slab",
+            &BTreeMap::from([("type", "bottom"), ("waterlogged", "false")]),
+        )
+        .expect("bottom slab state");
+        let supports = [
+            (
+                "soul_sand",
+                block_metadata("soul_sand").unwrap().default_state,
+            ),
+            (
+                "farmland",
+                block_metadata("farmland").unwrap().default_state,
+            ),
+            ("cake", block_metadata("cake").unwrap().default_state),
+            ("bottom_slab", bottom_slab),
+        ];
+        for (support, support_state) in supports {
             let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
             let sand = sand_state();
-            let support_state = block_metadata(support)
-                .unwrap_or_else(|| panic!("{support} in registry"))
-                .default_state;
             let cell = BlockPos::new(8, 64, 8);
             set_world_block(&mut s, cell, support_state);
             let id = s
