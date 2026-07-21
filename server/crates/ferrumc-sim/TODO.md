@@ -55,6 +55,12 @@ pipeline already exist.
   resting cell only, so a wall torch on a side block never breaks a block falling
   down an adjacent column. A falling block also settles *through* water/lava,
   replacing the fluid in its resting cell (fluids are non-solid and replaceable).
+  **6e — support rule done:** a *placed* gravity block falls only when the block
+  below is air or replaceable (`is_replaceable` — fluids and soft growth), matching
+  vanilla's `!FallingBlock::isFree`. So a block placed on a slab, fence, redstone,
+  or torch stays put; it only breaks when it *falls* onto such a block (6d). Support
+  uses `is_falling_support` (non-air, non-replaceable), distinct from the collision
+  test `is_solid_block` (full cube) the sweep uses to stop a faller.
   **Gaps:** "break" currently despawns the entity without dropping an item (item
   entities pending); the object set is a focused name-keyed predicate, not a full
   `replaceable` classification (the vendored `blocks.json` carries no replaceable

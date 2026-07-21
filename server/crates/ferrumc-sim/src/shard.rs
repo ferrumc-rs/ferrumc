@@ -24,7 +24,9 @@ use crate::error::SimError;
 use crate::loaded::LoadedChunkMap;
 use crate::message::{GameInput, GameOutput, SpawnedEntityKind};
 use crate::mutation::{MutationCause, MutationResult, PendingMutation, RejectionReason};
-use crate::physics::{breaks_falling_block, is_gravity_affected, AIR_DRAG_Y, GRAVITY_ITEM};
+use crate::physics::{
+    breaks_falling_block, is_gravity_affected, is_replaceable, AIR_DRAG_Y, GRAVITY_ITEM,
+};
 use crate::region::{RegionLimits, RegionOp};
 use crate::scheduler::{CrossShardOutboxRestore, ScheduledTickInputs};
 
@@ -1363,7 +1365,7 @@ impl SimShard {
             return;
         };
         let below = BlockPos::new(pos.x(), pos.y().saturating_sub(1), pos.z());
-        if is_solid_block(&self.chunks, below) {
+        if is_falling_support(&self.chunks, below) {
             return;
         }
 
@@ -2209,6 +2211,28 @@ fn is_solid_block(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
     state_id_to_block_name(state.as_u32())
         .and_then(block_metadata)
         .is_some_and(|m| m.is_solid_cube)
+}
+
+/// Returns `true` if a gravity block resting on top of `pos` is supported and so
+/// does **not** fall.
+///
+/// Unlike [`is_solid_block`] (which is the *collision* test — only a full cube
+/// stops a falling entity), support is broader: any non-air, non-replaceable block
+/// holds a gravity block above it, matching vanilla's `!FallingBlock::isFree`. So a
+/// block placed on a slab, fence, redstone dust, or torch stays put, while one over
+/// air, a fluid, or replaceable growth falls. A non-resident chunk reads as
+/// unsupported (a block over the shard edge falls into the void).
+fn is_falling_support(chunks: &LoadedChunkMap, pos: BlockPos) -> bool {
+    let Some(state) = chunks
+        .get(pos.to_chunk_pos())
+        .and_then(|c| c.get_block(pos))
+    else {
+        return false;
+    };
+    if state.is_air() {
+        return false;
+    }
+    !state_id_to_block_name(state.as_u32()).is_some_and(is_replaceable)
 }
 
 /// The collision box of a non-player entity: horizontal `half_width` (the box is
@@ -5206,6 +5230,36 @@ mod tests {
             Some(BlockStateId::new(sand))
         );
         assert_eq!(s.entity_count(), 0);
+    }
+
+    #[tokio::test]
+    async fn a_gravity_block_placed_on_redstone_stays_put() {
+        let p = player("sandbuilder");
+        let mut s = shard_with_player(p).await;
+        let sand = sand_state();
+        let redstone = block_metadata("redstone_wire")
+            .expect("redstone_wire in registry")
+            .default_state;
+        // Redstone dust on the grass at y=64. It is not a full cube, but it still
+        // supports a block placed on top — a gravity block placed above it must not
+        // fall (matching vanilla; the block only breaks if it *lands* on redstone).
+        set_world_block(&mut s, BlockPos::new(8, 64, 8), redstone);
+        place_block(
+            &mut s,
+            p,
+            BlockPos::new(8, 65, 8),
+            sand,
+            Direction::Up,
+            0.0,
+            0.0,
+            1,
+        );
+        assert_eq!(
+            block_at(&s, BlockPos::new(8, 65, 8)),
+            Some(BlockStateId::new(sand)),
+            "the block should rest on the redstone, not fall"
+        );
+        assert_eq!(s.entity_count(), 0, "no falling entity should spawn");
     }
 
     #[tokio::test]

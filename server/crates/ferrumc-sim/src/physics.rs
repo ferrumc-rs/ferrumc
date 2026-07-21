@@ -131,9 +131,38 @@ pub fn breaks_falling_block(block_name: &str) -> bool {
         || block_name.ends_with("_button")
 }
 
+/// Returns `true` if `block_name` is *replaceable* — a fluid or soft growth that a
+/// block can be placed straight into, and that does **not** support a gravity
+/// block resting above it.
+///
+/// This mirrors the "free" half of vanilla's `FallingBlock::isFree`: a gravity
+/// block falls only when the block below it is air (checked separately) or one of
+/// these. Everything else — full cubes, but also non-full blocks like slabs,
+/// fences, redstone, and torches — counts as support, so a gravity block placed on
+/// top of it stays put. `block_name` is the bare name (no `minecraft:` namespace).
+///
+/// The vendored `blocks.json` carries no `replaceable` flag, so this is a focused
+/// name-keyed set (fluids and the common replaceable plants). Extend as needed.
+#[must_use]
+pub fn is_replaceable(block_name: &str) -> bool {
+    matches!(
+        block_name,
+        "water"
+            | "lava"
+            | "short_grass"
+            | "tall_grass"
+            | "fern"
+            | "large_fern"
+            | "seagrass"
+            | "tall_seagrass"
+            | "fire"
+            | "soul_fire"
+    )
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{breaks_falling_block, is_gravity_affected};
+    use super::{breaks_falling_block, is_gravity_affected, is_replaceable};
 
     #[test]
     fn known_falling_blocks_are_affected() {
@@ -176,6 +205,32 @@ mod tests {
             assert!(
                 breaks_falling_block(name),
                 "{name} should break a falling block"
+            );
+        }
+    }
+
+    #[test]
+    fn fluids_and_soft_growth_are_replaceable() {
+        for name in [
+            "water",
+            "lava",
+            "short_grass",
+            "tall_grass",
+            "fern",
+            "seagrass",
+            "fire",
+        ] {
+            assert!(is_replaceable(name), "{name} should be replaceable");
+        }
+    }
+
+    #[test]
+    fn supports_are_not_replaceable() {
+        // Full cubes and non-full blocks that still support a gravity block above.
+        for name in ["stone", "oak_slab", "oak_fence", "redstone_wire", "torch"] {
+            assert!(
+                !is_replaceable(name),
+                "{name} should support (not replaceable)"
             );
         }
     }
