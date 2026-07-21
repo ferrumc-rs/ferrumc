@@ -254,13 +254,6 @@ struct EntityState {
     /// What the entity is, which decides its on-land behaviour (see
     /// [`EntityKind`]). Physics treats every kind identically.
     kind: EntityKind,
-    /// `true` once a falling block has restored its block and is waiting one tick
-    /// before it despawns. The restored block is placed on the landing tick, but
-    /// the entity is kept for a single extra tick so the client renders the solid
-    /// block *before* the falling-block entity is removed — without the overlap a
-    /// same-tick `BlockUpdate` + `RemoveEntities` pair can flash a one-frame gap.
-    /// The next physics pass despawns any entity carrying this flag.
-    landed: bool,
 }
 
 /// Per-player state owned exclusively by the shard.
@@ -711,7 +704,6 @@ impl SimShard {
                 gravity,
                 on_ground: false,
                 kind,
-                landed: false,
             },
         );
         // Advance for the next spawn. checked_add yields `None` at i32::MAX,
@@ -1221,8 +1213,9 @@ impl SimShard {
     fn apply_entity_physics(&mut self, outputs: &mut Vec<GameOutput>) {
         // Process entities one at a time in ascending id order (a snapshot of the
         // keys, so the map can be mutated inside the loop). Handling each entity
-        // fully — including writing a landed falling block back to the world —
-        // before the next means a lower entity's restored block is already solid
+        // fully — including writing a landed falling block back to the world and
+        // despawning it — before the next means a lower entity's restored block is
+        // already solid
         // when a higher entity in the same column sweeps this tick, so a collapsing
         // stack re-stacks correctly instead of piling into one cell. Ascending id
         // order keeps the output stream deterministic.
@@ -1232,11 +1225,9 @@ impl SimShard {
                 continue;
             };
 
-            // A falling block that restored its block last tick has done its job;
-            // despawn it now (one tick after the block appeared) and integrate
-            // nothing else. Same for one that fell into the void (bounded lifetime,
-            // see VOID_DESPAWN_Y).
-            if state.landed || state.position.y < VOID_DESPAWN_Y {
+            // An entity that fell into the void is removed rather than integrated
+            // forever (bounded lifetime, see VOID_DESPAWN_Y).
+            if state.position.y < VOID_DESPAWN_Y {
                 self.entities.remove(&entity);
                 outputs.push(GameOutput::EntityDespawned { entity });
                 continue;
@@ -1282,7 +1273,7 @@ impl SimShard {
             let next = swept.position;
             let grounded = swept.on_ground;
 
-            // 4. Vertical air drag, only while still falling (a landed entity has
+            // 4. Vertical air drag, only while still falling (a grounded entity has
             // already had its vertical velocity zeroed by the sweep).
             let velocity = if grounded {
                 swept.velocity
@@ -1323,28 +1314,26 @@ impl SimShard {
                             .is_some_and(breaks_falling_block);
                     if breaks {
                         // The resting cell holds an object (torch, plate, …) the
-                        // block cannot settle onto: it breaks. Despawn now — there
-                        // is no block to draw, so the one-tick landing overlap is not
-                        // needed. The dropped item is deferred until item entities
-                        // exist; today the block simply vanishes.
+                        // block cannot settle onto: it breaks and vanishes (the
+                        // dropped item is deferred until item entities exist).
                         self.entities.remove(&entity);
                         outputs.push(GameOutput::EntityDespawned { entity });
                     } else {
-                        // Restore the block *now* (through the same edit funnel as
-                        // every mutation — a `Command` cause: no actor, no ack), so a
-                        // higher entity landing later this tick sees it as solid. The
-                        // entity is not removed yet: it is flagged `landed` so the
-                        // next tick despawns it, keeping the falling-block model on
-                        // screen until the block is shown (avoids a one-frame gap).
+                        // Restore the block and despawn the entity the same tick
+                        // (through the same edit funnel as every mutation — a
+                        // `Command` cause: no actor, no ack), so a higher entity
+                        // landing later this tick sees it as solid. Because entities
+                        // are handled in ascending id order and the block is written
+                        // before the next is processed, a collapsing column re-stacks
+                        // correctly.
                         let result = self.apply_block_edit(MutationCause::Command, cell, block);
                         if let Some(output) =
                             block_change_output(MutationCause::Command, 0, cell, block, result)
                         {
                             outputs.push(output);
                         }
-                        if let Some(st) = self.entities.get_mut(&entity) {
-                            st.landed = true;
-                        }
+                        self.entities.remove(&entity);
+                        outputs.push(GameOutput::EntityDespawned { entity });
                     }
                 }
             }
@@ -5106,12 +5095,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn falling_block_restores_block_a_tick_before_it_despawns() {
-        // Regression test for the landing flicker: the restored block must appear
-        // one tick *before* the falling-block entity despawns, so a real client
-        // never shows a one-frame gap between the two. On the landing tick the
-        // shard emits BlockChanged and keeps the entity; the despawn follows on the
-        // next tick.
+    async fn falling_block_restores_block_and_despawns_the_same_tick() {
+        // On landing the shard restores the block and despawns the entity in the
+        // same tick: a single `BlockChanged` + `EntityDespawned` pair, the block
+        // change ordered first.
         let mut s = shard_with_loaded_chunk(ChunkPos::new(0, 0)).await;
         let carried = BlockStateId::new(OAK_LOG);
         let id = s
@@ -5123,41 +5110,32 @@ mod tests {
             )
             .expect("id");
 
-        // Advance to the tick that restores the block (a BlockChanged output).
-        let mut landing_tick = 0;
-        for tick in 1..=200 {
+        // Advance to the landing tick (the one that restores the block).
+        let mut landing = Vec::new();
+        for _ in 0..200 {
             let outputs = s.run_tick();
-            let has_block = outputs
+            if outputs
                 .iter()
-                .any(|o| matches!(o, GameOutput::BlockChanged { .. }));
-            if has_block {
-                // The block is restored, but the entity is NOT despawned this tick.
-                assert!(
-                    !outputs
-                        .iter()
-                        .any(|o| matches!(o, GameOutput::EntityDespawned { .. })),
-                    "the despawn must not share the block-restore tick (that is the flicker)"
-                );
-                assert!(
-                    s.contains_entity(id),
-                    "the entity survives one tick past the block restore"
-                );
-                landing_tick = tick;
+                .any(|o| matches!(o, GameOutput::BlockChanged { .. }))
+            {
+                landing = outputs;
                 break;
             }
         }
-        assert!(landing_tick > 0, "the block should have been restored");
-
-        // The very next tick despawns the entity — one tick after the block showed.
-        let next = s.run_tick();
+        // The block restore and the despawn share the landing tick, block first.
+        let block_idx = landing
+            .iter()
+            .position(|o| matches!(o, GameOutput::BlockChanged { .. }))
+            .expect("a BlockChanged on landing");
+        let despawn_idx = landing
+            .iter()
+            .position(|o| o == &GameOutput::EntityDespawned { entity: id })
+            .expect("the entity despawns on the landing tick");
         assert!(
-            next.contains(&GameOutput::EntityDespawned { entity: id }),
-            "the entity despawns the tick after its block is restored"
+            block_idx < despawn_idx,
+            "the block restore precedes the despawn"
         );
-        assert!(
-            !s.contains_entity(id),
-            "entity gone after its deferred despawn"
-        );
+        assert!(!s.contains_entity(id), "the entity is gone after it lands");
     }
 
     // --- Automatic falling-block detection (place / break triggers) --------
