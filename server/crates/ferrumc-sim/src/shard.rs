@@ -194,6 +194,11 @@ enum RegionWorkKind {
 /// bounding the lifetime of a voided entity.
 const VOID_DESPAWN_Y: f64 = dimension::MIN_Y as f64 - 64.0;
 
+/// Client sequence stamped on a server-originated block change that no client
+/// requested (a falling block restoring itself on landing). Player edits carry a
+/// real ack sequence; a physics restore has none, so it uses zero.
+const NO_CLIENT_SEQUENCE: i32 = 0;
+
 /// The first entity id a shard hands out from its per-shard counter.
 ///
 /// Starts at `1` so `0` stays free as a reserved "no entity" sentinel for later
@@ -1219,7 +1224,16 @@ impl SimShard {
         // when a higher entity in the same column sweeps this tick, so a collapsing
         // stack re-stacks correctly instead of piling into one cell. Ascending id
         // order keeps the output stream deterministic.
+        if self.entities.is_empty() {
+            return;
+        }
         let ids: Vec<EntityId> = self.entities.keys().copied().collect();
+        // Broadphase scratch reused across every entity this tick: grows to the
+        // largest sweep's footprint once, then only `clear()`s — no per-entity
+        // allocation. A tick-local, so it never crosses the `&self.chunks` /
+        // `&mut self.entities` borrow and keeps the step allocation-free after
+        // warmup.
+        let mut solids: Vec<BlockPos> = Vec::new();
         for entity in ids {
             let Some(state) = self.entities.get(&entity).copied() else {
                 continue;
@@ -1269,7 +1283,14 @@ impl SimShard {
             // has its velocity zeroed; a downward stop sets `grounded`.
             let start = state.position;
             let (half_width, height) = entity_dimensions(state.kind);
-            let swept = sweep_move(&self.chunks, start, half_width, height, velocity);
+            let swept = sweep_move(
+                &self.chunks,
+                &mut solids,
+                start,
+                half_width,
+                height,
+                velocity,
+            );
             let next = swept.position;
             let grounded = swept.on_ground;
 
@@ -1328,9 +1349,13 @@ impl SimShard {
                         // before the next is processed, a collapsing column re-stacks
                         // correctly.
                         let result = self.apply_block_edit(MutationCause::Command, cell, block);
-                        if let Some(output) =
-                            block_change_output(MutationCause::Command, 0, cell, block, result)
-                        {
+                        if let Some(output) = block_change_output(
+                            MutationCause::Command,
+                            NO_CLIENT_SEQUENCE,
+                            cell,
+                            block,
+                            result,
+                        ) {
                             outputs.push(output);
                         }
                         self.entities.remove(&entity);
@@ -2284,10 +2309,13 @@ struct Swept {
 /// reports `on_ground`.
 ///
 /// A free function taking only `&LoadedChunkMap` so it runs while `entities` is
-/// mutably borrowed (disjoint fields). Deterministic: the broadphase cells are
-/// visited in fixed `x,y,z` order and every step is ordered `f64` arithmetic.
+/// mutably borrowed (disjoint fields). `solids` is a caller-owned scratch buffer,
+/// cleared and refilled here so a per-tick sweep loop reuses one allocation across
+/// every entity instead of allocating per call. Deterministic: the broadphase cells
+/// are visited in fixed `x,y,z` order and every step is ordered `f64` arithmetic.
 fn sweep_move(
     chunks: &LoadedChunkMap,
+    solids: &mut Vec<BlockPos>,
     pos: Vec3,
     half_width: f64,
     height: f64,
@@ -2306,7 +2334,7 @@ fn sweep_move(
     let y1 = ((max.y + velocity.y.max(0.0)).floor() as i32).saturating_add(1);
     let z0 = ((min.z + velocity.z.min(0.0)).floor() as i32).saturating_sub(1);
     let z1 = ((max.z + velocity.z.max(0.0)).floor() as i32).saturating_add(1);
-    let mut solids: Vec<BlockPos> = Vec::new();
+    solids.clear();
     for bx in x0..=x1 {
         for by in y0..=y1 {
             for bz in z0..=z1 {
@@ -2322,21 +2350,21 @@ fn sweep_move(
     // already resolved on the earlier ones (prevents clipping a corner through).
     let (mut lo, mut hi) = (min, max);
     let mut dy = velocity.y;
-    for &c in &solids {
+    for &c in solids.iter() {
         dy = clip_y(c, lo, hi, dy);
     }
     lo.y += dy;
     hi.y += dy;
 
     let mut dx = velocity.x;
-    for &c in &solids {
+    for &c in solids.iter() {
         dx = clip_x(c, lo, hi, dx);
     }
     lo.x += dx;
     hi.x += dx;
 
     let mut dz = velocity.z;
-    for &c in &solids {
+    for &c in solids.iter() {
         dz = clip_z(c, lo, hi, dz);
     }
 
