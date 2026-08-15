@@ -51,6 +51,10 @@ const MIN_WORLD_Y: i16 = -64;
 /// in the post-cave surface-finish pass so the cap sits on the real top, never floating over a cave.
 const MOUNTAIN_SNOW_LINE: i16 = 110;
 
+/// Maximum continentalness at which a low column counts as an ocean-coast beach. Above it the column
+/// is inland (e.g. a river bank), so it keeps its surrounding land biome rather than becoming sand.
+const COAST_MAX_CONTINENTALNESS: f32 = 0.47;
+
 /// A per-column surface height map for one chunk (`[local_x][local_z]`).
 pub(crate) type Heightmap = [[i16; 16]; 16];
 
@@ -124,6 +128,9 @@ pub struct WorldGenerator {
     snowy_plains: biomes::snowy::SnowyBiome,
     snowy_taiga: biomes::snowy::SnowyBiome,
     mountain: biomes::mountain::MountainBiome,
+    /// Lays the bed of carved river channels. One decorator serves both `river` and `frozen_river`;
+    /// the registry ID is chosen from temperature in [`WorldGenerator::classify`].
+    river: biomes::river::RiverBiome,
     /// Scatters ground vegetation (grass, flowers, desert plants) in a pass after trees.
     vegetation: biomes::vegetation::Vegetation,
 }
@@ -134,10 +141,15 @@ impl WorldGenerator {
             climate: Climate::new(seed),
             erosion_noise: carving::erosion::erosion_noise(seed.wrapping_add(3)),
             detail_noise: carving::initial_height::detail_noise(seed.wrapping_add(2)),
+            // Caves are sampled on a coarse 3D grid and trilinearly interpolated, which already
+            // smooths away the finest octaves; three octaves give effectively the same large-scale
+            // tunnel/chamber structure as five for roughly 40% fewer noise evaluations (the cave
+            // pass is ~half of all chunk generation cost). The lacunarity is raised so the three
+            // octaves still span a useful range of feature sizes.
             caves_layer: RidgedMulti::<noise::OpenSimplex>::new((seed.wrapping_add(100)) as u32)
                 .set_frequency(0.01)
-                .set_lacunarity(2.5)
-                .set_octaves(5)
+                .set_lacunarity(2.8)
+                .set_octaves(3)
                 .set_persistence(0.8)
                 .set_attenuation(0.3),
             plains: biomes::plains::PlainsBiome::new(seed),
@@ -149,6 +161,7 @@ impl WorldGenerator {
             snowy_plains: biomes::snowy::SnowyBiome::plains(seed),
             snowy_taiga: biomes::snowy::SnowyBiome::taiga(seed),
             mountain: biomes::mountain::MountainBiome::new(seed),
+            river: biomes::river::RiverBiome::new(seed),
             vegetation: biomes::vegetation::Vegetation::new(seed.wrapping_add(53)),
         }
     }
@@ -172,12 +185,27 @@ impl WorldGenerator {
     fn classify(&self, c: ClimateSample, surface_y: i16) -> (&dyn BiomeGenerator, u8) {
         let cold = c.temperature < 0.30;
 
+        // Rivers take precedence over the height-based water test below. A river column whose
+        // channel was actually carved below sea level holds water, so it is classified as a river
+        // here rather than being mistaken for ocean. `c.river` is non-zero only on lowland columns
+        // (the carve gate excludes the sea and high ground), so this never claims real ocean; and
+        // requiring the carved surface to be below sea level keeps the river biome aligned with the
+        // visible water channel, leaving the dry banks to their surrounding land biome. Cold rivers
+        // record `frozen_river`; the bed decorator is shared.
+        if c.river > 0.0 && surface_y < SEA_LEVEL {
+            return (&self.river, if cold { 24 } else { 41 });
+        }
+
         // Water and coastline. Submerged columns are ocean variants chosen by temperature/depth.
         if surface_y < SEA_LEVEL {
             let deep = c.continentalness < 0.20 || surface_y <= SEA_LEVEL - 18;
             return (&self.ocean, Self::ocean_variant_id(c.temperature, deep));
         }
-        if surface_y <= SEA_LEVEL + 2 {
+        // Beaches form only along genuine ocean coasts (low continentalness). Without this gate every
+        // low column just above sea level becomes sand — including river banks, which then read as a
+        // wide beach instead of grassy bank. Inland (high-continentalness) river edges fall through
+        // to their surrounding land biome instead.
+        if surface_y <= SEA_LEVEL + 2 && c.continentalness < COAST_MAX_CONTINENTALNESS {
             let beach: &dyn BiomeGenerator = if cold { &self.snowy_beach } else { &self.beach };
             return (beach, beach.biome_id());
         }
@@ -448,6 +476,32 @@ mod tests {
     fn generates_without_error() {
         let generator = WorldGenerator::new(0);
         assert!(generator.generate_chunk(ChunkPos::new(0, 0)).is_ok());
+    }
+
+    #[test]
+    fn rivers_generate_and_are_water_filled() {
+        let g = WorldGenerator::new(0);
+        let mut rivers = 0u32;
+        for x in -128..128 {
+            for z in -128..128 {
+                let (surface_y, sample) = g.column(x, z);
+                let (_decorator, id) = g.classify(sample, surface_y);
+                if id == 41 || id == 24 {
+                    rivers += 1;
+                    // A column is only ever classified as a river where its channel was carved below
+                    // sea level, so the river biome always coincides with water rather than spilling
+                    // onto dry banks.
+                    assert!(
+                        surface_y < SEA_LEVEL,
+                        "river column ({x},{z}) is not below sea level (surface={surface_y})"
+                    );
+                }
+            }
+        }
+        assert!(
+            rivers > 0,
+            "expected some river columns in the sampled region"
+        );
     }
 
     #[test]
