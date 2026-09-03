@@ -5,6 +5,7 @@ use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_world::pos::ChunkPos;
+use std::process::ExitCode;
 use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info};
@@ -28,14 +29,18 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 static GLOBAL: tracy_client::ProfiledAllocator<std::alloc::System> =
     tracy_client::ProfiledAllocator::new(std::alloc::System, 100);
 
-fn main() {
+fn main() -> ExitCode {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
     let start_time = Instant::now();
 
     let cli_args = CLIArgs::parse();
-    ferrumc_logging::init_logging(cli_args.log.into());
+    if let Err(err) = ferrumc_logging::init_logging(cli_args.log.into()) {
+        // Tracing is not available yet; print a plain message and exit cleanly.
+        eprintln!("error: {err}");
+        return ExitCode::FAILURE;
+    }
 
     ferrumc_registry::init();
 
@@ -78,6 +83,8 @@ fn main() {
             }
         }
     }
+
+    ExitCode::SUCCESS
 }
 
 fn entry(start_time: Instant) -> Result<(), BinaryError> {
