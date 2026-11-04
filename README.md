@@ -1,3 +1,10 @@
+> [!WARNING]
+> # FerrumC isn't actively maintained
+>
+> This is a hobby project and nobody is actively working on it right now, so please be wary of possible security vulnerabilities, especially if you run it on a public server.
+>
+> A rewrite was started on [`rework/v2-skeleton`](https://github.com/ferrumc-rs/ferrumc/tree/rework/v2-skeleton), but it's on hold for now and may not get finished.
+
 <p align="center">
     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/banner.png?raw=true" alt="FerrumC Banner">
 </p>
@@ -10,21 +17,6 @@
     <img alt="Discord" src="https://img.shields.io/discord/1277314213878173726?style=for-the-badge&logo=discord&logoColor=red&color=red&link=https%3A%2F%2Fdiscord.gg%2FqT5J8EMjwk">
     </a>
 </div>
-
-> [!IMPORTANT]
-> ### 🚧 A fresh rewrite of FerrumC is in the works
->
-> We're rebuilding FerrumC from scratch on the [`rework/v2-skeleton`](https://github.com/ferrumc-rs/ferrumc/tree/rework/v2-skeleton) branch, and we plan to merge it into `master` soon. What works so far:
->
-> - A cleaner, faster core that's much easier to build on.
-> - A flat creative world you can join with a normal Minecraft 1.21.8 client. Blocks like logs, slabs, stairs, fences, and doors place facing the right way, and signs and chests work.
-> - Area edit commands such as `/fill`, `/replace`, and `/undo`.
-> - A day and night cycle, and you can watch other players turn, look around, and hold items and armor.
-> - Your builds are saved when you leave, rejoin, or restart the server, and you can import an existing vanilla world.
-> - Plugins, written in Rust, that can allow, block, or change what players build.
-> - A local-only web dashboard for keeping an eye on the server.
->
-> It's early, offline-mode alpha: a creative and minigame server, not survival, not vanilla-accurate, and not a drop-in replacement for Paper or Spigot. Want to follow along or lend a hand? Come poke at the branch above.
 
 ## 📖 About
 
