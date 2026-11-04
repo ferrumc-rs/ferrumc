@@ -1,8 +1,13 @@
+> [!WARNING]
+> # FerrumC isn't actively maintained
+>
+> This is a hobby project and nobody is actively working on it right now, so please be wary of possible security vulnerabilities, especially if you run it on a public server.
+>
+> This branch is an unfinished rewrite. It's on hold for now and may not get finished. The main version of FerrumC is on [`master`](https://github.com/ferrumc-rs/ferrumc/tree/master).
+
 # FerrumC
 
 A high-performance Minecraft Java Edition server implementation written in Rust.
-
-> ⚠️ **This branch (`rework/ferrumc-v2`) is an active rewrite.** For the current working version, see `master`.
 
 ## Status: v2 rework (creative/minigame core)
 
