@@ -7,6 +7,7 @@ pub(crate) mod forest;
 pub(crate) mod mountain;
 pub(crate) mod ocean;
 pub(crate) mod plains;
+pub(crate) mod river;
 pub(crate) mod snowy;
 pub(crate) mod tree_placement;
 pub(crate) mod trees;

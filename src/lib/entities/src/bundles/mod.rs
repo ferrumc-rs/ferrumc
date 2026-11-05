@@ -28,6 +28,7 @@ pub use passive::*;
 macro_rules! define_entity_bundle {
     ($bundle_name:ident, $vanilla_type:ident) => {
         use bevy_ecs::prelude::Bundle;
+        use ferrumc_components::health::Health;
         use ferrumc_core::identity::entity_identity::EntityIdentity;
         use ferrumc_core::transform::{
             grounded::OnGround, position::Position, rotation::Rotation, velocity::Velocity,
@@ -43,6 +44,7 @@ macro_rules! define_entity_bundle {
             pub identity: EntityIdentity,
             pub metadata: EntityMetadata,
             pub combat: CombatProperties,
+            pub health: Health,
             pub spawn: SpawnProperties,
             pub position: Position,
             pub rotation: Rotation,
@@ -56,11 +58,19 @@ macro_rules! define_entity_bundle {
                 let metadata = EntityMetadata::from_vanilla(&VanillaEntityType::$vanilla_type);
                 let combat = CombatProperties::from_metadata(&metadata);
                 let spawn = SpawnProperties::from_metadata(&metadata);
+                // Fall back to the standard 20 (ten hearts) for entity types vanilla leaves without
+                // a max-health value (typically non-living entities, which are not attackable).
+                let max_health = metadata.vanilla_data().max_health.unwrap_or(20.0);
+                let health = Health {
+                    current: max_health,
+                    max: max_health,
+                };
 
                 Self {
                     identity: EntityIdentity::new(),
                     metadata,
                     combat,
+                    health,
                     spawn,
                     rotation: Rotation::default(),
                     velocity: Velocity::zero(),

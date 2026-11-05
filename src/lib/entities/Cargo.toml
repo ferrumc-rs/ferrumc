@@ -8,4 +8,5 @@ bevy_ecs = { workspace = true }
 bevy_math = { workspace = true }
 
 ferrumc-core = { workspace = true }
+ferrumc-components = { workspace = true }
 ferrumc-data = { workspace = true }

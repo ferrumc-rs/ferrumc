@@ -122,3 +122,27 @@ impl std::fmt::Debug for CombatProperties {
             .finish()
     }
 }
+
+/// Marks an entity that has died and is playing out its death animation before being removed.
+///
+/// On death the server broadcasts the death animation and tags the entity with this component
+/// instead of removing it immediately, so the client has time to render the animation. The tick
+/// counter is decremented every tick and the entity is despawned once it reaches zero.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct Dying {
+    /// Ticks left before the entity is removed.
+    pub ticks_remaining: u32,
+}
+
+impl Dying {
+    /// Length of the death animation in ticks, matching the vanilla ~1 second window.
+    pub const DEATH_ANIMATION_TICKS: u32 = 20;
+}
+
+impl Default for Dying {
+    fn default() -> Self {
+        Self {
+            ticks_remaining: Self::DEATH_ANIMATION_TICKS,
+        }
+    }
+}

@@ -7,7 +7,7 @@ pub mod physical_registry;
 pub mod spawn;
 
 // Re-exports
-pub use combat::CombatProperties;
+pub use combat::{CombatProperties, Dying};
 pub use last_synced_position::LastSyncedPosition;
 pub use metadata::EntityMetadata;
 pub use physical::{BoundingBox, PhysicalProperties};
