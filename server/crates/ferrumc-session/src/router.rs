@@ -5,11 +5,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use tokio::sync::mpsc::{self, error::TrySendError};
 
-use ferrumc_core::{DimensionId, PlayerId, TextComponent, WorldId};
+use ferrumc_core::{DimensionId, EntityId, PlayerId, TextComponent, WorldId};
 use ferrumc_math::{BlockPos, ChunkPos, ShardPos, Vec3};
 use ferrumc_net::{Criticality, OutboundPriority};
 use ferrumc_proto::generated::play::ClientboundPlayPacket;
-use ferrumc_sim::{BlockStateId, GameInput, GameOutput, MutationCause, ShardId, ShardPartitioner};
+use ferrumc_sim::{
+    BlockStateId, GameInput, GameOutput, MutationCause, ShardId, ShardPartitioner,
+    SpawnedEntityKind,
+};
 
 use crate::delivery::{DeliveryLane, InputDeliveryError, InputDeliveryPolicy};
 use crate::directory::{ShardCoverage, ShardDirectory, ShardLease, ShardRegistrationId};
@@ -18,9 +21,9 @@ use crate::event::NetEvent;
 use crate::outbound::OutboundMessage;
 use crate::translate::{
     ack_shell, block_update_shell, chunk_for_position, entity_spawn_shell, entity_teleport_shell,
-    move_shell, play_packet_to_input, player_info_add, player_info_remove, remove_entities_shell,
-    set_equipment_shell, set_head_rotation_shell, update_entity_position_and_rotation_shell,
-    update_entity_rotation_shell,
+    falling_block_spawn_shell, move_shell, play_packet_to_input, player_info_add,
+    player_info_remove, remove_entities_shell, set_equipment_shell, set_head_rotation_shell,
+    update_entity_position_and_rotation_shell, update_entity_rotation_shell,
 };
 
 /// Default capacity of each shard's input channel.
@@ -133,6 +136,32 @@ struct SessionEntry {
     /// naturally promotes to an absolute teleport that re-syncs), and pruned when
     /// the subject despawns. Bounded by the number of connected players.
     delivered: BTreeMap<i32, Vec3>,
+}
+
+/// The router's view state for one renderable non-player entity (a falling
+/// block, later items/projectiles), mirrored from simulation
+/// [`GameOutput`](GameOutput)s.
+///
+/// The simulation identifies entities by [`EntityId`]; the client needs a
+/// network entity id, so the router allocates one from the same monotonic source
+/// as players ([`allocate_entity_id`](SessionRouter::allocate_entity_id)) — the
+/// shared counter keeps the two id spaces from colliding on the wire. The stored
+/// `position` and `kind` let the router re-spawn the entity for a viewer that
+/// walks into range mid-flight (rebuilding the same `SpawnEntity` shell), and the
+/// `uuid` is a stable per-entity id minted from the network id (a falling block
+/// has no `PlayerId` to source one from). Per-viewer movement baselines live in
+/// each [`SessionEntry::delivered`] map, keyed by `network_id`, exactly as for
+/// players.
+#[derive(Debug)]
+struct EntityView {
+    /// The network entity id the client sees this entity as.
+    network_id: i32,
+    /// A stable UUID for the `SpawnEntity` packet, derived from `network_id`.
+    uuid: uuid::Uuid,
+    /// Last position broadcast, used to re-spawn a late viewer at the right place.
+    position: Vec3,
+    /// What the entity is, so a re-spawn rebuilds the correct typed packet.
+    kind: SpawnedEntityKind,
 }
 
 /// A snapshot of an in-range peer captured for a join-visibility exchange.
@@ -313,6 +342,12 @@ pub struct SessionRouter {
     shards: ShardDirectory<ShardEndpoint>,
     players: BTreeMap<PlayerId, SessionEntry>,
     pending_disconnects: BTreeSet<PlayerId>,
+    /// Renderable non-player entities (falling blocks) the router currently
+    /// broadcasts, keyed by the simulation [`EntityId`]. Bounded by the number of
+    /// live entities: every entry is inserted on an `EntitySpawned` and removed on
+    /// the matching `EntityDespawned` (which the shard emits on landing or void
+    /// despawn), so it never grows without bound.
+    entities: BTreeMap<EntityId, EntityView>,
     shard_input_capacity: usize,
     shard_control_reserve: usize,
     outbound_capacity: usize,
@@ -359,6 +394,7 @@ impl SessionRouter {
             shards: ShardDirectory::new(),
             players: BTreeMap::new(),
             pending_disconnects: BTreeSet::new(),
+            entities: BTreeMap::new(),
             shard_input_capacity,
             shard_control_reserve: shard_control_reserve
                 .min(shard_input_capacity.saturating_sub(1)),
@@ -997,6 +1033,7 @@ impl SessionRouter {
     /// Mandatory traffic (corrections, acks, resyncs) is never silently dropped: a
     /// recipient that cannot accept it — full *or* closed — is returned for the
     /// caller to disconnect.
+    #[allow(clippy::too_many_lines)] // one match over every routed GameOutput variant
     pub fn route_output(&mut self, output: &GameOutput) -> Vec<PlayerId> {
         let mut to_disconnect = Vec::new();
         match output {
@@ -1127,8 +1164,24 @@ impl SessionRouter {
                     );
                 }
             }
-            // A despawn carries no wire packet here; leave handling lives in
-            // disconnect_player.
+            GameOutput::EntitySpawned {
+                entity,
+                position,
+                kind,
+                ..
+            } => {
+                // Velocity is ignored: the client's position is driven by the
+                // per-tick move broadcasts, not spawn-time velocity.
+                self.spawn_entity_view(*entity, *position, *kind, &mut to_disconnect);
+            }
+            GameOutput::EntityMoved { entity, position } => {
+                self.broadcast_entity_move(*entity, *position, &mut to_disconnect);
+            }
+            GameOutput::EntityDespawned { entity } => {
+                self.despawn_entity_view(*entity, &mut to_disconnect);
+            }
+            // A player despawn carries no wire packet here; leave handling lives in
+            // disconnect_player. Any other future variant is a no-op until wired.
             _ => {}
         }
         to_disconnect
@@ -1457,9 +1510,164 @@ impl SessionRouter {
         }
     }
 
-    /// Disconnects `player`: first delivers their leave to the shard, then drops
-    /// the player<->shard mapping and removes them from every remaining player's
-    /// view. Returns the shard `player` was on.
+    /// Registers a renderable non-player entity and spawns it into view for every
+    /// viewer in range, seeding each viewer's [`delivered`](SessionEntry::delivered)
+    /// baseline.
+    ///
+    /// A network entity id is allocated from the shared player/entity counter (so
+    /// the wire id spaces never collide) and a stable UUID is derived from it. The
+    /// spawn is **mandatory**: a dropped one leaves an entity the viewer can never
+    /// see move (a later position packet for an unspawned id is ignored), so a
+    /// viewer that cannot accept it is disconnected — the same slow-client policy
+    /// as a player spawn.
+    ///
+    /// A [`SpawnedEntityKind`] with no wire entity type yet (`Simple`) is ignored:
+    /// nothing is registered or drawn, so a type-agnostic spawn stays invisible
+    /// until its typed consumer lands. Only viewers within
+    /// [`view_distance`](Self::view_distance) chunks of the entity are notified; a
+    /// viewer that enters range later is spawned lazily by
+    /// [`broadcast_entity_move`](Self::broadcast_entity_move).
+    /// Snapshots the ids of every connected player within
+    /// [`view_distance`](Self::view_distance) chunks of `chunk`.
+    ///
+    /// Returned as an owned `Vec` so the caller can then borrow `self.players`
+    /// mutably per recipient: the in-range filter is an immutable borrow that must
+    /// finish first. Shared by the entity spawn and move broadcasts, which scope to
+    /// the same square view as [`broadcast_move`](Self::broadcast_move).
+    fn viewers_in_range(&self, chunk: ChunkPos) -> Vec<PlayerId> {
+        let view_distance = self.view_distance;
+        self.players
+            .iter()
+            .filter(|(_, entry)| {
+                within_view(chunk, chunk_for_position(entry.position), view_distance)
+            })
+            .map(|(&viewer, _)| viewer)
+            .collect()
+    }
+
+    fn spawn_entity_view(
+        &mut self,
+        entity: EntityId,
+        position: Vec3,
+        kind: SpawnedEntityKind,
+        to_disconnect: &mut Vec<PlayerId>,
+    ) {
+        // Only kinds with a wire entity type get a network id and packet; a Simple
+        // entity has no renderer yet, so registering it would leak an id and a map
+        // entry for something that never draws. Extend as typed consumers land.
+        let network_id = self.allocate_entity_id();
+        let view = EntityView {
+            network_id,
+            uuid: entity_uuid(network_id),
+            position,
+            kind,
+        };
+        let Some(spawn) = entity_spawn_packet(&view) else {
+            return;
+        };
+        for viewer in self.viewers_in_range(chunk_for_position(position)) {
+            if let Some(entry) = self.players.get_mut(&viewer) {
+                Self::send_mandatory_spawn(
+                    entry,
+                    spawn.clone(),
+                    network_id,
+                    position,
+                    viewer,
+                    to_disconnect,
+                );
+            }
+        }
+        self.entities.insert(entity, view);
+    }
+
+    /// Broadcasts a non-player entity's new `position` to every viewer in range,
+    /// mirroring [`broadcast_move`](Self::broadcast_move) without the tab-list add
+    /// (entities are not player-list entries).
+    ///
+    /// A viewer that already has the entity (holds a
+    /// [`delivered`](SessionEntry::delivered) baseline for it) gets a **droppable**
+    /// relative-or-teleport carrier and advances its baseline only on a successful
+    /// send (the self-correcting invariant: a dropped move leaves the baseline
+    /// stale so the next delta grows and promotes to an absolute teleport). A
+    /// viewer with no baseline is *entering view* and is spawned into it
+    /// (**mandatory**), seeding the baseline. Unknown entities (never registered,
+    /// or a `Simple` kind) are a silent no-op.
+    fn broadcast_entity_move(
+        &mut self,
+        entity: EntityId,
+        position: Vec3,
+        to_disconnect: &mut Vec<PlayerId>,
+    ) {
+        let Some(view) = self.entities.get_mut(&entity) else {
+            return;
+        };
+        view.position = position;
+        let network_id = view.network_id;
+        // Rebuild the spawn once for any viewers entering view this tick.
+        let spawn = entity_spawn_packet(view);
+        for viewer in self.viewers_in_range(chunk_for_position(position)) {
+            let Some(entry) = self.players.get_mut(&viewer) else {
+                continue;
+            };
+            if let Some(last) = entry.delivered.get(&network_id).copied() {
+                // A falling block does not rotate, so the yaw/pitch are zero; the
+                // carrier still conveys the position delta (or teleports when it
+                // overflows the relative range).
+                let packet =
+                    relative_or_teleport_with_rotation(network_id, last, position, 0.0, 0.0);
+                match entry.outbound.try_send(OutboundMessage::droppable(packet)) {
+                    Ok(()) => {
+                        entry.delivered.insert(network_id, position);
+                    }
+                    Err(TrySendError::Full(_)) => {}
+                    Err(TrySendError::Closed(_)) => to_disconnect.push(viewer),
+                }
+            } else if let Some(spawn) = spawn.clone() {
+                Self::send_mandatory_spawn(
+                    entry,
+                    spawn,
+                    network_id,
+                    position,
+                    viewer,
+                    to_disconnect,
+                );
+            }
+        }
+    }
+
+    /// Despawns a non-player entity: removes its registration and sends a
+    /// **mandatory** [`remove_entities_shell`] to every viewer that ever received
+    /// it, pruning that viewer's [`delivered`](SessionEntry::delivered) baseline.
+    ///
+    /// Only viewers holding a baseline for the entity are notified — exactly those
+    /// that saw its spawn — so a viewer that never had it is not sent a remove for
+    /// an id it never spawned. The remove is mandatory: a dropped one leaves a
+    /// ghost entity frozen at its last position, so a viewer that cannot accept it
+    /// is disconnected. An unknown entity is a silent no-op (a despawn with no
+    /// matching spawn).
+    fn despawn_entity_view(&mut self, entity: EntityId, to_disconnect: &mut Vec<PlayerId>) {
+        let Some(view) = self.entities.remove(&entity) else {
+            return;
+        };
+        let network_id = view.network_id;
+        let viewers: Vec<PlayerId> = self.players.keys().copied().collect();
+        for viewer in viewers {
+            if let Some(entry) = self.players.get_mut(&viewer) {
+                if entry.delivered.remove(&network_id).is_some() {
+                    Self::send_mandatory(
+                        entry,
+                        remove_entities_shell(&[network_id]),
+                        viewer,
+                        to_disconnect,
+                    );
+                }
+            }
+        }
+    }
+
+    /// Disconnects `player`: removes them from the player list of every remaining
+    /// player, drops the player<->shard mapping, and notifies the shard to
+    /// despawn them. Returns the shard `player` was on.
     ///
     /// The departure despawn is now **mandatory** (a dropped despawn ghosts the
     /// entity), so a viewer whose outbound channel is full during the leave
@@ -1994,6 +2202,35 @@ fn within_view(a: ChunkPos, b: ChunkPos, view_distance: i32) -> bool {
     let dx = (a.x() - b.x()).abs();
     let dz = (a.z() - b.z()).abs();
     dx.max(dz) <= view_distance
+}
+
+/// Builds the clientbound spawn shell for `view`, or `None` for a kind with no
+/// wire entity type yet.
+///
+/// The one bridge from a stored [`EntityView`] to its `SpawnEntity` packet, used
+/// both on first spawn and when re-spawning the entity for a viewer that enters
+/// view mid-flight, so both paths render it identically.
+fn entity_spawn_packet(view: &EntityView) -> Option<ClientboundPlayPacket> {
+    match view.kind {
+        SpawnedEntityKind::FallingBlock { block } => {
+            falling_block_spawn_shell(view.network_id, view.uuid, view.position, block)
+        }
+        // No renderer for a generic entity yet; extend as typed consumers land.
+        _ => None,
+    }
+}
+
+/// Derives a stable UUID for a non-player entity from its network id.
+///
+/// A falling block has no [`PlayerId`] to source a UUID from, but a
+/// `SpawnEntity` packet still carries one. The value is cosmetic for a
+/// non-player entity (the client keys rendering on the numeric entity id, not the
+/// UUID), so a deterministic id built from the four network-id bytes is enough:
+/// it is distinct per entity and needs no random source.
+fn entity_uuid(network_id: i32) -> uuid::Uuid {
+    let mut bytes = [0u8; 16];
+    bytes[..4].copy_from_slice(&network_id.to_be_bytes());
+    uuid::Uuid::from_bytes(bytes)
 }
 
 impl Default for SessionRouter {
@@ -2783,6 +3020,120 @@ mod tests {
             position_changed: true,
         });
         assert_eq!(closed, vec![viewer]);
+    }
+
+    /// A representable falling-block state id for the entity-broadcast tests. The
+    /// concrete value is irrelevant to the routing; only that it round-trips into
+    /// the `SpawnEntity` data field.
+    const FALLING_SAND: u32 = 10;
+
+    fn falling_block_spawn(entity: EntityId, position: Vec3) -> GameOutput {
+        GameOutput::EntitySpawned {
+            entity,
+            position,
+            velocity: Vec3::ZERO,
+            kind: SpawnedEntityKind::FallingBlock {
+                block: BlockStateId::new(FALLING_SAND),
+            },
+        }
+    }
+
+    #[test]
+    fn falling_block_spawn_reaches_an_in_range_viewer() {
+        let mut router = SessionRouter::new();
+        let _inbox = router.register_shard(ShardPos::new(0, 0));
+        let viewer = player("nina");
+        let mut handle = router
+            .join_player(viewer, "nina", spawn_pos())
+            .expect("join");
+
+        let closed = router.route_output(&falling_block_spawn(EntityId::new(1), spawn_pos()));
+        assert!(closed.is_empty());
+
+        let ClientboundPlayPacket::SpawnEntity(spawn) =
+            handle.try_recv().expect("a spawn packet").into_packet()
+        else {
+            panic!("expected a SpawnEntity for the falling block");
+        };
+        // Rendered as minecraft:falling_block (type 49) carrying its state.
+        assert_eq!(spawn.entity_type(), 49);
+        // FALLING_SAND (10) round-trips into the type-specific data field.
+        assert_eq!(spawn.data(), 10);
+        assert_eq!((spawn.x(), spawn.y(), spawn.z()), (8.0, 64.0, 8.0));
+    }
+
+    #[test]
+    fn falling_block_spawn_skips_an_out_of_range_viewer() {
+        let mut router = SessionRouter::new();
+        let _inbox = router.register_shard(ShardPos::new(0, 0));
+        let viewer = player("otto");
+        let mut handle = router
+            .join_player(viewer, "otto", spawn_pos())
+            .expect("join");
+
+        // Spawn far beyond the default 10-chunk view distance (x=2000 -> chunk 125).
+        let closed = router.route_output(&falling_block_spawn(
+            EntityId::new(1),
+            Vec3::new(2000.0, 64.0, 8.0),
+        ));
+        assert!(closed.is_empty());
+        assert!(
+            handle.try_recv().is_none(),
+            "an out-of-range viewer must not receive the spawn"
+        );
+    }
+
+    #[test]
+    fn falling_block_spawn_move_despawn_reaches_a_viewer_in_order() {
+        let mut router = SessionRouter::new();
+        let _inbox = router.register_shard(ShardPos::new(0, 0));
+        let viewer = player("pia");
+        let mut handle = router
+            .join_player(viewer, "pia", spawn_pos())
+            .expect("join");
+        let entity = EntityId::new(1);
+
+        // Spawn, then a small downward move (within the relative-move range), then
+        // despawn. Each step is routed independently, as the driver does per tick.
+        assert!(router
+            .route_output(&falling_block_spawn(entity, spawn_pos()))
+            .is_empty());
+        assert!(router
+            .route_output(&GameOutput::EntityMoved {
+                entity,
+                position: Vec3::new(8.0, 62.0, 8.0),
+            })
+            .is_empty());
+        assert!(router
+            .route_output(&GameOutput::EntityDespawned { entity })
+            .is_empty());
+
+        // First the spawn; capture the allocated network id.
+        let ClientboundPlayPacket::SpawnEntity(spawn) =
+            handle.try_recv().expect("spawn").into_packet()
+        else {
+            panic!("expected SpawnEntity first");
+        };
+        let network_id = spawn.entity_id();
+
+        // Then a relative position+rotation carrier for the 2-block drop.
+        let ClientboundPlayPacket::UpdateEntityPositionAndRotation(mv) =
+            handle.try_recv().expect("move").into_packet()
+        else {
+            panic!("expected a relative move for the fall");
+        };
+        assert_eq!(mv.entity_id(), network_id);
+
+        // Finally a RemoveEntities naming exactly that id.
+        let ClientboundPlayPacket::RemoveEntities(remove) =
+            handle.try_recv().expect("despawn").into_packet()
+        else {
+            panic!("expected RemoveEntities on despawn");
+        };
+        assert_eq!(remove.entity_ids(), [network_id].as_slice());
+
+        // Nothing more, and the entity is no longer tracked.
+        assert!(handle.try_recv().is_none());
     }
 
     #[test]

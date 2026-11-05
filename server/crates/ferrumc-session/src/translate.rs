@@ -52,6 +52,19 @@ const PLACEHOLDER_ENTITY_ID: i32 = 0;
 /// `acacia_boat`, which is why the previous placeholder of `0` spawned a boat.
 const PLAYER_ENTITY_TYPE: i32 = 149;
 
+/// Entity-type id used for a falling block in a [`SpawnEntity`] shell.
+///
+/// `minecraft:falling_block` is numeric entity-type id `49` in 1.21.8 / protocol
+/// 772. Like [`PLAYER_ENTITY_TYPE`], entity-type ids are not carried in
+/// `protocol.json`, so this is pinned against the same `minecraft:entity_type`
+/// registry ordering the player id was verified against: in that ordering
+/// `acacia_boat = 0`, `falling_block = 49`, `zombified_piglin = 148`,
+/// `player = 149`, `fishing_bobber = 150`, for 151 types total (ids `0..=150`).
+/// The three high ids match [`PLAYER_ENTITY_TYPE`]'s pinned neighbours exactly,
+/// confirming the same registry; `falling_block` sits below the `happy_ghast`
+/// (id 56) insertion that shifted 1.21.6+ so its id is unchanged from 1.21.5.
+const FALLING_BLOCK_ENTITY_TYPE: i32 = 49;
+
 /// The vanilla "Add Player" player-list action bit.
 const ADD_PLAYER: u8 = 0x01;
 
@@ -308,6 +321,39 @@ pub(crate) fn entity_spawn_shell(
         0,
         EntityVelocity::new(0, 0, 0),
     ))
+}
+
+/// Builds the [`SpawnEntity`] shell that makes a falling block visible: a
+/// `minecraft:falling_block` entity at `position` displaying `block`, tagged with
+/// the server-allocated network `entity_id` and `entity_uuid`.
+///
+/// Returns `None` when `block`'s state id has no `i32` wire encoding (defensive:
+/// the shard only stores representable states, so this is unreachable for real
+/// data). The falling block's block-state travels in the packet's type-specific
+/// `data` field — for `minecraft:falling_block` that field *is* the block-state
+/// id the client renders mid-air. Pitch/yaw/head-pitch are zero (a falling block
+/// does not rotate) and velocity is zeroed: the client's position is driven by
+/// the per-tick move shells the router broadcasts, not by spawn-time velocity.
+pub(crate) fn falling_block_spawn_shell(
+    entity_id: i32,
+    entity_uuid: uuid::Uuid,
+    position: Vec3,
+    block: BlockStateId,
+) -> Option<ClientboundPlayPacket> {
+    let data = i32::try_from(block.as_u32()).ok()?;
+    Some(ClientboundPlayPacket::SpawnEntity(SpawnEntity::new(
+        entity_id,
+        entity_uuid,
+        FALLING_BLOCK_ENTITY_TYPE,
+        position.x,
+        position.y,
+        position.z,
+        0,
+        0,
+        0,
+        data,
+        EntityVelocity::new(0, 0, 0),
+    )))
 }
 
 /// Builds the [`PlayerInfoUpdate`] "Add Player" packet that adds `player`
@@ -903,6 +949,27 @@ mod tests {
         assert_eq!(spawn.yaw(), 64);
         assert_eq!(spawn.head_pitch(), 64);
         assert_eq!(spawn.pitch(), 0);
+    }
+
+    #[test]
+    fn falling_block_shell_carries_type_and_block_state() {
+        let block = BlockStateId::new(1234);
+        let uuid = uuid::Uuid::from_bytes([7u8; 16]);
+        let ClientboundPlayPacket::SpawnEntity(spawn) =
+            falling_block_spawn_shell(11, uuid, Vec3::new(1.5, 64.0, -2.5), block)
+                .expect("state 1234 is representable")
+        else {
+            panic!("expected a SpawnEntity");
+        };
+        assert_eq!(spawn.entity_id(), 11);
+        assert_eq!(spawn.entity_uuid(), uuid);
+        // minecraft:falling_block is entity type 49 in 1.21.8 / proto 772.
+        assert_eq!(spawn.entity_type(), 49);
+        assert_eq!((spawn.x(), spawn.y(), spawn.z()), (1.5, 64.0, -2.5));
+        // The block-state travels in the type-specific data field.
+        assert_eq!(spawn.data(), 1234);
+        // A falling block does not rotate.
+        assert_eq!((spawn.yaw(), spawn.pitch(), spawn.head_pitch()), (0, 0, 0));
     }
 
     #[test]
